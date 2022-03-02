@@ -1,7 +1,9 @@
 """
 todo
-- stratified splits
-- transforms (data augmentation?)
+- split by train/val/test
+- stratify splits
+- data augmentation
+- normalize specifically to my dataset
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,6 +36,7 @@ preprocess = transforms.Compose([
 # load the full dataset
 data_dir = "./smalldata"
 full_dataset = datasets.ImageFolder(data_dir, preprocess)
+print(full_dataset.classes)
 
 # train/val split (non-stratified)
 train_size = int(0.8 * len(full_dataset))
