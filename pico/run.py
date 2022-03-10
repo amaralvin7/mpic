@@ -1,83 +1,78 @@
 """
 todo
-- split by train/val/test
-- stratify splits
 - data augmentation
 - normalize specifically to my dataset
 """
-import numpy as np
+import pickle
+import sys
 import matplotlib.pyplot as plt
-
+import numpy as np
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-
+from torchvision import datasets
 import retrain
 
 # # Detect if we have a GPU available
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-batch_size = 16
-num_workers = 0
-num_epochs = 100
-input_size = 299
+# data_path = './data/by_label'
+# batch_size = 64
+# n_epochs = 20
 
-# Define the preprocessing transforms
-# https://pytorch.org/hub/pytorch_vision_inception_v3/
-preprocess = transforms.Compose([
-    transforms.Resize(299),
-    transforms.CenterCrop(299),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225]),])
+# data_path = './smalldata'
+# batch_size = 2
+# n_epochs = 5
 
-# load the full dataset
-data_dir = "./smalldata"
-full_dataset = datasets.ImageFolder(data_dir, preprocess)
-print(full_dataset.classes)
+data_path = './ants_bees'
+batch_size = 8
+n_epochs = 15
 
-# train/val split (non-stratified)
-train_size = int(0.8 * len(full_dataset))
-val_size = len(full_dataset) - train_size
-train_dataset, val_dataset = torch.utils.data.random_split(
-    full_dataset, [train_size, val_size])
+test_size = 0.1
+n_workers = 0
 
-# create dataloaders for the train/val datasets
-img_datasets = {'train': train_dataset, 'val': val_dataset}
-dataloaders_dict = {k: DataLoader(
-    v, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-                    for k, v in img_datasets.items()}
+if __name__ == '__main__':
+    
+    transforms = retrain.get_transforms()
+    data = datasets.ImageFolder(data_path, transforms)
+    train_data, val_data, test_data = retrain.train_val_test_split(
+        data, test_size)
+    train_loaders, test_loader = retrain.get_dataloaders(
+        train_data, val_data, test_data, batch_size, n_workers)
 
-# initialize the model
-num_classes = len(full_dataset.classes)
-model = retrain.initialize_model(num_classes)
-# model = model.to(device)
+    model = retrain.initialize_model(len(data.classes))
+    # model = model.to(device)
+    params_to_update = retrain.get_params_to_update(model)
+    # optimizer = optim.Adam(params_to_update)
+    optimizer = torch.optim.SGD(params_to_update, lr=0.05, momentum=0.0)
+    criterion = torch.nn.CrossEntropyLoss()
+    model, train_acc, val_acc, train_loss, val_loss = retrain.train_model(
+        model, train_loaders, criterion, optimizer, num_epochs=n_epochs)
 
-# figure out which params we have to update
-params_to_update = []
-for name, param in model.named_parameters():
-    if param.requires_grad == True:
-        params_to_update.append(param)
+    pkl = (train_acc, val_acc, train_loss, val_loss, test_loader, data)
+    with open('modeldata.pkl', 'wb') as file:
+                pickle.dump(pkl, file)
+    
+    torch.save(model.state_dict(), 'weights.pt')
 
-optimizer = optim.Adam(params_to_update)
-criterion = nn.CrossEntropyLoss()
+    # plot training and validation accuracy histories
+    plt.title("Accuracy vs. Number of Training Epochs")
+    plt.xlabel("Training Epochs")
+    plt.ylabel("Accuracy")
+    plt.plot(range(1,n_epochs+1), train_acc, label="training")
+    plt.plot(range(1,n_epochs+1), val_acc, label="validation")
+    plt.xticks(np.arange(1, n_epochs+1, 1.0))
+    plt.ylim([-0.1, 1.1])
+    plt.legend()
+    plt.savefig('accuracy')
+    plt.close()
 
-#retrain the model
-model, vhist, thist = retrain.train_model(
-    model, dataloaders_dict, criterion, optimizer, num_epochs=num_epochs)
-
-# plot training and validation accuracy histories
-plt.title("Accuracy vs. Number of Training Epochs")
-plt.xlabel("Training Epochs")
-plt.ylabel("Accuracy")
-plt.plot(range(1,num_epochs+1),vhist,label="validation")
-plt.plot(range(1,num_epochs+1),thist,label="training")
-plt.ylim((0,1.))
-plt.xticks(np.arange(1, num_epochs+1, 1.0))
-plt.ylim([-0.1, 1.1])
-plt.legend()
-plt.savefig('history')
-plt.close()
+    # plot training and validation loss histories
+    plt.title("Loss vs. Number of Training Epochs")
+    plt.xlabel("Training Epochs")
+    plt.ylabel("Loss")
+    plt.plot(range(1,n_epochs+1), train_loss, label="training")
+    plt.plot(range(1,n_epochs+1), val_loss, label="validation")
+    plt.xticks(np.arange(1, n_epochs+1, 1.0))
+    plt.legend()
+    plt.savefig('loss')
+    plt.close()
     
