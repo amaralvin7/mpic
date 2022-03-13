@@ -1,5 +1,7 @@
 # Adapted from https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
-# kept only parts relevant to using inception v3 as a feature extractor
+# kept only parts relevant to using resnet18 for fine-tuning
+from __future__ import print_function
+from __future__ import division
 import time
 import copy
 
@@ -45,18 +47,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
-                    # Special case for inception because in training it has an auxiliary output. In train
-                    #   mode we calculate the loss by summing the final output and the auxiliary output
-                    #   but in testing we only consider the final output.
-                    if phase == 'train':
-                        outputs, aux_outputs = model(inputs)
-                        loss1 = criterion(outputs, labels)
-                        loss2 = criterion(aux_outputs, labels)
-                        loss = loss1 + 0.4*loss2
-                    else:
-                        outputs = model(inputs)
-                        loss = criterion(outputs, labels)
-
+                    outputs = model(inputs)
+                    loss = criterion(outputs, labels)
                     _, preds = torch.max(outputs, 1)
 
                     # backward + optimize only if in training phase
@@ -95,32 +87,20 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     return model, train_accuracy, val_accuracy, train_loss, val_loss
 
 def initialize_model(num_classes):
-    """ Inception v3
-    Be careful, expects (299,299) sized images and has auxiliary output
-    """
-    model = models.inception_v3(pretrained=True)
-    for param in model.parameters():
-        param.requires_grad = False
-        
-    # Handle the auxilary net
-    num_features_aux = model.AuxLogits.fc.in_features
-    model.AuxLogits.fc = torch.nn.Linear(num_features_aux, num_classes)
-    
-    # Handle the primary net
-    num_features_main = model.fc.in_features
-    model.fc = torch.nn.Linear(num_features_main, num_classes)
+
+    model = models.resnet18(pretrained=True)
+    num_features = model.fc.in_features
+    model.fc = torch.nn.Linear(num_features, num_classes)
 
     return model
 
-def get_transforms():
-    
+def get_transforms(mean, std):
+
     transformations = transforms.Compose([
-        transforms.Resize(299),
-        # transforms.CenterCrop(299),  # specified in https://pytorch.org/hub/pytorch_vision_inception_v3/
-        transforms.RandomCrop(299),  # used in TF's retrain (?)
+        transforms.Resize(224),
+        transforms.CenterCrop(224),  # specified in https://pytorch.org/hub/pytorch_vision_inception_v3/
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                            std=[0.229, 0.224, 0.225]),])
+        transforms.Normalize(mean=mean, std=std)])
     
     return transformations
 
@@ -134,15 +114,6 @@ def get_dataloaders(train_data, val_data, test_data, batch_size, n_workers):
         test_data, batch_size=batch_size, shuffle=True, num_workers=n_workers)
     
     return train_loaders, test_loader
-
-def get_params_to_update(model):
-
-    params_to_update = []
-    for _, param in model.named_parameters():
-        if param.requires_grad == True:
-            params_to_update.append(param)
-    
-    return params_to_update
 
 def train_val_test_split(data, test_size):
     

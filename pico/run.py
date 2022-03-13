@@ -18,20 +18,16 @@ import retrain
 # batch_size = 64
 # n_epochs = 20
 
-# data_path = './smalldata'
-# batch_size = 2
-# n_epochs = 5
-
-data_path = './ants_bees'
-batch_size = 8
-n_epochs = 15
+data_path = './data7by4k'
+batch_size = 64
+n_epochs = 50
 
 test_size = 0.1
 n_workers = 0
 
 if __name__ == '__main__':
     
-    transforms = retrain.get_transforms()
+    transforms = retrain.get_transforms([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     data = datasets.ImageFolder(data_path, transforms)
     train_data, val_data, test_data = retrain.train_val_test_split(
         data, test_size)
@@ -40,9 +36,7 @@ if __name__ == '__main__':
 
     model = retrain.initialize_model(len(data.classes))
     # model = model.to(device)
-    params_to_update = retrain.get_params_to_update(model)
-    # optimizer = optim.Adam(params_to_update)
-    optimizer = torch.optim.SGD(params_to_update, lr=0.05, momentum=0.0)
+    optimizer = torch.optim.Adam(model.parameters())
     criterion = torch.nn.CrossEntropyLoss()
     model, train_acc, val_acc, train_loss, val_loss = retrain.train_model(
         model, train_loaders, criterion, optimizer, num_epochs=n_epochs)

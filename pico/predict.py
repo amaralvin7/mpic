@@ -4,18 +4,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import torch
-from torchvision.models import Inception3
+from torchvision.models import resnet18
 from sklearn.metrics import classification_report, accuracy_score, ConfusionMatrixDisplay
 
 # load summary data from model training
 with open('modeldata.pkl', 'rb') as file:
     train_acc, val_acc, train_loss, val_loss, test_loader, data = pickle.load(file)
 
-# load an Inception3 model, with structure and weights from saved model
+# load an resnet18 model, with structure and weights from saved model
 num_classes = len(data.classes)
-model = Inception3(init_weights=False)
-num_features_aux = model.AuxLogits.fc.in_features
-model.AuxLogits.fc = torch.nn.Linear(num_features_aux, num_classes)
+model = resnet18(pretrained=False)
 num_features_main = model.fc.in_features
 model.fc = torch.nn.Linear(num_features_main, num_classes)
 model.load_state_dict(torch.load('weights.pt'))
