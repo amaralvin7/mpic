@@ -1,7 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 
-path = './data/by_label/'
+path = './data/'
 contents = os.listdir(path)
 labels = [name for name in contents if os.path.isdir(f'{path}{name}')]
 n_per_label = []
@@ -15,10 +15,10 @@ for l in labels:
     print(f'{l}: {n_smps}')
 print(f'TOTAL: {total}')
 
-# n_per_label_normed = [n/total for n in n_per_label]
+n_per_label_normed = [n/total for n in n_per_label]
 
-# y_pos = range(len(labels))
-# plt.bar(y_pos, n_per_label)
-# plt.xticks(y_pos, labels, rotation=90)
-# plt.tight_layout()
-# plt.savefig('sample_counts')
+y_pos = range(len(labels))
+plt.bar(y_pos, n_per_label)
+plt.xticks(y_pos, labels, rotation=90)
+plt.tight_layout()
+plt.savefig('sample_counts')
