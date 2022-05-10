@@ -33,7 +33,7 @@ def pad_all_images(basepath):
     for path, _, files in os.walk(f'{basepath}orig'):
         for filename in files:
             if '.jpg' in filename:
-                label = os.path.basename(path)
+                label = os.path.basename(path).replace('_','')
                 image = Image.open(f'{path}/{filename}')
                 padded = pad(image)
                 fn_no_xt = filename.split('.')[0]

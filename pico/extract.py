@@ -6,7 +6,8 @@ import h5py
 import pandas as pd
 from PIL import Image
 import torch
-from sklearn.decomposition import PCA
+# from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 from torchvision import models, transforms
 from tqdm import tqdm
 
@@ -64,7 +65,7 @@ if __name__ == '__main__':
     with torch.no_grad(), h5py.File('features.h5', "w") as f_features:
         
         n_objects = len(dataset)
-        n_features = 32
+        n_features = 2
 
         h5_vstr = h5py.special_dtype(vlen=str)
         h5_objids = f_features.create_dataset("object_id", (n_objects,), dtype=h5_vstr)
@@ -81,7 +82,8 @@ if __name__ == '__main__':
             #     features = features.div(length)
 
             features = model(inputs).numpy()
-            features = PCA(n_features).fit_transform(features)
+            # features = PCA(n_features).fit_transform(features)
+            features = TSNE(n_features).fit_transform(features)
 
             h5_objids[offset : offset + batch_size] = objids
             h5_features[offset : offset + batch_size] = features
