@@ -37,18 +37,28 @@ class ArchiveDataset(torch.utils.data.Dataset):
         return len(self.dataframe)
 
 
-def extract(path):
+def get_data_loader(dataset, batch_size):
 
-    # load images
-    batch_size = 398 # 145668 images, 366 full batches
-    transformations = transforms.Compose([transforms.ToTensor()])
-    dataset = ArchiveDataset(path, transformations)
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=False,
         num_workers=0  # num_workers has to be 0 because ArchiveDataset is not threadsafe
     )
+    
+    return loader
+    
+def extract(path):
+
+    # load images
+    batch_size = 398 # 145668 images, 366 full batches
+    transformations = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.2112, 0.2303, 0.2232],
+                             std=[0.1407, 0.1532, 0.1467]),
+    ])
+    dataset = ArchiveDataset(path, transformations)
+    loader = get_data_loader(dataset, batch_size)
 
     # load pretrained model and "remove" FC layer
     model = models.resnet18(pretrained=True)
@@ -77,6 +87,29 @@ def extract(path):
 
             offset += batch_size
 
+
+def get_data_stats():
+    # adapted from
+    # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
+    batch_size = 64
+    transformations = transforms.Compose([transforms.ToTensor()])
+    dataset = ArchiveDataset(path, transformations)
+    loader = get_data_loader(dataset, batch_size)
+
+    sum_pixelvals = 0
+    sum_square_pixelvals = 0
+    n_pixels = len(dataset) * 224**2
+
+    for _, pixelvals in tqdm(loader):
+        sum_pixelvals += pixelvals.sum(dim=[0,2,3])
+        sum_square_pixelvals += (pixelvals**2).sum(dim=[0,2,3])
+
+    mean = sum_pixelvals/n_pixels
+    var  = (sum_square_pixelvals/n_pixels) - (mean**2)
+    sd  = torch.sqrt(var)
+
+    print(f'mean: {mean}')
+    print(f'sd: {sd}')
 
 if __name__ == '__main__':
 
