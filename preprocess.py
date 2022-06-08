@@ -97,7 +97,7 @@ def copy_imgs(copy_from, copy_to):
             if condition:
                 continue
             im = Image.open(os.path.join(path, f))
-            im.save(os.path.join(copy_to, f))
+            im.save(os.path.join(copy_to, f), quality=95)
             filenames.append(f)
             labels.append(label)
 
@@ -125,12 +125,15 @@ def make_combined_dir(parent):
 
 def pad_combined_images(parent):
     """Pad images from /combined and separate them into train and eval sets."""
-    def save_image(path, filename, ids, labels, filepaths):
+    def save_image(padded, save_in, filename, ids, labels, filepaths):
 
-            padded.save(os.path.join(path, filename))
-            ids.append(f.split('.')[0])
+            filename_noxt = filename.split('.')[0]
+            jpg = f'{filename_noxt}.jpg'
+            path = os.path.join(save_in, jpg)
+            padded.save(path, 'JPEG', quality=95)
+            ids.append(filename_noxt)
             labels.append(l)
-            filepaths.append(os.path.join(os.path.basename(path), filename))
+            filepaths.append(os.path.join(os.path.basename(save_in), jpg))
         
     combined_path = os.path.join(parent, 'combined')
     train_path = os.path.join(parent, 'train')
@@ -153,9 +156,12 @@ def pad_combined_images(parent):
         image = Image.open(os.path.join(combined_path, f))
         padded = pad(image)
         if 'FK' in f:
-            save_image(eval_path, f, eval_ids, eval_labels, eval_filepaths)
+            save_image(
+                padded, eval_path, f, eval_ids, eval_labels, eval_filepaths)
         else:
-            save_image(train_path, f, train_ids, train_labels, train_filepaths)
+            save_image(
+                padded, train_path, f, train_ids, train_labels,
+                train_filepaths)
 
     columns = ('object_id', 'label', 'path')
     train_contents = (train_ids, train_labels, train_filepaths)
@@ -185,4 +191,5 @@ def pad_combined_images(parent):
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
+    make_combined_dir(path)
     pad_combined_images(path)
