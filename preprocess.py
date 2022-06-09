@@ -17,14 +17,16 @@ object_id, label, and path columns. To be used for model training and testing.
 object_id, label, and path columns. To be used for out-of-domain model
 evaluation.
 """
-import os
 import csv
+import os
+import sys
 
+import numpy as np
 import pandas as pd
 from PIL import Image
 
 
-def pad(im):
+def pad(im, color=0):
     """Rescale and center images along the longest axis, then zero-pad.
 
     Adapted from:
@@ -41,7 +43,8 @@ def pad(im):
     ratio = square_size / max(orig_size)
     scaled_size = [int(x * ratio) for x in orig_size]
     im = im.resize(scaled_size, Image.LANCZOS)
-    padded_im = Image.new('RGB', (square_size, square_size))
+    color = median_pixel_value(im)
+    padded_im = Image.new('RGB', (square_size, square_size), color)
     paste_at = [(square_size - s) // 2 for s in scaled_size]
     padded_im.paste(im, paste_at)
 
@@ -170,6 +173,13 @@ def pad_combined_images(parent):
     write_index(train_path, columns, train_contents)
     write_index(eval_path, columns, eval_contents)
 
+def median_pixel_value(im):
+
+    pixels = np.array(im)  # N x M x3
+    pixels = pixels.reshape(-1,3)  # (NXM) x 3
+    median = np.median(pixels, axis=0)  # 1 x 3
+
+    return tuple(median.astype(int))
 
 # def get_background_color(im):
 #     """Get mean RGB values of an image"""
@@ -191,5 +201,5 @@ def pad_combined_images(parent):
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
-    make_combined_dir(path)
+    # make_combined_dir(path)
     pad_combined_images(path)
