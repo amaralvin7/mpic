@@ -1,16 +1,25 @@
-# adapted from morphocluster's extract_features.py
+"""
+Extract features from particle images.
+
+Uses ResNet-18 pretrained on ImageNet as a feature extractor. PCA is used to
+reduce feature vector dimentionality to 64. Reduced feature vectors are then
+standardized and stored in a HDF5 file to be fed into morphocluster.
+"""
 import zipfile
 
 import h5py
+import numpy as np
 import pandas as pd
 from PIL import Image
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 import torch
 from torchvision import models, transforms
-from sklearn.decomposition import PCA
 from tqdm import tqdm
 
-
 class ArchiveDataset(torch.utils.data.Dataset):
+    # from morphocluster
+    # https://github.com/morphocluster/morphocluster/blob/0.2.x/morphocluster/processing/extract_features.py
     def __init__(self, archive_fn: str, transform=None):
         super().__init__()
 
@@ -47,45 +56,60 @@ def get_data_loader(dataset, batch_size):
     )
     
     return loader
-    
-def extract(path):
 
-    # load images
-    batch_size = 398 # 145668 images, 366 full batches
+def load_dataset(path):
+
     transformations = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.2112, 0.2303, 0.2232],
                              std=[0.1407, 0.1532, 0.1467]),
     ])
+
     dataset = ArchiveDataset(path, transformations)
+    
+    return dataset, len(dataset)
+    
+def extract(path, batch_size, n_components):
+
+    dataset, n_images = load_dataset(path)
     loader = get_data_loader(dataset, batch_size)
 
     # load pretrained model and "remove" FC layer
     model = models.resnet18(pretrained=True)
+    n_features = model.fc.in_features
     model.fc = torch.nn.Identity()
     model.eval()
 
-    with torch.no_grad(), h5py.File('features.h5', 'w') as f_features:
+    features = np.empty((n_images, n_features))
+    image_ids = []
 
-        n_objects = len(dataset)
-        n_features = 32
+    with torch.no_grad():
+        i = 0
+        for ids, inputs in tqdm(loader, unit='batch'):
+            image_ids.extend(ids)
+            feature_vectors = model(inputs).numpy()
+            features[i:i + batch_size] = feature_vectors
+            i += batch_size
+    
+    features = pca(features, n_components)
+    features = StandardScaler().fit_transform(features)  # rescale for clustering
+    
+    return image_ids, features
 
-        h5_objids = f_features.create_dataset(
-            'object_id', (n_objects,), dtype=h5py.string_dtype())
-        h5_features = f_features.create_dataset(
-            'features', (n_objects, n_features), dtype='float32')
 
-        offset = 0
+def pca(features, n_components):
 
-        for objids, inputs in tqdm(loader, unit='batch'):
+    features = StandardScaler().fit_transform(features)
+    features = PCA(n_components).fit_transform(features)
 
-            features = model(inputs).numpy()
-            features = PCA(n_features).fit_transform(features)
+    return features
 
-            h5_objids[offset: offset + batch_size] = objids
-            h5_features[offset: offset + batch_size] = features
 
-            offset += batch_size
+def write_hdf5(filename, image_ids, features):
+    
+    with h5py.File(filename, 'w') as f:
+        f.create_dataset('object_id', data=image_ids, dtype=h5py.string_dtype())
+        f.create_dataset('features', data=features, dtype='float32')
 
 
 def get_data_stats():
@@ -113,6 +137,8 @@ def get_data_stats():
 
 if __name__ == '__main__':
 
-    path = '/Users/particle/imgs/Archive.zip'
-    path = '/home/vamaral/pico/archive.zip'
-    extract(path)
+    # path = '/Users/particle/imgs/archive.zip'
+    path = '/home/vamaral/pico/archive.zip' 
+    image_ids, features = extract(path, 128, 64)
+    write_hdf5('features.h5', image_ids, features)
+
