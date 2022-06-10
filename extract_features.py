@@ -26,21 +26,21 @@ class ArchiveDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.archive = zipfile.ZipFile(archive_fn)
 
-        with self.archive.open('index.csv') as fp:
+        with self.archive.open('index.csv') as f:
             self.dataframe = pd.read_csv(
-                fp, dtype=str, usecols=['object_id', 'path'])
+                f, dtype=str, usecols=['object_id', 'path'])
 
     def __getitem__(self, index):
         object_id, path = self.dataframe.iloc[index][['object_id', 'path']]
 
-        with self.archive.open(path) as fp:
-            img = Image.open(fp)
-            img = img.convert('RGB')
+        with self.archive.open(path) as f:
+            image = Image.open(f)
+            image = image.convert('RGB')
 
         if self.transform is not None:
-            img = self.transform(img)
+            image = self.transform(image)
 
-        return object_id, img
+        return object_id, image
 
     def __len__(self):
         return len(self.dataframe)
@@ -61,8 +61,8 @@ def load_dataset(path):
 
     transformations = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.2112, 0.2303, 0.2232],
-                             std=[0.1407, 0.1532, 0.1467]),
+        transforms.Normalize(mean=[0.284, 0.309, 0.298],
+                             std=[0.089, 0.096, 0.090]),
     ])
 
     dataset = ArchiveDataset(path, transformations)
@@ -112,10 +112,10 @@ def write_hdf5(filename, image_ids, features):
         f.create_dataset('features', data=features, dtype='float32')
 
 
-def get_data_stats():
+def get_data_stats(path):
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
-    batch_size = 64
+    batch_size = 128
     transformations = transforms.Compose([transforms.ToTensor()])
     dataset = ArchiveDataset(path, transformations)
     loader = get_data_loader(dataset, batch_size)
@@ -137,8 +137,8 @@ def get_data_stats():
 
 if __name__ == '__main__':
 
-    # path = '/Users/particle/imgs/archive.zip'
-    path = '/home/vamaral/pico/archive.zip' 
-    image_ids, features = extract(path, 128, 64)
+    path = '/Users/particle/imgs/train.zip'
+    path = '/home/vamaral/pico/train.zip'
+    image_ids, features = extract(path, 128, 32)
     write_hdf5('features.h5', image_ids, features)
 

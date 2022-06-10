@@ -21,34 +21,47 @@ import csv
 import os
 import sys
 
-import numpy as np
 import pandas as pd
 from PIL import Image
+from torchvision.transforms.functional import resize, center_crop
+    
+# def pad(im):
+#     """Rescale and center images along the longest axis, then zero-pad.
 
+#     Adapted from:
+#     https://jdhao.github.io/2017/11/06/resize-image-to-square-with-padding/
 
-def pad(im, color=0):
-    """Rescale and center images along the longest axis, then zero-pad.
+#     Args:
+#         im (PIL.Image.Image): image to be padded
 
-    Adapted from:
-    https://jdhao.github.io/2017/11/06/resize-image-to-square-with-padding/
+#     Returns:
+#         padded_im (PIL.Image.Image): padded image
+#     """
+#     square_size = 224
+#     orig_size = im.size
+#     ratio = square_size / max(orig_size)
+#     scaled_size = [int(x * ratio) for x in orig_size]
+#     im = im.resize(scaled_size, Image.LANCZOS)
+#     padded_im = Image.new('RGB', (square_size, square_size))
+#     paste_at = [(square_size - s) // 2 for s in scaled_size]
+#     padded_im.paste(im, paste_at)
+
+#     return padded_im
+
+def resizecrop(image):
+    """Resize and apply a center crop.
 
     Args:
-        im (PIL.Image.Image): image to be padded
+        im (PIL.Image.Image): image to be cropped
 
     Returns:
-        padded_im (PIL.Image.Image): padded image
+        cropped_im (PIL.Image.Image): cropped image
     """
-    square_size = 224
-    orig_size = im.size
-    ratio = square_size / max(orig_size)
-    scaled_size = [int(x * ratio) for x in orig_size]
-    im = im.resize(scaled_size, Image.LANCZOS)
-    color = median_pixel_value(im)
-    padded_im = Image.new('RGB', (square_size, square_size), color)
-    paste_at = [(square_size - s) // 2 for s in scaled_size]
-    padded_im.paste(im, paste_at)
+    size = 224
+    image = resize(image, size)
+    image = center_crop(image, size)
 
-    return padded_im
+    return image
 
 
 def write_index(path, columns, contents):
@@ -86,7 +99,7 @@ def copy_imgs(copy_from, copy_to):
         Unlabeled images have corresponding entries equal to 'none'.
     """
     label_status = os.path.basename(copy_from)
-    filenames = []
+    ids = []
     labels = []
 
     for path, _, files in os.walk(copy_from):
@@ -99,12 +112,14 @@ def copy_imgs(copy_from, copy_to):
                 condition = not f.endswith('.tiff') or '_7x_collage' in f
             if condition:
                 continue
-            im = Image.open(os.path.join(path, f))
-            im.save(os.path.join(copy_to, f), quality=95)
-            filenames.append(f)
+            object_id = f.split('.')[0]
+            f_jpg = f'{object_id}.jpg'
+            image = Image.open(os.path.join(path, f))
+            image.save(os.path.join(copy_to, f_jpg), 'JPEG', quality=95)
+            ids.append(object_id)
             labels.append(label)
 
-    return filenames, labels
+    return ids, labels
 
 
 def make_combined_dir(parent):
@@ -115,91 +130,43 @@ def make_combined_dir(parent):
 
     make_dir(combined_path)
 
-    l_filenames, l_labels = copy_imgs(labeled_path, combined_path)
-    u_filenames, u_labels = copy_imgs(unlabeled_path, combined_path)
+    labeled_ids, labeled_labels = copy_imgs(labeled_path, combined_path)
+    unlabeled_ids, unlabeled_labels = copy_imgs(unlabeled_path, combined_path)
 
-    filenames = l_filenames + u_filenames
-    labels = l_labels + u_labels
+    ids = labeled_ids + unlabeled_ids
+    labels = labeled_labels + unlabeled_labels
+    paths = [os.path.join('combined', f'{i}.jpg') for i in ids]
 
-    columns = ('filename', 'label')
-    contents = (filenames, labels)
+    columns = ('object_id', 'label', 'path')
+    contents = (ids, labels, paths)
     write_index(combined_path, columns, contents)
 
 
-def pad_combined_images(parent):
+def crop_combined_images(parent):
     """Pad images from /combined and separate them into train and eval sets."""
-    def save_image(padded, save_in, filename, ids, labels, filepaths):
-
-            filename_noxt = filename.split('.')[0]
-            jpg = f'{filename_noxt}.jpg'
-            path = os.path.join(save_in, jpg)
-            padded.save(path, 'JPEG', quality=95)
-            ids.append(filename_noxt)
-            labels.append(l)
-            filepaths.append(os.path.join(os.path.basename(save_in), jpg))
-        
     combined_path = os.path.join(parent, 'combined')
     train_path = os.path.join(parent, 'train')
-    eval_path = os.path.join(parent, 'eval')
 
     make_dir(train_path)
-    make_dir(eval_path)
 
     index = pd.read_csv(os.path.join(combined_path, 'index.csv'))
-    all_filenames = index['filename'].to_list()
-    all_labels = index['label'].to_list()
-    train_ids = []
-    train_labels = []
-    train_filepaths = []
-    eval_ids = []
-    eval_labels = []
-    eval_filepaths = []
+    train_ids = [i for i in index['object_id'].to_list() if 'FK' not in i]
+    train_filepaths = [os.path.join('train', f'{i}.jpg') for i in train_ids]
 
-    for f, l in zip(all_filenames, all_labels):
+    for i in train_ids:
+        f = f'{i}.jpg'
         image = Image.open(os.path.join(combined_path, f))
-        padded = pad(image)
-        if 'FK' in f:
-            save_image(
-                padded, eval_path, f, eval_ids, eval_labels, eval_filepaths)
-        else:
-            save_image(
-                padded, train_path, f, train_ids, train_labels,
-                train_filepaths)
+        cropped = resizecrop(image)
+        cropped.save(os.path.join(train_path, f), quality=95)
 
-    columns = ('object_id', 'label', 'path')
-    train_contents = (train_ids, train_labels, train_filepaths)
-    eval_contents = (eval_ids, eval_labels, eval_filepaths)
+    columns = ('object_id', 'path')
+    train_contents = (train_ids, train_filepaths)
 
     write_index(train_path, columns, train_contents)
-    write_index(eval_path, columns, eval_contents)
-
-def median_pixel_value(im):
-
-    pixels = np.array(im)  # N x M x3
-    pixels = pixels.reshape(-1,3)  # (NXM) x 3
-    median = np.median(pixels, axis=0)  # 1 x 3
-
-    return tuple(median.astype(int))
-
-# def get_background_color(im):
-#     """Get mean RGB values of an image"""
-#     x, y = im.size
-
-#     upper_left = im.getpixel((0, 0))
-#     upper_right = im.getpixel((x - 1, 0))
-#     lower_left = im.getpixel((0, y - 1))
-#     lower_right = im.getpixel((x - 1, y - 1))
-#     corners = (upper_left, upper_right, lower_left, lower_right)
-
-#     mean_r = int(np.mean([c[0]**2 for c in corners])**0.5)
-#     mean_g = int(np.mean([c[1]**2 for c in corners])**0.5)
-#     mean_b = int(np.mean([c[2]**2 for c in corners])**0.5)
-
-#     return (mean_r, mean_g, mean_b)
 
 
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
-    # make_combined_dir(path)
-    pad_combined_images(path)
+    make_combined_dir(path)
+    crop_combined_images(path)
