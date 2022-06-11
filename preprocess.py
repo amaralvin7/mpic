@@ -21,32 +21,50 @@ import csv
 import os
 import sys
 
+import numpy as np
 import pandas as pd
 from PIL import Image
-from torchvision.transforms.functional import resize, center_crop
+from torchvision.transforms.functional import resize, center_crop, rotate
     
-# def pad(im):
-#     """Rescale and center images along the longest axis, then zero-pad.
+def pad(image):
+    """Rescale and center images along the longest axis, then zero-pad.
 
-#     Adapted from:
-#     https://jdhao.github.io/2017/11/06/resize-image-to-square-with-padding/
+    Adapted from:
+    https://jdhao.github.io/2017/11/06/resize-image-to-square-with-padding/
 
-#     Args:
-#         im (PIL.Image.Image): image to be padded
+    Args:
+        image (PIL.Image.Image): image to be padded
 
-#     Returns:
-#         padded_im (PIL.Image.Image): padded image
-#     """
-#     square_size = 224
-#     orig_size = im.size
-#     ratio = square_size / max(orig_size)
-#     scaled_size = [int(x * ratio) for x in orig_size]
-#     im = im.resize(scaled_size, Image.LANCZOS)
-#     padded_im = Image.new('RGB', (square_size, square_size))
-#     paste_at = [(square_size - s) // 2 for s in scaled_size]
-#     padded_im.paste(im, paste_at)
+    Returns:
+        padded_image (PIL.Image.Image): padded image
+    """
+    square_size = 224
+    # bground_color = get_background_color(image)
+    orig_size = image.size
+    ratio = square_size / max(orig_size)
+    scaled_size = [int(x * ratio) for x in orig_size]
+    image = image.resize(scaled_size)
+    # padded_image = Image.new('RGB', (square_size, square_size), bground_color)
+    padded_image = Image.new('RGB', (square_size, square_size))
+    paste_at = [(square_size - s) // 2 for s in scaled_size]
+    padded_image.paste(image, paste_at)
+    if orig_size[0] > orig_size[1]:  # if W > H
+        padded_image = rotate(padded_image, 90)
 
-#     return padded_im
+    return padded_image
+
+def get_background_color(im):
+    
+    x, y = im.size
+
+    upper_left = im.getpixel((0, 0))
+    upper_right = im.getpixel((x - 1, 0))
+    lower_left = im.getpixel((0, y - 1))
+    lower_right = im.getpixel((x - 1, y - 1))
+    corners = np.array([upper_left, upper_right, lower_left, lower_right])
+    median = np.median(corners, axis=0).astype(int)
+    
+    return tuple(median)
 
 def resizecrop(image):
     """Resize and apply a center crop.
@@ -142,7 +160,7 @@ def make_combined_dir(parent):
     write_index(combined_path, columns, contents)
 
 
-def crop_combined_images(parent):
+def rescale_combined_images(parent, rescaler):
     """Pad images from /combined and separate them into train and eval sets."""
     combined_path = os.path.join(parent, 'combined')
     train_path = os.path.join(parent, 'train')
@@ -156,8 +174,8 @@ def crop_combined_images(parent):
     for i in train_ids:
         f = f'{i}.jpg'
         image = Image.open(os.path.join(combined_path, f))
-        cropped = resizecrop(image)
-        cropped.save(os.path.join(train_path, f), quality=95)
+        rescaled = rescaler(image)
+        rescaled.save(os.path.join(train_path, f), quality=95)
 
     columns = ('object_id', 'path')
     train_contents = (train_ids, train_filepaths)
@@ -168,5 +186,5 @@ def crop_combined_images(parent):
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
-    make_combined_dir(path)
-    crop_combined_images(path)
+    # make_combined_dir(path)
+    rescale_combined_images(path, pad)

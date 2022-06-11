@@ -61,8 +61,8 @@ def load_dataset(path):
 
     transformations = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.284, 0.309, 0.298],
-                             std=[0.089, 0.096, 0.090]),
+        transforms.Normalize(mean=[0.211, 0.230, 0.224],
+                             std=[0.141, 0.153, 0.147]),
     ])
 
     dataset = ArchiveDataset(path, transformations)
@@ -137,7 +137,8 @@ def get_data_stats(path):
 
 if __name__ == '__main__':
 
-    path = '/Users/particle/imgs/train.zip'
+    # path = '/Users/particle/imgs/train.zip'
+    # get_data_stats(path)
     path = '/home/vamaral/pico/train.zip'
     image_ids, features = extract(path, 128, 32)
     write_hdf5('features.h5', image_ids, features)
