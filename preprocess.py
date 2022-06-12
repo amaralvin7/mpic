@@ -39,13 +39,12 @@ def pad(image):
         padded_image (PIL.Image.Image): padded image
     """
     square_size = 224
-    # bground_color = get_background_color(image)
+    bground_color = set_background_color(image)
     orig_size = image.size
     ratio = square_size / max(orig_size)
     scaled_size = [int(x * ratio) for x in orig_size]
     image = image.resize(scaled_size)
-    # padded_image = Image.new('RGB', (square_size, square_size), bground_color)
-    padded_image = Image.new('RGB', (square_size, square_size))
+    padded_image = Image.new('RGB', (square_size, square_size), bground_color)
     paste_at = [(square_size - s) // 2 for s in scaled_size]
     padded_image.paste(image, paste_at)
     if orig_size[0] > orig_size[1]:  # if W > H
@@ -53,16 +52,17 @@ def pad(image):
 
     return padded_image
 
-def get_background_color(im):
+def set_background_color(image):
     
-    x, y = im.size
+    x, y = image.size
 
-    upper_left = im.getpixel((0, 0))
-    upper_right = im.getpixel((x - 1, 0))
-    lower_left = im.getpixel((0, y - 1))
-    lower_right = im.getpixel((x - 1, y - 1))
-    corners = np.array([upper_left, upper_right, lower_left, lower_right])
-    median = np.median(corners, axis=0).astype(int)
+    pixels = np.array(image)
+    toprow = pixels[0, :]
+    bottomrow = pixels[y-1, :]
+    leftcol = pixels[1:y-1, 0]
+    rightcol = pixels[1:y-1, x-1]
+    edges = np.concatenate((toprow, bottomrow, leftcol, rightcol))
+    median = np.around(np.median(edges, axis=0)).astype(int)
     
     return tuple(median)
 

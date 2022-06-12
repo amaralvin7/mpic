@@ -61,8 +61,8 @@ def load_dataset(path):
 
     transformations = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.211, 0.230, 0.224],
-                             std=[0.141, 0.153, 0.147]),
+        transforms.Normalize(mean=[0.269, 0.294, 0.289],
+                             std=[0.084, 0.092, 0.085]),
     ])
 
     dataset = ArchiveDataset(path, transformations)
