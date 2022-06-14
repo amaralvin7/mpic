@@ -52,7 +52,16 @@ def pad(image):
 
     return padded_image
 
+
 def set_background_color(image):
+    """Calculate background RGB values from median of edge pixels.
+
+    Args:
+        image (PIL.Image.Image): image for which to calculate the median
+
+    Returns:
+        median (tuple[int]): median RGB values of edge pixels
+    """
     
     x, y = image.size
 
@@ -65,6 +74,7 @@ def set_background_color(image):
     median = np.around(np.median(edges, axis=0)).astype(int)
     
     return tuple(median)
+
 
 def resizecrop(image):
     """Resize and apply a center crop.

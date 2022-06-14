@@ -70,7 +70,17 @@ def load_dataset(path):
     return dataset, len(dataset)
     
 def extract(path, batch_size, n_components):
+    """Extract features from an ArchiveDataset.
 
+    Args:
+        path (str): the path to the ArchiveDataset (.zip file)
+        batch_size (int): batch size for the data loader
+        n_components (int): number of compenents to keep in PCA
+
+    Returns:
+        image_ids (list[str]): object ids of the images
+        features (numpy.ndarray): the feature matrix
+    """
     dataset, n_images = load_dataset(path)
     loader = get_data_loader(dataset, batch_size)
 
@@ -98,7 +108,8 @@ def extract(path, batch_size, n_components):
 
 
 def pca(features, n_components):
-
+    """PCA with standardization."""
+    
     features = StandardScaler().fit_transform(features)
     features = PCA(n_components).fit_transform(features)
 
@@ -113,6 +124,7 @@ def write_hdf5(filename, image_ids, features):
 
 
 def get_data_stats(path):
+    # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
     batch_size = 128
