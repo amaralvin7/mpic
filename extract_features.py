@@ -8,6 +8,7 @@ standardized and stored in a HDF5 file to be fed into morphocluster.
 import zipfile
 
 import h5py
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -69,7 +70,7 @@ def load_dataset(path):
     
     return dataset, len(dataset)
     
-def extract(path, batch_size, n_components):
+def extract(path, batch_size):
     """Extract features from an ArchiveDataset.
 
     Args:
@@ -101,10 +102,9 @@ def extract(path, batch_size, n_components):
             features[i:i + batch_size] = feature_vectors
             i += batch_size
     
-    features = pca(features, n_components)
-    features = StandardScaler().fit_transform(features)  # rescale for clustering
+    features_scaled = StandardScaler().fit_transform(features)
     
-    return image_ids, features
+    return image_ids, features, features_scaled
 
 
 def pca(features, n_components):
@@ -116,11 +116,41 @@ def pca(features, n_components):
     return features
 
 
-def write_hdf5(filename, image_ids, features):
+def write_hdf5(filename, image_ids, features, features_scaled):
     
     with h5py.File(filename, 'w') as f:
         f.create_dataset('object_id', data=image_ids, dtype=h5py.string_dtype())
         f.create_dataset('features', data=features, dtype='float32')
+        f.create_dataset('features_scaled', data=features_scaled, dtype='float32')
+
+
+def read_hdf5(path):
+    
+    with h5py.File(path, 'r') as f:
+        features_unscaled = np.array(f['features'])
+        features_scaled = np.array(f['features_scaled'])
+
+    return features_unscaled, features_scaled
+
+
+def cumulative_variance_plot(features_unscaled, features_scaled):
+
+    pca_unscaled = PCA().fit(features_unscaled)
+    pca_scaled = PCA().fit(features_scaled)
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, tight_layout=True, figsize=(10,4))
+    x = range(1, features_scaled.shape[1] + 1)
+    ax1.set_title('Unscaled features')
+    ax2.set_title('Scaled features')
+    ax1.set_ylabel('Cumulaive explained variance')
+    ax1.plot(x, pca_unscaled.explained_variance_ratio_.cumsum(), marker='o', ls='--')
+    ax2.plot(x, pca_scaled.explained_variance_ratio_.cumsum(), marker='o', ls='--')
+    for ax in (ax1, ax2):
+        ax.set_xlabel('Number of components')
+        ax.axhline(0.8, c='k')
+        ax.set_xlim(0, 100)
+    
+    fig.savefig('cvar')
 
 
 def get_data_stats(path):
@@ -151,7 +181,11 @@ if __name__ == '__main__':
 
     # path = '/Users/particle/imgs/train.zip'
     # get_data_stats(path)
-    path = '/home/vamaral/pico/train.zip'
-    image_ids, features = extract(path, 128, 32)
-    write_hdf5('features.h5', image_ids, features)
+    # path = '/home/vamaral/pico/train.zip'
+    # image_ids, features, features_scaled = extract(path, 128)
+    # write_hdf5('features_medpad_512d_scaling_comparison.h5', image_ids, features, features_scaled)
 
+    features_unscaled, features_scaled = read_hdf5('/home/vamaral/pico/features_medpad_512d_scaling_comparison.h5')
+    print(np.var(features_unscaled[:,0]), np.mean(features_unscaled[:,0]))
+    print(np.var(features_scaled[:,0]), np.mean(features_scaled[:,0]))
+    cumulative_variance_plot(features_unscaled, features_scaled)
