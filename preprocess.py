@@ -24,9 +24,9 @@ import sys
 import numpy as np
 import pandas as pd
 from PIL import Image
-from torchvision.transforms.functional import resize, center_crop, rotate
+from torchvision.transforms.functional import rotate
     
-def pad(image):
+def pad(image, square_size=128):
     """Rescale and center images along the longest axis, then zero-pad.
 
     Adapted from:
@@ -38,58 +38,22 @@ def pad(image):
     Returns:
         padded_image (PIL.Image.Image): padded image
     """
-    square_size = 224
-    bground_color = set_background_color(image)
-    orig_size = image.size
-    ratio = square_size / max(orig_size)
-    scaled_size = [int(x * ratio) for x in orig_size]
-    image = image.resize(scaled_size)
-    padded_image = Image.new('RGB', (square_size, square_size), bground_color)
+    if image.size[0] > image.size[1]:  # if W > H, rotate so that H > W
+        image = rotate(image, 90, expand=True)
+
+    height = image.size[1]
+    if height > square_size:  # rescale if image is larger than square
+        ratio = square_size / height
+        scaled_size = [int(x * ratio) for x in image.size]
+        image = image.resize(scaled_size)
+    else:
+        scaled_size = image.size
+    
+    padded_image = Image.new('RGB', (square_size, square_size))
     paste_at = [(square_size - s) // 2 for s in scaled_size]
     padded_image.paste(image, paste_at)
-    if orig_size[0] > orig_size[1]:  # if W > H
-        padded_image = rotate(padded_image, 90)
 
     return padded_image
-
-
-def set_background_color(image):
-    """Calculate background RGB values from median of edge pixels.
-
-    Args:
-        image (PIL.Image.Image): image for which to calculate the median
-
-    Returns:
-        median (tuple[int]): median RGB values of edge pixels
-    """
-    
-    x, y = image.size
-
-    pixels = np.array(image)
-    toprow = pixels[0, :]
-    bottomrow = pixels[y-1, :]
-    leftcol = pixels[1:y-1, 0]
-    rightcol = pixels[1:y-1, x-1]
-    edges = np.concatenate((toprow, bottomrow, leftcol, rightcol))
-    median = np.around(np.median(edges, axis=0)).astype(int)
-    
-    return tuple(median)
-
-
-def resizecrop(image):
-    """Resize and apply a center crop.
-
-    Args:
-        im (PIL.Image.Image): image to be cropped
-
-    Returns:
-        cropped_im (PIL.Image.Image): cropped image
-    """
-    size = 224
-    image = resize(image, size)
-    image = center_crop(image, size)
-
-    return image
 
 
 def write_index(path, columns, contents):
@@ -170,7 +134,7 @@ def make_combined_dir(parent):
     write_index(combined_path, columns, contents)
 
 
-def rescale_combined_images(parent, rescaler):
+def pad_combined_images(parent, square_size=128):
     """Pad images from /combined and separate them into train and eval sets."""
     combined_path = os.path.join(parent, 'combined')
     train_path = os.path.join(parent, 'train')
@@ -184,8 +148,8 @@ def rescale_combined_images(parent, rescaler):
     for i in train_ids:
         f = f'{i}.jpg'
         image = Image.open(os.path.join(combined_path, f))
-        rescaled = rescaler(image)
-        rescaled.save(os.path.join(train_path, f), quality=95)
+        padded = pad(image, square_size)
+        padded.save(os.path.join(train_path, f), quality=95)
 
     columns = ('object_id', 'path')
     train_contents = (train_ids, train_filepaths)
@@ -197,4 +161,4 @@ if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
     # make_combined_dir(path)
-    rescale_combined_images(path, pad)
+    pad_combined_images(path)

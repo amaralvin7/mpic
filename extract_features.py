@@ -60,17 +60,17 @@ def get_data_loader(dataset, batch_size):
 
 def load_dataset(path):
 
+    mean, std = get_data_stats(path)
+
     transformations = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.269, 0.294, 0.289],
-                             std=[0.084, 0.092, 0.085]),
-    ])
+        transforms.Normalize(mean=mean, std=std)])
 
     dataset = ArchiveDataset(path, transformations)
     
     return dataset, len(dataset)
     
-def extract(path, batch_size, n_components):
+def extract(path, batch_size=128, n_components=None):
     """Extract features from an ArchiveDataset.
 
     Args:
@@ -84,7 +84,8 @@ def extract(path, batch_size, n_components):
     """
     dataset, n_images = load_dataset(path)
     loader = get_data_loader(dataset, batch_size)
-
+    print('Extracting features...')
+    
     # load pretrained model and "remove" FC layer
     model = models.resnet18(pretrained=True)
     n_features = model.fc.in_features
@@ -103,7 +104,8 @@ def extract(path, batch_size, n_components):
             i += batch_size
     
     features = StandardScaler().fit_transform(features)
-    features = PCA(n_components).fit_transform(features)
+    if n_components:
+        features = PCA(n_components).fit_transform(features)
     
     return image_ids, features
 
@@ -115,8 +117,9 @@ def write_hdf5(filename, image_ids, features):
         f.create_dataset('features', data=features, dtype='float32')
 
 
-def cumulative_variance_plot(features):
+def cumulative_variance_plot(path):
 
+    _, features = extract(path)
     pca = PCA().fit(features)
     fig, ax = plt.subplots(tight_layout=True)
     x = range(1, features.shape[1] + 1)
@@ -125,22 +128,22 @@ def cumulative_variance_plot(features):
     ax.axhline(0.8, c='k')
     ax.set_xlim(0, 100)
     ax.plot(x, pca.explained_variance_ratio_.cumsum(), marker='o', ls='--')
-    
     fig.savefig('cvar')
     plt.close()
 
-def get_data_stats(path):
+def get_data_stats(path, input_size=128, batch_size=128):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
-    batch_size = 128
+    
+    print('Calculating dataset statistics...')
     transformations = transforms.Compose([transforms.ToTensor()])
     dataset = ArchiveDataset(path, transformations)
     loader = get_data_loader(dataset, batch_size)
 
     sum_pixelvals = 0
     sum_square_pixelvals = 0
-    n_pixels = len(dataset) * 224**2
+    n_pixels = len(dataset) * input_size**2
 
     for _, pixelvals in tqdm(loader):
         sum_pixelvals += pixelvals.sum(dim=[0,2,3])
@@ -148,15 +151,18 @@ def get_data_stats(path):
 
     mean = sum_pixelvals/n_pixels
     var  = (sum_square_pixelvals/n_pixels) - (mean**2)
-    sd  = torch.sqrt(var)
+    std  = torch.sqrt(var)
+    
+    mean = mean.numpy()
+    std = std.numpy()
 
     print(f'mean: {mean}')
-    print(f'sd: {sd}')
+    print(f'sd: {std}')
+    
+    return mean, std
 
 if __name__ == '__main__':
 
-    # path = '/Users/particle/imgs/train.zip'
-    # get_data_stats(path)
     path = '/home/vamaral/pico/train.zip'
-    image_ids, features = extract(path, 128, 80)
+    image_ids, features = extract(path, n_components=64)
     write_hdf5('features.h5', image_ids, features)
