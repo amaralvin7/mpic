@@ -8,12 +8,9 @@ standardized and stored in a HDF5 file to be fed into morphocluster.
 import zipfile
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 import torch
 from torchvision import models, transforms
 from tqdm import tqdm
@@ -103,10 +100,6 @@ def extract(path, batch_size=128, n_components=None):
             features[i:i + batch_size] = feature_vectors
             i += batch_size
     
-    features = StandardScaler().fit_transform(features)
-    if n_components:
-        features = PCA(n_components).fit_transform(features)
-    
     return image_ids, features
 
 
@@ -116,20 +109,6 @@ def write_hdf5(filename, image_ids, features):
         f.create_dataset('object_id', data=image_ids, dtype=h5py.string_dtype())
         f.create_dataset('features', data=features, dtype='float32')
 
-
-def cumulative_variance_plot(path):
-
-    _, features = extract(path)
-    pca = PCA().fit(features)
-    fig, ax = plt.subplots(tight_layout=True)
-    x = range(1, features.shape[1] + 1)
-    ax.set_xlabel('Number of components')
-    ax.set_ylabel('Cumulaive explained variance')
-    ax.axhline(0.8, c='k')
-    ax.set_xlim(0, 100)
-    ax.plot(x, pca.explained_variance_ratio_.cumsum(), marker='o', ls='--')
-    fig.savefig('cvar')
-    plt.close()
 
 def get_data_stats(path, input_size=128, batch_size=128):
     # calculate mean and sd of dataset
@@ -164,5 +143,5 @@ def get_data_stats(path, input_size=128, batch_size=128):
 if __name__ == '__main__':
 
     path = '/home/vamaral/pico/train.zip'
-    image_ids, features = extract(path, n_components=64)
+    image_ids, features = extract(path)
     write_hdf5('features.h5', image_ids, features)
