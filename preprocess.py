@@ -24,7 +24,7 @@ import sys
 import numpy as np
 import pandas as pd
 from PIL import Image
-from torchvision.transforms.functional import rotate
+from torchvision.transforms.functional import rotate, center_crop
     
 def pad(image, square_size=128):
     """Rescale and center images along the longest axis, then zero-pad.
@@ -156,6 +156,22 @@ def pad_combined_images(parent, square_size=128):
 
     write_index(train_path, columns, train_contents)
 
+def imagenet_test():
+    """For testing get_data_stats in extract_features.py
+    
+    Obtained from https://github.com/fastai/imagenette.
+    get_data_stats('/Users/particle/imgs/imagenette2.zip')
+    Output:
+    mean: [0.46926785 0.44818988 0.4189257 ]
+    sd: [0.2845056  0.2768012  0.29218975]
+    """
+    for path, _, files in os.walk('/Users/particle/imgs/imagenette2'):
+        for f in files:
+            if not f.endswith('.JPEG'):
+                continue
+            image = Image.open(os.path.join(path, f))
+            cropped = center_crop(image, 128)
+            cropped.save(os.path.join(path, f), 'JPEG', quality=95)
 
 if __name__ == '__main__':
 
