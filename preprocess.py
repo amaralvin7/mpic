@@ -1,5 +1,5 @@
 """
-Used for organizing and padding image files as they were received.
+Used for organizing and preprocessing image files as they were received.
 
 Here's a description of the directories involved in this preprocessing step:
 - /labeled: contains subdirectories corresponding to original image labels as
@@ -9,22 +9,17 @@ small for flux calculations not included.
 ("For samples JC49 and above, exclude “_7x_collage” images). Organized by
 original subdirectory names (with JC number IDs). Images that were too small
 for flux calculations not included. 
-- /combined: /unlabeled (with “_7x_collage” removed) and /labeled combined.
-Has an index.csv file with filename and label columns. 
-- /train: padded /combined images that are not from FK. Has index.csv with
-object_id, label, and path columns. To be used for model training and testing.
-- /eval: padded /combined images that are from FK. Has index.csv with
-object_id, label, and path columns. To be used for out-of-domain model
-evaluation.
+- /labeled_grouped: zooplankton and zooplankton_part were grouped.
 """
-import csv
 import os
-import sys
+import shutil
 
-import numpy as np
-import pandas as pd
+import torch
 from PIL import Image
-from torchvision.transforms.functional import rotate, center_crop
+from sklearn.model_selection import train_test_split
+from torchvision.transforms.functional import rotate, resize
+from torchvision import transforms, datasets
+from tqdm import tqdm
     
 def pad(image, square_size=128):
     """Rescale and center images along the longest axis, then zero-pad.
@@ -56,125 +51,108 @@ def pad(image, square_size=128):
     return padded_image
 
 
-def write_index(path, columns, contents):
-    """Create an index (csv) for image objects within a directory.
-
-    Args:
-        path (str): the path to the directory
-        columns (tuple[str]): header column names
-        contents (tuple[list-like]): contents corresponding to each of the
-        columns
-    """
-    with open(os.path.join(path, 'index.csv'), 'w') as f:
-        w = csv.writer(f)
-        w.writerow(columns)
-        w.writerows(zip(*contents))
-
-
 def make_dir(path):
     """Create a new directory at the specified path."""
     if not os.path.exists(path):
         os.makedirs(path)
 
 
-def copy_imgs(copy_from, copy_to):
-    """Copy images from one directory to another.
+def rescale(path, func):
 
-    Args:
-        copy_from (str): path of the directory to copy from. The basename of
-        the directory should be either /labeled or /unlabeled.
-        copy_to (str): path of the directory to copy to
-
-    Returns:
-        filenames (list): names of image files that were copied
-        labels (list): the corresponding labels of the files that were copied.
-        Unlabeled images have corresponding entries equal to 'none'.
-    """
-    label_status = os.path.basename(copy_from)
-    ids = []
-    labels = []
-
-    for path, _, files in os.walk(copy_from):
-        for f in files:
-            if label_status == 'labeled':
-                label = os.path.basename(path)
-                condition = not f.endswith('.jpg')
+    path = '/Users/particle/imgs/'
+    funcname = func.__name__
+    lg_path = os.path.join(path, 'labeled_grouped')
+    lgf_path = os.path.join(path, f'labeled_grouped_{funcname}')
+    labels = [l for l in os.listdir(lg_path) if os.path.isdir(os.path.join(lg_path, l))]
+    for l in labels:
+        make_dir(os.path.join(lgf_path, 'RR', l))
+        make_dir(os.path.join(lgf_path, 'FK', l))
+        filenames = [f for f in os.listdir(os.path.join(lg_path, l)) if '.jpg' in f]
+        for f in filenames:
+            prefix = f[:2]
+            image = Image.open(os.path.join(lg_path, l, f))
+            if funcname == 'resize':
+                rescaled = func(image, (128, 128))
             else:
-                label = 'none'
-                condition = not f.endswith('.tiff') or '_7x_collage' in f
-            if condition:
-                continue
-            object_id = f.split('.')[0]
-            f_jpg = f'{object_id}.jpg'
-            image = Image.open(os.path.join(path, f))
-            image.save(os.path.join(copy_to, f_jpg), 'JPEG', quality=95)
-            ids.append(object_id)
-            labels.append(label)
-
-    return ids, labels
+                rescaled = func(image)
+            rescaled.save(os.path.join(lgf_path, prefix, l, f), quality=95)
 
 
-def make_combined_dir(parent):
-    """Combine the images from /unlabeled and /labeled directries."""
-    unlabeled_path = os.path.join(parent, 'unlabeled')
-    labeled_path = os.path.join(parent, 'labeled')
-    combined_path = os.path.join(parent, 'combined')
+def tt_split(path):
 
-    make_dir(combined_path)
+    lg_path = os.path.join(path, 'labeled_grouped')
+    split_path = os.path.join(path, f'labeled_grouped_ttsplit')
+    labels = [l for l in os.listdir(lg_path) if os.path.isdir(os.path.join(lg_path, l))]
+    for l in labels:
+        make_dir(os.path.join(split_path, 'RR', l))
+        make_dir(os.path.join(split_path, 'FK', l))
+        filenames = [f for f in os.listdir(os.path.join(lg_path, l)) if '.jpg' in f]
+        for f in filenames:
+            prefix = f[:2]
+            shutil.copy(os.path.join(lg_path, l, f),
+                        os.path.join(split_path, prefix, l, f))
 
-    labeled_ids, labeled_labels = copy_imgs(labeled_path, combined_path)
-    unlabeled_ids, unlabeled_labels = copy_imgs(unlabeled_path, combined_path)
+def tv_split(path, val_size=0.2):
 
-    ids = labeled_ids + unlabeled_ids
-    labels = labeled_labels + unlabeled_labels
-    paths = [os.path.join('combined', f'{i}.jpg') for i in ids]
+    grouped_path = os.path.join(path, 'labeled_grouped_ttsplit', 'RR_small')
+    split_path = os.path.join(path, 'labeled_grouped_ttsplit', 'RR_small_tvsplit')
+    make_dir(split_path)
+    labels = [l for l in os.listdir(grouped_path) if os.path.isdir(os.path.join(grouped_path, l))]
+    for l in labels:
+        grouped_filenames = [f for f in os.listdir(os.path.join(grouped_path, l)) if '.jpg' in f]
+        train_filenames, val_filenames = train_test_split(grouped_filenames, test_size=val_size, random_state=0)
+        for f in train_filenames:
+            make_dir(os.path.join(split_path, 'train', l))
+            shutil.copy(os.path.join(grouped_path, l, f),
+                        os.path.join(split_path, 'train', l, f))
+        for f in val_filenames:
+            make_dir(os.path.join(split_path, 'val', l))
+            shutil.copy(os.path.join(grouped_path, l, f),
+                        os.path.join(split_path, 'val', l, f))          
 
-    columns = ('object_id', 'label', 'path')
-    contents = (ids, labels, paths)
-    write_index(combined_path, columns, contents)
 
-
-def pad_combined_images(parent, square_size=128):
-    """Pad images from /combined and separate them into train and eval sets."""
-    combined_path = os.path.join(parent, 'combined')
-    train_path = os.path.join(parent, 'train')
-
-    make_dir(train_path)
-
-    index = pd.read_csv(os.path.join(combined_path, 'index.csv'))
-    train_ids = [i for i in index['object_id'].to_list() if 'FK' not in i]
-    train_filepaths = [os.path.join('train', f'{i}.jpg') for i in train_ids]
-
-    for i in train_ids:
-        f = f'{i}.jpg'
-        image = Image.open(os.path.join(combined_path, f))
-        padded = pad(image, square_size)
-        padded.save(os.path.join(train_path, f), quality=95)
-
-    columns = ('object_id', 'path')
-    train_contents = (train_ids, train_filepaths)
-
-    write_index(train_path, columns, train_contents)
-
-def imagenet_test():
-    """For testing get_data_stats in extract_features.py
+def get_data_stats(path, input_size=128, batch_size=128):
+    # calculate mean and sd of dataset
+    # adapted from
+    # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
     
-    Obtained from https://github.com/fastai/imagenette.
-    get_data_stats('/Users/particle/imgs/imagenette2.zip')
-    Output:
-    mean: [0.46926785 0.44818988 0.4189257 ]
-    sd: [0.2845056  0.2768012  0.29218975]
-    """
-    for path, _, files in os.walk('/Users/particle/imgs/imagenette2'):
-        for f in files:
-            if not f.endswith('.JPEG'):
-                continue
-            image = Image.open(os.path.join(path, f))
-            cropped = center_crop(image, 128)
-            cropped.save(os.path.join(path, f), 'JPEG', quality=95)
+    print('Calculating dataset statistics...')
+    transformations = transforms.Compose([transforms.Resize(input_size),
+                                          transforms.CenterCrop(input_size),
+                                          transforms.transforms.ToTensor()])
+    dataset = datasets.ImageFolder(path, transformations)
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0
+    )
+
+    sum_pixelvals = 0
+    sum_square_pixelvals = 0
+    n_pixels = len(dataset) * input_size**2
+
+    for pixelvals, _ in tqdm(loader):
+        sum_pixelvals += pixelvals.sum(dim=[0,2,3])
+        sum_square_pixelvals += (pixelvals**2).sum(dim=[0,2,3])
+
+    mean = sum_pixelvals/n_pixels
+    var  = (sum_square_pixelvals/n_pixels) - (mean**2)
+    std  = torch.sqrt(var)
+    
+    mean = mean.numpy()
+    std = std.numpy()
+
+    print(f'mean: [{mean[0]:.3f}, {mean[1]:.3f}, {mean[2]:.3f}]')
+    print(f'std: [{std[0]:.3f}, {std[1]:.3f}, {std[2]:.3f}]')
+    
+    return mean, std
+            
 
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
+    train_path = '/Users/particle/imgs/labeled_grouped_ttsplit/RR_small_tvsplit/train'
     # make_combined_dir(path)
-    pad_combined_images(path)
+    get_data_stats(train_path)
+
