@@ -12,6 +12,7 @@ for flux calculations not included.
 - /labeled_grouped: zooplankton and zooplankton_part were grouped.
 """
 import os
+import random
 import shutil
 
 import torch
@@ -92,7 +93,7 @@ def tt_split(path):
             shutil.copy(os.path.join(lg_path, l, f),
                         os.path.join(split_path, prefix, l, f))
 
-def tv_split(path, val_size=0.2):
+def tv_split(path, val_size=0.2, subsample=None):
 
     grouped_path = os.path.join(path, 'labeled_grouped_ttsplit', 'RR_small')
     split_path = os.path.join(path, 'labeled_grouped_ttsplit', 'RR_small_tvsplit')
@@ -100,6 +101,8 @@ def tv_split(path, val_size=0.2):
     labels = [l for l in os.listdir(grouped_path) if os.path.isdir(os.path.join(grouped_path, l))]
     for l in labels:
         grouped_filenames = [f for f in os.listdir(os.path.join(grouped_path, l)) if '.jpg' in f]
+        if subsample:
+            grouped_filenames = random.sample(grouped_filenames, subsample)
         train_filenames, val_filenames = train_test_split(grouped_filenames, test_size=val_size, random_state=0)
         for f in train_filenames:
             make_dir(os.path.join(split_path, 'train', l))
@@ -143,8 +146,8 @@ def get_data_stats(path, input_size=128, batch_size=128):
     mean = mean.numpy()
     std = std.numpy()
 
-    print(f'mean: [{mean[0]:.3f}, {mean[1]:.3f}, {mean[2]:.3f}]')
-    print(f'std: [{std[0]:.3f}, {std[1]:.3f}, {std[2]:.3f}]')
+    print(f'mean = [{mean[0]:.3f}, {mean[1]:.3f}, {mean[2]:.3f}]')
+    print(f'std = [{std[0]:.3f}, {std[1]:.3f}, {std[2]:.3f}]')
     
     return mean, std
             
@@ -154,5 +157,6 @@ if __name__ == '__main__':
     path = '/Users/particle/imgs'
     train_path = '/Users/particle/imgs/labeled_grouped_ttsplit/RR_small_tvsplit/train'
     # make_combined_dir(path)
+    # tv_split(path, subsample=2000)
     get_data_stats(train_path)
 
