@@ -15,12 +15,10 @@ import os
 import random
 import shutil
 
-import torch
 from PIL import Image
 from sklearn.model_selection import train_test_split
 from torchvision.transforms.functional import rotate, resize
-from torchvision import transforms, datasets
-from tqdm import tqdm
+
     
 def pad(image, square_size=128):
     """Rescale and center images along the longest axis, then zero-pad.
@@ -34,12 +32,12 @@ def pad(image, square_size=128):
     Returns:
         padded_image (PIL.Image.Image): padded image
     """
-    if image.size[0] > image.size[1]:  # if W > H, rotate so that H > W
-        image = rotate(image, 90, expand=True)
+    # if image.size[0] > image.size[1]:  # if W > H, rotate so that H > W
+    #     image = rotate(image, 90, expand=True)
 
-    height = image.size[1]
-    if height > square_size:  # rescale if image is larger than square
-        ratio = square_size / height
+    max_dim = max(image.size)
+    if max_dim > square_size:  # rescale if image is larger than square
+        ratio = square_size / max_dim
         scaled_size = [int(x * ratio) for x in image.size]
         image = image.resize(scaled_size)
     else:
@@ -79,24 +77,28 @@ def rescale(path, func):
             rescaled.save(os.path.join(lgf_path, prefix, l, f), quality=95)
 
 
-def tt_split(path):
+def tt_split(path, split_dir, binary=False):
 
     lg_path = os.path.join(path, 'labeled_grouped')
-    split_path = os.path.join(path, f'labeled_grouped_ttsplit')
+    split_path = os.path.join(path, split_dir)
     labels = [l for l in os.listdir(lg_path) if os.path.isdir(os.path.join(lg_path, l))]
     for l in labels:
-        make_dir(os.path.join(split_path, 'RR', l))
-        make_dir(os.path.join(split_path, 'FK', l))
         filenames = [f for f in os.listdir(os.path.join(lg_path, l)) if '.jpg' in f]
+        if binary and l != 'unidentifiable':
+            new_label = 'object'
+        else:
+            new_label = l
+        make_dir(os.path.join(split_path, 'RR', new_label))
+        make_dir(os.path.join(split_path, 'FK', new_label))
         for f in filenames:
             prefix = f[:2]
             shutil.copy(os.path.join(lg_path, l, f),
-                        os.path.join(split_path, prefix, l, f))
+                        os.path.join(split_path, prefix, new_label, f))
 
-def tv_split(path, val_size=0.2, subsample=None):
+def tv_split(path, split_from, split_to, val_size=0.2, subsample=None):
 
-    grouped_path = os.path.join(path, 'labeled_grouped_ttsplit', 'RR_small')
-    split_path = os.path.join(path, 'labeled_grouped_ttsplit', 'RR_small_tvsplit')
+    grouped_path = os.path.join(path, split_from)
+    split_path = os.path.join(path, split_to)
     make_dir(split_path)
     labels = [l for l in os.listdir(grouped_path) if os.path.isdir(os.path.join(grouped_path, l))]
     for l in labels:
@@ -111,52 +113,30 @@ def tv_split(path, val_size=0.2, subsample=None):
         for f in val_filenames:
             make_dir(os.path.join(split_path, 'val', l))
             shutil.copy(os.path.join(grouped_path, l, f),
-                        os.path.join(split_path, 'val', l, f))          
+                        os.path.join(split_path, 'val', l, f))
 
 
-def get_data_stats(path, input_size=128, batch_size=128):
-    # calculate mean and sd of dataset
-    # adapted from
-    # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
+def pad_tvsplit_images():
     
-    print('Calculating dataset statistics...')
-    transformations = transforms.Compose([transforms.Resize(input_size),
-                                          transforms.CenterCrop(input_size),
-                                          transforms.transforms.ToTensor()])
-    dataset = datasets.ImageFolder(path, transformations)
-    loader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=0
-    )
-
-    sum_pixelvals = 0
-    sum_square_pixelvals = 0
-    n_pixels = len(dataset) * input_size**2
-
-    for pixelvals, _ in tqdm(loader):
-        sum_pixelvals += pixelvals.sum(dim=[0,2,3])
-        sum_square_pixelvals += (pixelvals**2).sum(dim=[0,2,3])
-
-    mean = sum_pixelvals/n_pixels
-    var  = (sum_square_pixelvals/n_pixels) - (mean**2)
-    std  = torch.sqrt(var)
+    path = '/Users/particle/imgs/labeled_grouped_ttsplit/RR_1p4k_tvsplit'
+    make_dir(f'{path}_pad')
     
-    mean = mean.numpy()
-    std = std.numpy()
-
-    print(f'mean = [{mean[0]:.3f}, {mean[1]:.3f}, {mean[2]:.3f}]')
-    print(f'std = [{std[0]:.3f}, {std[1]:.3f}, {std[2]:.3f}]')
-    
-    return mean, std
+    for phase in ('train', 'val'):
+        make_dir(os.path.join(f'{path}_pad', phase))
+        phase_path = os.path.join(path, phase)
+        labels = [l for l in os.listdir(phase_path) if os.path.isdir(os.path.join(phase_path, l))]
+        for l in labels:
+            filenames = [f for f in os.listdir(os.path.join(phase_path, l)) if '.jpg' in f]
+            for f in filenames:
+                make_dir(os.path.join(f'{path}_pad', phase, l))
+                image = Image.open(os.path.join(path, phase, l, f))
+                rescaled = pad(image)
+                rescaled.save(os.path.join(f'{path}_pad', phase, l, f), quality=95)  
             
 
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
-    train_path = '/Users/particle/imgs/labeled_grouped_ttsplit/RR_small_tvsplit/train'
-    # make_combined_dir(path)
-    # tv_split(path, subsample=2000)
-    get_data_stats(train_path)
-
+    # tt_split(path, 'labeled_grouped_ttsplit_binary', True)
+    tv_split(path, 'labeled_grouped_ttsplit/RR_1p4k', 'labeled_grouped_ttsplit/RR_1p4k_tvsplit', subsample=1400)
+    pad_tvsplit_images()
