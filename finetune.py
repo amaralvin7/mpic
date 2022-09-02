@@ -67,7 +67,7 @@ def train_model(model, dataloaders, criterion, optimizer, max_epochs, device):
                 val_loss.append(epoch_loss)
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
-                    # best_model_wts = copy.deepcopy(model.state_dict())
+                    best_model_wts = copy.deepcopy(model.state_dict())
                 if epoch_loss < best_loss:
                     best_loss = epoch_loss
                     esi = 0
@@ -83,9 +83,9 @@ def train_model(model, dataloaders, criterion, optimizer, max_epochs, device):
     seconds = train_duration % 60
     print(f'Training ({epoch} epochs) complete in {minutes:.0f}m {seconds:.0f}s. Best val acc: {best_acc:4f}')
 
-    # model.load_state_dict(best_model_wts)
-    # return model, train_accuracy, val_accuracy, train_loss, val_loss
-    return best_acc.cpu().numpy()
+    model.load_state_dict(best_model_wts)
+    return model, train_accuracy, val_accuracy, train_loss, val_loss
+    # return best_acc.cpu().numpy()
 
 
 def initialize_model(num_classes):
@@ -97,11 +97,10 @@ def initialize_model(num_classes):
     return model
 
 
-def get_train_transforms(mean, std, input_size=128):
+def get_train_transforms(input_size, mean, std):
     
     train_transforms = transforms.Compose([
-            #transforms.Resize((input_size, input_size)),
-            #transforms.RandomCrop(input_size),
+            transforms.Resize((input_size, input_size)),
             transforms.RandomApply([transforms.RandomRotation((90,90))], p=0.5),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
@@ -111,23 +110,17 @@ def get_train_transforms(mean, std, input_size=128):
     return train_transforms
 
 
-def get_val_transforms(mean, std, input_size=128):
+def get_resize_transforms(input_size, mean=None, std=None):
     
-    val_transforms = transforms.Compose([
-            #transforms.Resize((input_size, input_size)),
-            #transforms.CenterCrop(input_size),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)])
+    transform_list = [transforms.Resize((input_size, input_size)),
+                      transforms.ToTensor()]
     
-    return val_transforms
-
-
-def get_data_transforms(mean, std, input_size=128):
+    if (mean is not None) and (std is not None):
+        transform_list.append(transforms.Normalize(mean, std))
     
-    data_transforms = {'train': get_train_transforms(mean, std, input_size),
-                       'val': get_val_transforms(mean, std, input_size)}
-    
-    return data_transforms
+    resize_transforms = transforms.Compose(transform_list)
+    print(resize_transforms)
+    return resize_transforms
 
 
 def summary_plots(train_loss, val_loss, train_acc, val_acc, device):
@@ -160,16 +153,13 @@ def save_model(model, filename):
     torch.save(model.state_dict(), filename)
 
 
-def get_data_stats(path, input_size=128, batch_size=128):
+def get_data_stats(path, input_size, batch_size):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
     
     print('Calculating dataset statistics...')
-    transformations = transforms.Compose([#transforms.Resize((input_size, input_size)),
-                                          #transforms.CenterCrop(input_size),
-                                          transforms.transforms.ToTensor()])
-    dataset = datasets.ImageFolder(path, transformations)
+    dataset = datasets.ImageFolder(path, get_resize_transforms(input_size))
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
@@ -196,14 +186,19 @@ def get_data_stats(path, input_size=128, batch_size=128):
 
 if __name__ == '__main__':
     
-    data_dir = './RR_1p4k_tvsplit'
+    data_dir = './RR_tvsplit'
+    weights_save = 'weights_singlestage.pt'
+    train_dir = os.path.join(data_dir, 'train')
+    input_size = 128
     batch_size = 128
     max_epochs = 200
     val_size = 0.2
     n_workers = 2
-    mean, std = get_data_stats(os.path.join(data_dir, 'train'))
+    
+    mean, std = get_data_stats(train_dir, input_size, batch_size)
 
-    data_transforms = get_data_transforms(mean, std)
+    data_transforms = {'train': get_train_transforms(input_size, mean, std),
+                       'val': get_resize_transforms(input_size, mean, std)}
     image_datasets = {x: datasets.ImageFolder(
         os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
     dataloaders_dict = {x: torch.utils.data.DataLoader(
@@ -215,23 +210,23 @@ if __name__ == '__main__':
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     
-    best_vals = []
+    # best_vals = []
     
-    for i in range(10):
+    # for i in range(10):
         
-        model = initialize_model(len(image_datasets['train'].classes))
-        model.to(device)
-        optimizer = torch.optim.Adam(model.parameters())
-        criterion = torch.nn.CrossEntropyLoss()
+    model = initialize_model(len(image_datasets['train'].classes))
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters())
+    criterion = torch.nn.CrossEntropyLoss()
 
-        best_vals.append(train_model(model, dataloaders_dict, criterion, optimizer, max_epochs, device))
+        # best_vals.append(train_model(model, dataloaders_dict, criterion, optimizer, max_epochs, device))
 
-    # model, train_acc, val_acc, train_loss, val_loss = train_model(
-    #     model, dataloaders_dict, criterion, optimizer, max_epochs, device)
+    model, train_acc, val_acc, train_loss, val_loss = train_model(
+        model, dataloaders_dict, criterion, optimizer, max_epochs, device)
 
-    # summary_plots(train_loss, val_loss, train_acc, val_acc, device)
-    # save_model(model, 'weights.pt')
+    summary_plots(train_loss, val_loss, train_acc, val_acc, device)
+    save_model(model, weights_save)
 
-    print(np.mean(best_vals) * 100)
-    print(np.std(best_vals) * 100)
+    # print(np.mean(best_vals) * 100)
+    # print(np.std(best_vals) * 100)
 
