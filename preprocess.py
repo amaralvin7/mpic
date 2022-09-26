@@ -12,6 +12,7 @@ for flux calculations not included.
 - /labeled_grouped: zooplankton and zooplankton_part were grouped.
 """
 import os
+import pandas as pd
 import random
 import shutil
 
@@ -127,7 +128,6 @@ def pad_test_images(pad_from):
             rescaled.save(os.path.join(f'{pad_from}_pad', l, f), quality=95) 
             
 
-
 def count_samples(path):
 
     contents = os.listdir(path)
@@ -145,8 +145,36 @@ def count_samples(path):
     plt.tight_layout()
     plt.savefig('sample_counts')
     plt.close()
+
+
+def combine_RR_FK(combine_from, combine_into):
+
+    labels = [l for l in os.listdir(combine_from) if os.path.isdir(os.path.join(combine_from, l))]
+    for l in labels:
+        filenames = [f for f in os.listdir(os.path.join(combine_from, l)) if '.jpg' in f]
+        for f in filenames:
+            shutil.copy(os.path.join(combine_from, l, f),
+                        os.path.join(combine_into, f))
+            
+
+def copy_verified_images():
+    
+    full_df = pd.read_csv('/Users/particle/Drive/ucsc/code/pico/Compared_classification.csv')
+    copy_from = '/Users/particle/imgs/labeled'
+    copy_to = '/Users/particle/imgs/relabel/verified'
+    verified = full_df[full_df['CD_label1'] == full_df['CD_label2']].copy()
+    verified = verified[verified['CD_label1'] != 'unidentifiable']
+    verified_files = verified['file'].values
+    verified_labels = verified['CD_label1'].values
+    
+    labels = [l for l in os.listdir(copy_from) if os.path.isdir(os.path.join(copy_from, l))]
+    for l in labels:
+        make_dir(os.path.join(copy_to, l))
+        
+    for f, l in zip(verified_files, verified_labels):
+        shutil.copy(os.path.join(copy_from, l, f),
+                    os.path.join(copy_to, l, f))        
     
 if __name__ == '__main__':
 
-    # count_samples('/Users/particle/imgs/labeled_grouped_ttsplit/RR_tvsplit/train')
-    tt_split('/Users/particle/imgs/', 'labeled_grouped_ttsplit')
+    copy_verified_images()
