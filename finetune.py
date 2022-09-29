@@ -100,7 +100,7 @@ def initialize_model(num_classes):
 def get_train_transforms(input_size, mean, std):
     
     train_transforms = transforms.Compose([
-            transforms.Resize((input_size, input_size)),
+            #transforms.Resize((input_size, input_size)),
             transforms.RandomApply([transforms.RandomRotation((90,90))], p=0.5),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
@@ -112,14 +112,14 @@ def get_train_transforms(input_size, mean, std):
 
 def get_resize_transforms(input_size, mean=None, std=None):
     
-    transform_list = [transforms.Resize((input_size, input_size)),
+    transform_list = [#transforms.Resize((input_size, input_size)),
                       transforms.ToTensor()]
     
     if (mean is not None) and (std is not None):
         transform_list.append(transforms.Normalize(mean, std))
     
     resize_transforms = transforms.Compose(transform_list)
-    print(resize_transforms)
+
     return resize_transforms
 
 
@@ -186,7 +186,7 @@ def get_data_stats(path, input_size, batch_size):
 
 if __name__ == '__main__':
     
-    data_dir = './RR_tvsplit'
+    data_dir = './RR_tvsplit_pad'
     weights_save = 'weights_singlestage.pt'
     train_dir = os.path.join(data_dir, 'train')
     input_size = 128

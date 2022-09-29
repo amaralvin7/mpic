@@ -9,15 +9,15 @@ from torchvision import datasets, models
 from tqdm import tqdm
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 
-import finetune
+import finetune, preprocess
 
 input_size = 128
 batch_size = 128
 weights = 'weights_singlestage.pt'
 
 # define data and dataloaders
-train_path = '/Users/particle/imgs/labeled_grouped_ttsplit/RR_tvsplit/train'
-test_path = '/Users/particle/imgs/labeled_grouped_ttsplit/FK'
+train_path = '/Users/particle/imgs/relabel_20220926_ttsplit/RR_tvsplit_pad/train'
+test_path = '/Users/particle/imgs/relabel_20220926_ttsplit/FK_pad'
 train_data = datasets.ImageFolder(train_path)
 mean, std = finetune.get_data_stats(train_path, input_size, batch_size)
 transformations = finetune.get_resize_transforms(input_size, mean, std)
@@ -72,12 +72,12 @@ disp = ConfusionMatrixDisplay.from_predictions(
     y_pred,
     display_labels=test_data.classes,
     cmap=plt.cm.Blues,
-    normalize='true',
+    normalize=None,
     xticks_rotation='vertical',
-    values_format='.2f',
+    values_format='.0f',
     ax=ax
 )
-ax.set_title('Normalized confusion matrix')
+ax.set_title('Confusion matrix')
 plt.tight_layout()
 plt.savefig('confusionmatrix')
 plt.close()

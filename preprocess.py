@@ -28,10 +28,10 @@ def make_dir(path):
         os.makedirs(path)
 
 
-def tt_split(path, split_dir, binary=False):
+def tt_split(path, split_from, split_to, binary=False):
 
-    lg_path = os.path.join(path, 'labeled_grouped')
-    split_path = os.path.join(path, split_dir)
+    lg_path = os.path.join(path, split_from)
+    split_path = os.path.join(path, split_to)
     labels = [l for l in os.listdir(lg_path) if os.path.isdir(os.path.join(lg_path, l))]
     for l in labels:
         filenames = [f for f in os.listdir(os.path.join(lg_path, l)) if '.jpg' in f]
@@ -177,4 +177,7 @@ def copy_verified_images():
     
 if __name__ == '__main__':
 
-    copy_verified_images()
+    path = '/Users/particle/imgs'
+    pad_from = '/Users/particle/imgs/relabel_20220926_ttsplit/FK'
+    pad_test_images(pad_from)
+
