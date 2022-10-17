@@ -97,10 +97,9 @@ def initialize_model(num_classes):
     return model
 
 
-def get_train_transforms(input_size, mean, std):
+def to_tensor(mean, std):
     
     train_transforms = transforms.Compose([
-            #transforms.Resize((input_size, input_size)),
             transforms.RandomApply([transforms.RandomRotation((90,90))], p=0.5),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
@@ -110,10 +109,9 @@ def get_train_transforms(input_size, mean, std):
     return train_transforms
 
 
-def get_resize_transforms(input_size, mean=None, std=None):
+def to_tensor(mean=None, std=None):
     
-    transform_list = [#transforms.Resize((input_size, input_size)),
-                      transforms.ToTensor()]
+    transform_list = [transforms.ToTensor()]
     
     if (mean is not None) and (std is not None):
         transform_list.append(transforms.Normalize(mean, std))
@@ -159,7 +157,7 @@ def get_data_stats(path, input_size, batch_size):
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
     
     print('Calculating dataset statistics...')
-    dataset = datasets.ImageFolder(path, get_resize_transforms(input_size))
+    dataset = datasets.ImageFolder(path, to_tensor())
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
@@ -187,7 +185,7 @@ def get_data_stats(path, input_size, batch_size):
 if __name__ == '__main__':
     
     data_dir = './RR_tvsplit_pad'
-    weights_save = 'weights_singlestage.pt'
+    weights_save = 'weights.pt'
     train_dir = os.path.join(data_dir, 'train')
     input_size = 128
     batch_size = 128
@@ -197,8 +195,8 @@ if __name__ == '__main__':
     
     mean, std = get_data_stats(train_dir, input_size, batch_size)
 
-    data_transforms = {'train': get_train_transforms(input_size, mean, std),
-                       'val': get_resize_transforms(input_size, mean, std)}
+    data_transforms = {'train': to_tensor(mean, std),
+                       'val': to_tensor(mean, std)}
     image_datasets = {x: datasets.ImageFolder(
         os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
     dataloaders_dict = {x: torch.utils.data.DataLoader(
