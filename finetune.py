@@ -97,7 +97,7 @@ def initialize_model(num_classes):
     return model
 
 
-def to_tensor(mean, std):
+def get_train_transforms(mean, std):
     
     train_transforms = transforms.Compose([
             transforms.RandomApply([transforms.RandomRotation((90,90))], p=0.5),
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     
     mean, std = get_data_stats(train_dir, input_size, batch_size)
 
-    data_transforms = {'train': to_tensor(mean, std),
+    data_transforms = {'train': get_train_transforms(mean, std),
                        'val': to_tensor(mean, std)}
     image_datasets = {x: datasets.ImageFolder(
         os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
