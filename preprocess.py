@@ -15,6 +15,7 @@ import os
 import pandas as pd
 import random
 import shutil
+import sys
 
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -225,9 +226,22 @@ def make_combined_dir(parent):
                 shutil.copy(os.path.join(path, f),
                             os.path.join(combined_path, f))
 
+
+def delete_bad_srt_ids(srt_path):
+
+    bad_ids = ('SRT10_32x', 'SRT11_32x')
+    labels = [l for l in os.listdir(srt_path) if os.path.isdir(os.path.join(srt_path, l))]
+    for l in labels:
+        filenames = [f for f in os.listdir(os.path.join(srt_path, l)) if '.tiff' in f]
+        for f in filenames:
+            head = '_'.join(f.split('_', 2)[:2])
+            if head in bad_ids:
+                os.remove(os.path.join(srt_path, l, f))
     
+
 if __name__ == '__main__':
 
     path = '/Users/particle/imgs'
-    pad_test_images(os.path.join(path, 'relabel_20221014_sitesplit/FK'))
+    srt_path = '/Users/particle/imgs/test'
+    delete_bad_srt_ids(srt_path)
 

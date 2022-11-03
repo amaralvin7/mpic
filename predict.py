@@ -18,8 +18,7 @@ batch_size = 128
 weights = 'weights.pt'
 
 # define data and dataloaders
-train_path = '/Users/particle/imgs/relabel_20221014_sitesplit/RR_tvsplit_pad/train'
-test_path = '/Users/particle/imgs/relabel_20221014_sitesplit/FK_pad'
+train_path = '/Users/particle/imgs/relabel_20221013_sitesplit/RR_tvsplit_pad/train'
 train_data = datasets.ImageFolder(train_path)
 mean, std = finetune.get_data_stats(train_path, input_size, batch_size)
 transformations = finetune.to_tensor(mean, std)
@@ -64,7 +63,7 @@ def get_test_loader(data_object, test_path):
     return test_loader
 
 
-def predict_with_truth():
+def predict_with_truth(test_path):
     
     test_loader = get_test_loader(datasets.ImageFolder, test_path)
     
@@ -114,9 +113,9 @@ def predict_with_truth():
     return y_pred, y_true
 
 
-def predict_without_truth():
+def predict_without_truth(path):
     
-    test_loader = get_test_loader(UnlabeledImageFolder, test_path)
+    test_loader = get_test_loader(UnlabeledImageFolder, path)
     
     all_labels = []
     all_filenames = []
@@ -161,5 +160,6 @@ def barplots(y_true, y_pred):  # for precision, recall, f1 score
     make_plot(f1, 'f1')
 
 if __name__ == '__main__':
-    y_pred, y_true = predict_with_truth()
-    barplots(y_true, y_pred)
+    
+    predict_without_truth('/Users/particle/imgs/RR_nolabels_pad')
+    

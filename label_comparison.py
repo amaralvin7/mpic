@@ -81,9 +81,14 @@ def revise_new_labels(df, col):
          'skip': 'unidentifiable', 'swimmer': 'swimmer'}
     
     df[f'{col}_r'] = df[col].apply(lambda x: d[x])
-        
 
-CD_labels = labels_to_df('/Users/particle/imgs/labeled', 'CD')
+
+# CD_labels = labels_to_df('/Users/particle/imgs/labeled', 'CD')
+
+CD_labels = pd.read_csv('Compared_classification.csv')
+CD_labels = CD_labels.drop('CD_label1', axis=1)
+CD_labels.rename(columns={'CD_label2': 'CD_label'}, inplace=True)
+
 revise_old_labels(CD_labels, 'CD_label')
 predictions = pd.read_csv('predictions.csv')
 revise_new_labels(predictions, 'predicted_label')

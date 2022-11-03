@@ -13,13 +13,13 @@ canvas_height=200
 class Particle_ID_GUI:
 
     #This block sets up the overall structure of the GUI
-    def __init__(self, root, path):
+    def __init__(self, root, path, ext):
         
         self.root = root
         root.title("Assign particle IDs")
         self.move_from = os.path.join(path, 'start')
         self.move_to = os.path.join(path, 'finish')
-        self.file_list = [f for f in os.listdir(self.move_from) if '.jpg' in f]
+        self.file_list = [f for f in os.listdir(self.move_from) if ext in f]
         self.label_list = []
         self.file_counter = 0
         self.current_file = self.file_list[self.file_counter]
@@ -31,51 +31,46 @@ class Particle_ID_GUI:
         self.particle_photo.create_rectangle(0,100,100,0, fill='white', outline='white', tag='the_tag')
         self.particle_photo.grid(columnspan=3)
 
-        ##Buttons
-        # self.agg_button = tk.Button(root, text='aggregate', command=lambda: self.move_image('aggregate'))
-        # self.agg_button.grid(row=1,column=2)
+        #Buttons
+        self.agg_button = tk.Button(root, text='aggregate', command=lambda: self.move_image('aggregate'))
+        self.agg_button.grid(row=1,column=1)
 
-        # self.dd_button = tk.Button(root, text='dense_detritus', command=lambda: self.move_image('dense_detritus'))
-        # self.dd_button.grid(row=2,column=2)
-
-        # self.fiber_button = tk.Button(root, text='fiber', command=lambda: self.move_image('fiber'))
-        # self.fiber_button.grid(row=3,column=2)
-
-        # self.llp_button = tk.Button(root, text='large_loose_pellet', command=lambda: self.move_image('large_loose_pellet'))
-        # self.llp_button.grid(row=3,column=2)
+        self.dd_button = tk.Button(root, text='noise', command=lambda: self.move_image('noise'))
+        self.dd_button.grid(row=2,column=1)
         
-        # self.lfp_button = tk.Button(root, text='long_pellet', command=lambda: self.move_image('long_pellet'))
-        # self.lfp_button.grid(row=2,column=2)
+        self.lp_button = tk.Button(root, text='long_pellet', command=lambda: self.move_image('long_pellet'))
+        self.lp_button.grid(row=3,column=1)
 
-        # self.mp_button = tk.Button(root, text='mini_pellet', command=lambda: self.move_image('mini_pellet'))
-        # self.mp_button.grid(row=5,column=2)
+        self.mp_button = tk.Button(root, text='mini_pellet', command=lambda: self.move_image('mini_pellet'))
+        self.mp_button.grid(row=4,column=1)
 
-        # self.phyto_button = tk.Button(root, text='phytoplankton', command=lambda: self.move_image('phytoplankton'))
-        # self.phyto_button.grid(row=1,column=3)
+        self.phytor_button = tk.Button(root, text='phyto_round', command=lambda: self.move_image('phyto_round'))
+        self.phytor_button.grid(row=1,column=2)
 
-        # self.rhiz_button = tk.Button(root, text='rhizaria', command=lambda: self.move_image('rhizaria'))
-        # self.rhiz_button.grid(row=2,column=3)
+        self.phytol_button = tk.Button(root, text='phyto_long', command=lambda: self.move_image('phyto_long'))
+        self.phytol_button.grid(row=2,column=2)
 
-        # self.salp_button = tk.Button(root, text='salp_pellet', command=lambda: self.move_image('salp_pellet'))
-        # self.salp_button.grid(row=3,column=3)
+        self.rhiz_button = tk.Button(root, text='rhizaria', command=lambda: self.move_image('rhizaria'))
+        self.rhiz_button.grid(row=3,column=2)
 
-        # self.short_button = tk.Button(root, text='short_pellet', command=lambda: self.move_image('short_pellet'))
-        # self.short_button.grid(row=4,column=3)
+        self.salp_button = tk.Button(root, text='salp_pellet', command=lambda: self.move_image('salp_pellet'))
+        self.salp_button.grid(row=4,column=2)
 
-        # self.swim_button = tk.Button(root, text='swimmer', command=lambda: self.move_image('swimmer'))
-        # self.swim_button.grid(row=4,column=2)
+        self.short_button = tk.Button(root, text='short_pellet', command=lambda: self.move_image('short_pellet'))
+        self.short_button.grid(row=1,column=3)
 
-        # self.bub_button = tk.Button(root, text='bubble', command=lambda: self.move_image('bubble'))
-        # self.bub_button.grid(row=5,column=3)
+        self.swim_button = tk.Button(root, text='swimmer', command=lambda: self.move_image('swimmer'))
+        self.swim_button.grid(row=2,column=3)
 
-        # self.noise_button = tk.Button(root, text='noise', command=lambda: self.move_image('noise'))
-        # self.noise_button.grid(row=3,column=0)
+        self.bub_button = tk.Button(root, text='bubble', command=lambda: self.move_image('bubble'))
+        self.bub_button.grid(row=3,column=3)
 
-        self.b1 = tk.Button(root, text='narrow', command=lambda: self.move_image('fiber_narrow'))
-        self.b1.grid(row=1,column=1)
 
-        self.b2 = tk.Button(root, text='thick', command=lambda: self.move_image('fiber_thick'))
-        self.b2.grid(row=3,column=1)
+        self.b1 = tk.Button(root, text='fiber_sharp', command=lambda: self.move_image('fiber_sharp'))
+        self.b1.grid(row=4,column=3)
+
+        self.b2 = tk.Button(root, text='fiber_blur', command=lambda: self.move_image('fiber_blur'))
+        self.b2.grid(row=5,column=3)
 
         ##Create an undo button
         self.close_button = tk.Button(root, text='UNDO', command=self.undo)
@@ -152,5 +147,5 @@ class Particle_ID_GUI:
 if __name__ == '__main__':
     path = '/Users/particle/imgs/relabel'
     root = tk.Tk()
-    my_gui = Particle_ID_GUI(root, path)
+    my_gui = Particle_ID_GUI(root, path, '.tiff')
     root.mainloop()
