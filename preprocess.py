@@ -5,10 +5,10 @@ Here's a description of the directories involved in this preprocessing step:
 - /labeled: contains subdirectories corresponding to original image labels as
 annotated by Colleen. Images come from FK and RR cruises. Images that were too
 small for flux calculations not included.
-- /unlabeled: All JC images, including those that Colleen said to exclude
-("For samples JC49 and above, exclude “_7x_collage” images). Organized by
-original subdirectory names (with JC number IDs). Images that were too small
-for flux calculations not included. 
+- /unlabeled: All JC images. Unpacked from original subdirectory names (were
+organized by JC number IDs). Images that were too small for flux calculations
+not included. Deleted those that Colleen said to exclude ("For samples JC49 and
+above, exclude '_7x_collage' images"). 
 - /labeled_grouped: zooplankton and zooplankton_part were grouped.
 """
 import os
