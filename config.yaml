@@ -1,0 +1,13 @@
+input_size: 224
+batch_size: 128
+seed: 0
+n_workers: 2
+max_epochs: 100
+patience: 10
+data_dir: '/Users/particle/imgs/relabel_20221110_norare'
+# data_dir: './relabel_20221110_norare'
+val_size: 0.1
+exts: ['jpg', 'tiff']
+exclude: ['salp_pellet', 'phyto_long', 'phyto_dino', 'phyto_round', 'skip']
+train: 'RR'
+test: 'RR'

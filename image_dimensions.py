@@ -49,5 +49,5 @@ if __name__ =='__main__':
     
     exts = ('jpg', 'tiff')
     path = '/Users/particle/imgs'
-    cutoff = 2224
+    cutoff = 224
     plot_histograms(path, exts, cutoff)
