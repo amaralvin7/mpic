@@ -7,6 +7,9 @@ from mpl_toolkits.axes_grid1 import host_subplot
 from mpl_toolkits import axisartist
 import numpy as np
 import pandas as pd
+import yaml
+
+from colors import *
 
 path = '/Users/particle/imgs/relabel_20221110'
 contents = os.listdir(path)
@@ -30,25 +33,39 @@ def count_samples(domain):
 
     return count_df, total
 
+cfg = yaml.safe_load(open('config.yaml', 'r'))
+
 rr_df, rr_total = count_samples('RR')
 fk_df, fk_total = count_samples('FK')
 srt_df, srt_total = count_samples('SRT')
 df = pd.concat([rr_df, fk_df, srt_df], axis=1)
-df = df.sort_values('RR', ascending=False)
+# df = df.sort_values('RR', ascending=False)
 
 print(df)
-df.drop(labels='skip', inplace=True)
+for c in df.index:
+    if c not in cfg['classes']:
+        df.drop(labels=c, inplace=True)
+        
+#normalize
+new_rr_total = df['RR'].sum()
+new_srt_total = df['SRT'].sum()
+new_fk_total = df['FK'].sum()
+df['RR'] = df['RR']/new_rr_total
+df['SRT'] = df['SRT']/new_srt_total
+df['FK'] = df['FK']/new_srt_total
 
 # barplot
 ind = np.arange(len(df)) 
 width = 0.25
-bar1 = plt.bar(ind, df['RR'], width, color='b')
-bar2 = plt.bar(ind+width, df['FK'], width, color='g')
-bar3 = plt.bar(ind+width*2, df['SRT'], width, color='orange')
+bar1 = plt.bar(ind, df['RR'], width, color=blue)
+bar2 = plt.bar(ind+width, df['SRT'], width, color=green)
+bar3 = plt.bar(ind+width*2, df['FK'], width, color=orange)
 
-plt.yscale('log')
+# plt.yscale('log')
+plt.ylabel('Fraction of observations')
 plt.subplots_adjust(bottom=0.2)
 plt.xticks(ind+width, df.index.values)
 plt.xticks(rotation=45, ha='right')
-plt.legend( (bar1, bar2, bar3), ('RR', 'FK', 'SRT') )
+plt.legend((bar1, bar2, bar3), ('RR', 'SRT', 'FK'), ncol=3, bbox_to_anchor=(0.5, 1.02), loc='lower center',
+            handletextpad=0.1, frameon=False)
 plt.show()

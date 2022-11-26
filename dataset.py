@@ -1,27 +1,33 @@
+import argparse
 import re
 import os
+import sys
 
 import numpy as np
+import yaml
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
+import tools
+
 
 class ParticleImages(Dataset):
 
-    def __init__(self, filepaths, transformations):
-
+    def __init__(self, cfg, filepaths, transformations):
+    
+        self.data_dir = cfg['data_dir']
         self.filepaths = filepaths
+        self.classes = sorted(cfg['classes'])
         self.transformations = transformations
-        self.labels = [os.path.basename(os.path.dirname(f)) for f in filepaths]
-        self.classes = sorted(set(self.labels))
-        self.class_to_idx = {cls_name: i for i, cls_name in enumerate(self.classes)}
+        self.labels = [os.path.dirname(f) for f in filepaths]
+        self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
 
     def __getitem__(self, index):
         
-        filepath = self.filepaths[index]
+        filepath = os.path.join(self.data_dir, self.filepaths[index])
         label = self.class_to_idx[self.labels[index]]
 
         with Image.open(filepath) as image:
@@ -92,7 +98,7 @@ def get_dataloader(cfg, filepaths, mean, std, augment=False):
 
     transformations = get_transforms(cfg, mean, std, augment)
     dataloader = DataLoader(
-            dataset=ParticleImages(filepaths, transformations),
+            dataset=ParticleImages(cfg, filepaths, transformations),
             batch_size=cfg['batch_size'],
             shuffle=True,
             num_workers=cfg['n_workers']
@@ -100,20 +106,20 @@ def get_dataloader(cfg, filepaths, mean, std, augment=False):
     return dataloader
 
 
-def get_data_stats(filepaths, cfg):
+def calculate_data_stats(filepaths, cfg, train_split_id):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
     
-    print('Calculating dataset statistics...')
-    dataset = ParticleImages(filepaths, get_transforms(cfg))
+    print(f'Calculating data stats for train split {train_split_id}...')
+    dataset = ParticleImages(cfg, filepaths, get_transforms(cfg))
     loader = DataLoader(dataset, batch_size=cfg['batch_size'], num_workers=0)
 
     sum_pixelvals = 0
     sum_square_pixelvals = 0
     n_pixels = len(dataset) * cfg['input_size']**2
 
-    for pixelvals, *_ in tqdm(loader):
+    for pixelvals, *_ in loader:
         sum_pixelvals += pixelvals.sum(dim=[0,2,3])
         sum_square_pixelvals += (pixelvals**2).sum(dim=[0,2,3])
 
@@ -121,43 +127,115 @@ def get_data_stats(filepaths, cfg):
     var  = (sum_square_pixelvals/n_pixels) - (mean**2)
     std  = np.sqrt(var)
 
-    print(f'mean = [{mean[0]:.3f}, {mean[1]:.3f}, {mean[2]:.3f}]')
-    print(f'std = [{std[0]:.3f}, {std[1]:.3f}, {std[2]:.3f}]')
+    print(f'mean = {np.around(mean.numpy(), decimals=3)}')
+    print(f'std = {np.around(std.numpy(), decimals=3)}')
     
     return mean, std
 
 
-def stratified_split(cfg, split):
-    '''Currently, only the 80/10/10 split has expected behavior'''
-    domain = cfg[split]
+def stratified_split(cfg, domain):
+    
     test_size = cfg['val_size']
+    val_size = test_size / (1 - test_size)
+    train_fps = []
+    val_fps = [] 
+    test_fps = []
 
-    if split == 'train':
-        val_size = test_size / (1 - test_size)
-        all_train_fps = []
-        all_val_fps = [] 
-    elif split == 'test':
-        all_test_fps = []
-    else:
-        raise ValueError('Invalid split.')
-
-    labels = [l for l in os.listdir(cfg['data_dir']) if os.path.isdir(os.path.join(cfg['data_dir'], l)) and l not in cfg['exclude']]
-    for l in labels:
+    classes = [c for c in os.listdir(cfg['data_dir']) if os.path.isdir(os.path.join(cfg['data_dir'], c)) and c in cfg['classes']]
+    for c in classes:
         filepaths = []
-        for f in os.listdir(os.path.join(cfg['data_dir'], l)):
+        for f in os.listdir(os.path.join(cfg['data_dir'], c)):
             ext_ok = f.split('.')[1] in cfg['exts']
             if ext_ok and re.search('.+?(?=\d)', f).group() == domain:
-                filepaths.append(os.path.join(cfg['data_dir'], l, f))
-        trainval_fps, test_fps = train_test_split(filepaths, test_size=test_size, random_state=cfg['seed'])
-        if split == 'test':
-            all_test_fps.extend(test_fps)
-        else:
-            train_fps, val_fps = train_test_split(trainval_fps, test_size=val_size, random_state=cfg['seed'])
-            all_train_fps.extend(train_fps)
-            all_val_fps.extend(val_fps)
+                filepaths.append(os.path.join(c, f))
+        if len(filepaths) > 2:  # mainly to exclude SRT rhizaria (N=0)
+            c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=cfg['seed'])
+            test_fps.extend(c_test_fps)
+            c_train_fps, c_val_fps = train_test_split(c_trainval_fps, test_size=val_size, random_state=cfg['seed'])
+            train_fps.extend(c_train_fps)
+            val_fps.extend(c_val_fps)
     
-    if split == 'train':
-        return all_train_fps, all_val_fps
-    else:
-        return all_test_fps
+    return train_fps, val_fps, test_fps
+
+
+# def test_splits(train_filepaths, val_filepaths, test_filepaths):
+    
+#     print('---TRAIN---')
+#     for i in train_filepaths:
+#         print(i)
+#     print('---VAL---')
+#     for i in val_filepaths:
+#         print(i)
+#     print('---TEST---')
+#     for i in test_filepaths:
+#         print(i)
+        
+
+def write_domain_splits(cfg):
+    
+    domain_splits = {}
+
+    for d in cfg['train_domains']:
+        domain_splits[d] = {}
+        train_fps, val_fps, test_fps = stratified_split(cfg, d)
+        domain_splits[d]['train'] = train_fps
+        domain_splits[d]['val'] = val_fps
+        domain_splits[d]['test'] = test_fps
+        
+    tools.write_json(domain_splits, cfg['domain_splits_fname'])
+
+
+def get_train_filepaths(cfg, train_split_id):
+    
+    domain_splits = tools.load_json(cfg['domain_splits_fname'])
+    train_fps = []
+    val_fps = []
+    
+    for domain in cfg['train_splits'][train_split_id]:
+        train_fps.extend(domain_splits[domain]['train'])
+        val_fps.extend(domain_splits[domain]['val'])
+    
+    return train_fps, val_fps
+
+
+def get_predict_filepaths(cfg, predict_domain):
+    
+    domain_splits = tools.load_json(cfg['domain_splits_fname'])
+    predict_filepaths = domain_splits[predict_domain]['test']
+    
+    return predict_filepaths
+
+
+def write_train_data_stats(cfg):
+    
+    data_stats = {}
+
+    for train_split_id in cfg['train_splits']:
+        train_fps, _ = get_train_filepaths(cfg, train_split_id)
+        mean, std = calculate_data_stats(train_fps, cfg, train_split_id)
+        data_stats[train_split_id] = {'mean': mean.tolist(),
+                                      'std': std.tolist()}
+
+    tools.write_json(data_stats, cfg['train_data_stats_fname'])
+
+
+def get_train_data_stats(cfg, train_split_id):
+    
+    train_data_stats = tools.load_json(cfg['train_data_stats_fname'])
+    mean = train_data_stats[train_split_id]['mean']
+    std = train_data_stats[train_split_id]['std']
+
+    return mean, std
+
+
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', default='config.yaml')
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(args.config, 'r'))
+    tools.set_seed(cfg, 'cpu')
+    
+    write_domain_splits(cfg)
+    write_train_data_stats(cfg)
 

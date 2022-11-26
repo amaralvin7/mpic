@@ -4,9 +4,12 @@
 
 import argparse
 import copy
+import csv
+import os
 import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import yaml
 from tqdm import trange
@@ -34,7 +37,7 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     loss_total = 0.0
     acc_total = 0.0
 
-    progress = trange(len(dataloader))
+    # progress = trange(len(dataloader))
         
     for i, (inputs, _, labels) in enumerate(dataloader):
 
@@ -52,39 +55,33 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
         predictions = torch.argmax(outputs, dim=1)    # the predicted label is the one at position (class index) with highest predicted value
         acc_total += torch.mean((predictions == labels).float()).item() # number of correct predictions divided by batch size (i.e., average/mean)
 
-        progress.set_description(
-            f'[{phase}] Loss: {loss_total/(i+1):.2f}; Acc: {100*acc_total/(i+1):.2f}%')
-        progress.update(1)
+        # progress.set_description(
+        #     f'[{phase}] Loss: {loss_total/(i+1):.2f}; Acc: {100*acc_total/(i+1):.2f}%')
+        # progress.update(1)
     
     # end of epoch; finalize
-    progress.close()
+    # progress.close()
     loss_total /= len(dataloader)
     acc_total /= len(dataloader)
 
     return loss_total, acc_total
 
 
-def test_splits(train_filepaths, val_filepaths):
+def write_filenames_to_csv(filepaths):
     
-    print('---TRAIN---')
-    for i in train_filepaths:
-        print(i)
-    print('---VAL---')
-    for i in val_filepaths:
-        print(i)
-    # print('---TEST---')
-    # for i in results2:
-    #     print(i)
+    filenames = [os.path.basename(f) for f in filepaths]
+    with open('filenames.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        for i in filenames:
+            writer.writerows([[i]])
 
 
-def train_model(cfg, device):
+def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicate_id):
 
-    train_filepaths, val_filepaths =  dataset.stratified_split(cfg, 'train')
-    mean, std = dataset.get_data_stats(train_filepaths, cfg)
     train_dl = dataset.get_dataloader(cfg, train_filepaths, mean, std, augment=True)
     val_dl = dataset.get_dataloader(cfg, val_filepaths, mean, std)
 
-    model = initialize_model(len(train_dl.dataset.classes), device)
+    model = initialize_model(len(cfg['classes']))
 
     optimizer = torch.optim.Adam(model.parameters())
     criterion = torch.nn.CrossEntropyLoss()
@@ -102,8 +99,6 @@ def train_model(cfg, device):
     train_start = tools.time_sync()
 
     while epoch <= cfg['max_epochs'] and esi < cfg['patience']:
-        
-        epoch_start = tools.time_sync()
 
         train_loss, train_acc = training_epoch(device, train_dl, model, optimizer, criterion, True)
         val_loss, val_acc = training_epoch(device, val_dl, model, optimizer, criterion, False)
@@ -122,14 +117,12 @@ def train_model(cfg, device):
         else:
             esi += 1
 
-        epoch_duration = tools.time_sync() - epoch_start
-        print(f'Epoch {epoch} complete in {epoch_duration/60:.2f}m')
         epoch += 1
 
     train_duration = tools.time_sync() - train_start
     minutes = train_duration // 60
     seconds = train_duration % 60
-    print(f'{epoch - 1} epochs complete in {minutes:.0f}m {seconds:.0f}s. Best val acc: {100*best_acc:.2f}%')
+    print(f'Rep. {replicate_id}: {epoch - 1} epochs in {minutes:.0f}m {seconds:.0f}s. Best val acc {100*best_acc:.2f}%')
     
     output = {'mean': mean,
               'std': std,
@@ -142,7 +135,7 @@ def train_model(cfg, device):
     return output
 
 
-def summary_plots(tl_hist, vl_hist, ta_hist, va_hist):
+def summary_plots(tl_hist, vl_hist, ta_hist, va_hist, replicate_id):
 
     num_epochs = len(tl_hist)
     
@@ -151,7 +144,7 @@ def summary_plots(tl_hist, vl_hist, ta_hist, va_hist):
     plt.plot(range(1, num_epochs + 1), ta_hist, label='training')
     plt.plot(range(1, num_epochs + 1), va_hist, label='validation')
     plt.legend()
-    plt.savefig('accuracy')
+    plt.savefig(f'accuracy_{replicate_id}.png')
     plt.close()
 
     plt.xlabel('Training Epochs')
@@ -159,7 +152,7 @@ def summary_plots(tl_hist, vl_hist, ta_hist, va_hist):
     plt.plot(range(1, num_epochs + 1), tl_hist, label='training')
     plt.plot(range(1, num_epochs + 1), vl_hist, label='validation')
     plt.legend()
-    plt.savefig('loss')
+    plt.savefig(f'loss_{replicate_id}.png')
     plt.close()
 
 
@@ -167,21 +160,22 @@ if __name__ == '__main__':
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('-c', '--config', default='config.yaml')
-    # args = parser.parse_args()
-
-    # cfg = yaml.safe_load(open(args.config, 'r'))
-    
-    cfg = yaml.safe_load(open('config.yaml', 'r'))
-    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', default='config.yaml')
+    parser.add_argument('-s', '--split_id')
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(args.config, 'r'))  
     tools.set_seed(cfg, device)
     
-    output = train_model(cfg, device)
-
-    torch.save(output, 'saved_model.pt')
+    train_fps, val_fps = dataset.get_train_filepaths(cfg, args.split_id)
+    mean, std = dataset.get_train_data_stats(cfg, args.split_id)
     
-    summary_plots(
-        output['train_loss_hist'], output['val_loss_hist'],
-        output['train_acc_hist'], output['val_acc_hist'])
+    print(f'---------Training Model {args.split_id}...')
+    for i in range(cfg['replicates']):
+        output = train_model(cfg, device, train_fps, val_fps, mean, std, i)
+        replicate_id = f'{args.split_id}_{i}'
+        torch.save(output, f'saved_model_{replicate_id}.pt')
+        summary_plots(output['train_loss_hist'], output['val_loss_hist'],
+                      output['train_acc_hist'], output['val_acc_hist'],
+                      replicate_id)
 

@@ -1,3 +1,4 @@
+import json
 import random
 import time
 
@@ -20,3 +21,17 @@ def time_sync():
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
+
+
+def write_json(data, filename):
+        
+    with open(filename, 'w') as file:
+        json.dump(data, file, indent=4)
+
+
+def load_json(filename):
+        
+    with open(filename, 'r') as file:
+        data = json.load(file)
+    
+    return data

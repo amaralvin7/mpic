@@ -4,10 +4,16 @@ seed: 0
 n_workers: 2
 max_epochs: 100
 patience: 10
+replicates: 8
 data_dir: '/Users/particle/imgs/relabel_20221110_norare'
+# data_dir: '/Users/particle/imgs/test_data_class'
 # data_dir: './relabel_20221110_norare'
 val_size: 0.1
-exts: ['jpg', 'tiff']
-exclude: ['salp_pellet', 'phyto_long', 'phyto_dino', 'phyto_round', 'skip']
-train: 'RR'
-test: 'RR'
+exts: [jpg, tiff]
+classes: [aggregate, bubble, fiber_blur, fiber_sharp, long_pellet,
+          mini_pellet, noise, short_pellet, swimmer]
+train_domains: ['RR', 'SRT', 'FK']
+train_splits: {A: [RR,], B: [RR, SRT], C: [RR, FK], D: [RR, SRT, FK],
+               E: [SRT,], F: [FK,], G: [SRT, FK]}
+domain_splits_fname: 'domain_splits.json'
+train_data_stats_fname: 'train_data_stats.json'

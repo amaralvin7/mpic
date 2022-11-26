@@ -1,21 +1,27 @@
 
-import numpy as np
+import argparse
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import sys
+from itertools import product
 
 import pandas as pd
 import torch
+import sklearn.metrics as metrics
 import yaml
 from PIL import Image
 from tqdm import tqdm
-from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 
 import dataset
+import tools
 from model import initialize_model
+from colors import *
 
 
-def predict_with_truth(dataloader):
+def predict_with_truth(dataloader, model, exp_id, replicate):
+
+    print(f'Predicting experiment {exp_id}, replicate {replicate}...')
     
     y_pred = []
     y_true = []    
@@ -42,14 +48,17 @@ def predict_with_truth(dataloader):
             #         plt.close()
             #         wrong_counter += 1
 
-    report = classification_report(y_true, y_pred, zero_division=0, target_names=dataloader.dataset.classes, output_dict=True)
-    pd.DataFrame(report).transpose().to_csv('test_output.csv')
+    classes = dataloader.dataset.classes
+    class_idxs = list(range(len(classes)))
+    report = metrics.classification_report(y_true, y_pred, zero_division=0, labels=class_idxs, target_names=classes, output_dict=True)
+    pd.DataFrame(report).transpose().to_csv(os.path.join('results', f'pred_output_{exp_id}_{replicate}.csv'))
 
     _, ax = plt.subplots(figsize=(10,10))
-    ConfusionMatrixDisplay.from_predictions(
+    metrics.ConfusionMatrixDisplay.from_predictions(
         y_true,
         y_pred,
-        display_labels=dataloader.dataset.classes,
+        labels=class_idxs,
+        display_labels=classes,
         cmap=plt.cm.Blues,
         normalize=None,
         xticks_rotation='vertical',
@@ -58,7 +67,7 @@ def predict_with_truth(dataloader):
     )
     ax.set_title('Confusion matrix')
     plt.tight_layout()
-    plt.savefig('confusionmatrix')
+    plt.savefig(os.path.join('results', f'confusionmatrix_{exp_id}_{replicate}'))
     plt.close()
 
     return y_pred, y_true
@@ -80,7 +89,7 @@ def predict_with_truth(dataloader):
 #             all_filenames.extend(filenames)
     
 #     df = pd.DataFrame(list(zip(all_filenames, all_labels)), columns =['file', 'predicted_label'])
-    df.to_csv('predictions.csv', index=False)
+#     df.to_csv('predictions.csv', index=False)
 
 
 def barplots(y_true, y_pred, dataloader):  # for precision, recall, f1 score
@@ -102,7 +111,7 @@ def barplots(y_true, y_pred, dataloader):  # for precision, recall, f1 score
         plt.close()
 
     classes = dataloader.dataset.classes
-    report = classification_report(y_true, y_pred, zero_division=0, target_names=classes, output_dict=True)
+    report = metrics.classification_report(y_true, y_pred, zero_division=0, target_names=classes, output_dict=True)
     precision = [report[c]['precision'] for c in classes]
     recall = [report[c]['recall'] for c in classes]
     f1 = [report[c]['f1-score'] for c in classes]
@@ -110,32 +119,76 @@ def barplots(y_true, y_pred, dataloader):  # for precision, recall, f1 score
     make_plot(recall, 'recall')
     make_plot(f1, 'f1')
 
+
+def get_experiment_matrix(cfg):
+    
+    matrix ={}
+    combos = product(cfg['train_splits'], cfg['train_domains'])
+    for i, combo in enumerate(combos):
+        matrix[i] = [*combo]
+        
+    return matrix
+
+
+def prediction_experiments(cfg, device, filename):
+
+    exp_matrix = get_experiment_matrix(cfg)
+    
+    test_acc_avgs = []
+    macro_f1_avgs = []
+    weight_f1_avgs = []
+
+    test_acc_std = []
+    macro_f1_std = []
+    weight_f1_std = []
+    
+    for exp_id, (split_id, predict_domain) in exp_matrix.items():
+        
+        e_test_acc = []
+        e_macro_f1 = []
+        e_weight_f1 = []
+
+        mean, std = dataset.get_train_data_stats(cfg, split_id)
+        predict_fps =  dataset.get_predict_filepaths(cfg, predict_domain)
+        predict_dl = dataset.get_dataloader(cfg, predict_fps, mean, std)
+        models = [f for f in os.listdir('results') if f'model_{split_id}' in f]
+
+        for m in sorted(models):
+            
+            replicate = m.split('.')[0][-1]
+            model_output = torch.load(os.path.join('results', m), map_location=device)
+            weights = model_output['weights']
+            model = initialize_model(len(cfg['classes']), weights=weights)
+            model.eval()
+            
+            y_pred, y_true = predict_with_truth(predict_dl, model, exp_id, replicate)
+            e_test_acc.append(metrics.accuracy_score(y_true, y_pred))
+            e_macro_f1.append(metrics.f1_score(y_true, y_pred, average='macro', zero_division=0))
+            e_weight_f1.append(metrics.f1_score(y_true, y_pred, average='weighted', zero_division=0))
+
+        test_acc_avgs.append(np.mean(e_test_acc))
+        macro_f1_avgs.append(np.mean(e_macro_f1))
+        weight_f1_avgs.append(np.mean(e_weight_f1))
+
+        test_acc_std.append(np.std(e_test_acc, ddof=1))
+        macro_f1_std.append(np.std(e_macro_f1, ddof=1))
+        weight_f1_std.append(np.std(e_weight_f1, ddof=1))
+    
+    prediction_results = {'taa': test_acc_avgs, 'mfa': macro_f1_avgs,
+                          'wfa': weight_f1_avgs, 'tas': test_acc_std,
+                          'mfs': macro_f1_std, 'wfs': weight_f1_std}
+
+    tools.write_json(prediction_results, os.path.join('results', filename))
+
+
 if __name__ == '__main__':
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    cfg = yaml.safe_load(open('config.yaml', 'r'))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', default='config.yaml')
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(args.config, 'r'))
     
-    trained_model_output = torch.load('saved_model.pt', map_location=device)
-    weights = trained_model_output['weights']
-    mean = trained_model_output['mean']
-    std = trained_model_output['std']
+    prediction_experiments(cfg, device, 'prediction_results.json')
     
-    print(trained_model_output['train_loss_hist'])
-    print('-------------')
-    print(trained_model_output['train_acc_hist'])
-    print('-------------')
-    print(trained_model_output['val_loss_hist'])
-    print('-------------')
-    print(trained_model_output['val_acc_hist'])
-    print('-------------')
-    print(f'{len(trained_model_output["val_loss_hist"])} epochs, Acc: {100*max(trained_model_output["val_acc_hist"]):.2f}')
-
-    test_filepaths =  dataset.stratified_split(cfg, 'test')
-    test_dl = dataset.get_dataloader(cfg, test_filepaths, mean, std)
-    
-    model = initialize_model(len(test_dl.dataset.classes), device, weights=weights)
-    model.eval()
-    
-    y_pred, y_true = predict_with_truth(test_dl)
     
