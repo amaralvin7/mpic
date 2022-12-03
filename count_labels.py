@@ -52,7 +52,7 @@ new_srt_total = df['SRT'].sum()
 new_fk_total = df['FK'].sum()
 df['RR'] = df['RR']/new_rr_total
 df['SRT'] = df['SRT']/new_srt_total
-df['FK'] = df['FK']/new_srt_total
+df['FK'] = df['FK']/new_fk_total
 
 # barplot
 ind = np.arange(len(df)) 
