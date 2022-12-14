@@ -1,18 +1,10 @@
-# Adapted from https://github.com/CV4EcologySchool/ct_classifier/blob/master/ct_classifier/train.py
-# and https://github.com/CV4EcologySchool/Lecture-13/blob/main/cv4e_lecture13/train.py
-# and https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
-
 import argparse
 import copy
 import csv
 import os
-import sys
 
-import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import yaml
-from tqdm import trange
 
 import dataset
 import tools
@@ -28,39 +20,35 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
 
     if update:
         model.train()
-        phase = 'Train'
     else:
         model.eval()
-        phase = 'Val'
 
     # running averages
     loss_total = 0.0
     acc_total = 0.0
 
-    # progress = trange(len(dataloader))
-        
-    for i, (inputs, _, labels) in enumerate(dataloader):
+    for _, (inputs, _, labels) in enumerate(dataloader):
 
         inputs = inputs.to(device)
         labels = labels.to(device)
         outputs = model(inputs)
         loss = criterion(outputs, labels)
-        
+
         if update:
-            optimizer.zero_grad()  # check if it matters if this is before loss calculation
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            
-        loss_total += loss.item()  # the .item() command retrieves the value of a single-valued tensor, regardless of its data type and device of tensor
-        predictions = torch.argmax(outputs, dim=1)    # the predicted label is the one at position (class index) with highest predicted value
-        acc_total += torch.mean((predictions == labels).float()).item() # number of correct predictions divided by batch size (i.e., average/mean)
 
-        # progress.set_description(
-        #     f'[{phase}] Loss: {loss_total/(i+1):.2f}; Acc: {100*acc_total/(i+1):.2f}%')
-        # progress.update(1)
-    
-    # end of epoch; finalize
-    # progress.close()
+        # the .item() command retrieves the value of a single-valued tensor,
+        # regardless of its data type and device of tensor
+        loss_total += loss.item()
+        # the predicted label is the one at position (class index) with highest
+        # predicted value
+        predictions = torch.argmax(outputs, dim=1)
+        # number of correct predictions divided by batch size (i.e.,
+        # average/mean)
+        acc_total += torch.mean((predictions == labels).float()).item()
+
     loss_total /= len(dataloader)
     acc_total /= len(dataloader)
 
@@ -68,7 +56,7 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
 
 
 def write_filenames_to_csv(filepaths):
-    
+
     filenames = [os.path.basename(f) for f in filepaths]
     with open('filenames.csv', 'w', newline='') as file:
         writer = csv.writer(file)
@@ -76,9 +64,11 @@ def write_filenames_to_csv(filepaths):
             writer.writerows([[i]])
 
 
-def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicate_id):
+def train_model(cfg, device, train_filepaths,
+                val_filepaths, mean, std, replicate_id):
 
-    train_dl = dataset.get_dataloader(cfg, train_filepaths, mean, std, augment=True)
+    train_dl = dataset.get_dataloader(
+        cfg, train_filepaths, mean, std, augment=True)
     val_dl = dataset.get_dataloader(cfg, val_filepaths, mean, std)
 
     model = initialize_model(len(cfg['classes']))
@@ -95,14 +85,16 @@ def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicat
     best_acc = 0
     best_loss = 10**15  # an arbitrarily large number
     esi = 0  # epochs since improvement
-    
+
     train_start = tools.time_sync()
 
     while epoch <= cfg['max_epochs'] and esi < cfg['patience']:
 
-        train_loss, train_acc = training_epoch(device, train_dl, model, optimizer, criterion, True)
-        val_loss, val_acc = training_epoch(device, val_dl, model, optimizer, criterion, False)
-        
+        train_loss, train_acc = training_epoch(
+            device, train_dl, model, optimizer, criterion, True)
+        val_loss, val_acc = training_epoch(
+            device, val_dl, model, optimizer, criterion, False)
+
         tl_hist.append(train_loss)
         ta_hist.append(train_acc)
         vl_hist.append(val_loss)
@@ -123,7 +115,7 @@ def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicat
     minutes = train_duration // 60
     seconds = train_duration % 60
     print(f'Rep. {replicate_id}: {epoch - 1} epochs in {minutes:.0f}m {seconds:.0f}s. Best val acc {100*best_acc:.2f}%')
-    
+
     output = {'mean': mean,
               'std': std,
               'train_loss_hist': tl_hist,
@@ -131,51 +123,31 @@ def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicat
               'val_loss_hist': vl_hist,
               'val_acc_hist': va_hist,
               'weights': best_weights}
-    
+
     return output
 
 
-def summary_plots(tl_hist, vl_hist, ta_hist, va_hist, replicate_id):
-
-    num_epochs = len(tl_hist)
-    
-    plt.xlabel('Training Epochs')
-    plt.ylabel('Accuracy')
-    plt.plot(range(1, num_epochs + 1), ta_hist, label='training')
-    plt.plot(range(1, num_epochs + 1), va_hist, label='validation')
-    plt.legend()
-    plt.savefig(f'accuracy_{replicate_id}.png')
-    plt.close()
-
-    plt.xlabel('Training Epochs')
-    plt.ylabel('Loss')
-    plt.plot(range(1, num_epochs + 1), tl_hist, label='training')
-    plt.plot(range(1, num_epochs + 1), vl_hist, label='validation')
-    plt.legend()
-    plt.savefig(f'loss_{replicate_id}.png')
-    plt.close()
-
-
 if __name__ == '__main__':
-    
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', default='config.yaml')
-    parser.add_argument('-s', '--split_id')
     args = parser.parse_args()
-    cfg = yaml.safe_load(open(args.config, 'r'))  
+    cfg = yaml.safe_load(open(args.config, 'r'))
     tools.set_seed(cfg, device)
-    
-    train_fps, val_fps = dataset.get_train_filepaths(cfg, args.split_id)
-    mean, std = dataset.get_train_data_stats(cfg, args.split_id)
-    
-    print(f'---------Training Model {args.split_id}...')
-    for i in range(cfg['replicates']):
-        output = train_model(cfg, device, train_fps, val_fps, mean, std, i)
-        replicate_id = f'{args.split_id}_{i}'
-        torch.save(output, f'saved_model_{replicate_id}.pt')
-        summary_plots(output['train_loss_hist'], output['val_loss_hist'],
-                      output['train_acc_hist'], output['val_acc_hist'],
-                      replicate_id)
 
+    for split_id in cfg['train_splits']:
+
+        train_fps, val_fps = dataset.get_train_filepaths(cfg, split_id)
+        mean, std = dataset.get_train_data_stats(cfg, split_id)
+
+        print(f'---------Training Model {split_id}...')
+        for i in range(cfg['replicates']):
+            output = train_model(cfg, device, train_fps, val_fps, mean, std, i)
+            replicate_id = f'{split_id}_{i}'
+            torch.save(
+                output,
+                os.path.join(
+                    'weights',
+                    f'saved_model_{replicate_id}.pt'))
