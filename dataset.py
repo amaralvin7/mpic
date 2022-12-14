@@ -153,14 +153,13 @@ def stratified_split(cfg, domain):
             ext_ok = f.split('.')[1] in cfg['exts']
             if ext_ok and re.search('.+?(?=\\d)', f).group() == domain:
                 filepaths.append(os.path.join(c, f))
-        if len(filepaths) > 2:  # mainly to exclude SRT rhizaria (N=0)
-            c_trainval_fps, c_test_fps = train_test_split(
-                filepaths, test_size=test_size, random_state=cfg['seed'])
-            test_fps.extend(c_test_fps)
-            c_train_fps, c_val_fps = train_test_split(
-                c_trainval_fps, test_size=val_size, random_state=cfg['seed'])
-            train_fps.extend(c_train_fps)
-            val_fps.extend(c_val_fps)
+        c_trainval_fps, c_test_fps = train_test_split(
+            filepaths, test_size=test_size, random_state=cfg['seed'])
+        test_fps.extend(c_test_fps)
+        c_train_fps, c_val_fps = train_test_split(
+            c_trainval_fps, test_size=val_size, random_state=cfg['seed'])
+        train_fps.extend(c_train_fps)
+        val_fps.extend(c_val_fps)
 
     return train_fps, val_fps, test_fps
 
