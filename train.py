@@ -12,9 +12,7 @@ from model import initialize_model
 
 
 def training_epoch(device, dataloader, model, optimizer, criterion, update):
-    '''
-        Our actual training function.
-    '''
+
     torch.set_grad_enabled(update)
     model.to(device)
 
@@ -148,6 +146,4 @@ if __name__ == '__main__':
             replicate_id = f'{split_id}_{i}'
             torch.save(
                 output,
-                os.path.join(
-                    'weights',
-                    f'saved_model_{replicate_id}.pt'))
+                os.path.join('weights', f'saved_model_{replicate_id}.pt'))
