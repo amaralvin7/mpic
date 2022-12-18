@@ -71,7 +71,7 @@ def train_model(cfg, device, train_filepaths,
 
     model = initialize_model(len(cfg['classes']))
 
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.AdamW(model.parameters())
     criterion = torch.nn.CrossEntropyLoss()
 
     tl_hist = []
