@@ -1,5 +1,3 @@
-
-import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -8,7 +6,6 @@ from itertools import product
 import pandas as pd
 import torch
 import sklearn.metrics as metrics
-import yaml
 
 import dataset
 import tools
@@ -74,9 +71,7 @@ def get_experiment_matrix(cfg):
     return matrix
 
 
-def prediction_experiments(cfg, device):
-
-    exp_matrix = get_experiment_matrix(cfg)
+def prediction_experiments(cfg, device, exp_matrix, save_fname):
 
     test_acc_avgs = []
     macro_f1_avgs = []
@@ -136,15 +131,5 @@ def prediction_experiments(cfg, device):
 
     tools.write_json(
         prediction_results,
-        os.path.join('results', cfg['prediction_results_fname']))
-
-
-if __name__ == '__main__':
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default='config.yaml')
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(args.config, 'r'))
-
-    prediction_experiments(cfg, device)
+        os.path.join('results', save_fname))
+    

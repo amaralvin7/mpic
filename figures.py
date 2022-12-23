@@ -16,7 +16,7 @@ import torch
 from colors import *
 
 
-def prediction_summary(cfg):
+def prediction_summary(cfg, prediction_results_fname):
 
     exp_matrix = predict.get_experiment_matrix(cfg)
     train_sizes = []
@@ -27,7 +27,7 @@ def prediction_summary(cfg):
         train_sizes.append(len(train_fps))
 
     prediction_results = tools.load_json(os.path.join(
-        'results', cfg['prediction_results_fname']))
+        'results', prediction_results_fname))
 
     ind = np.arange(len(prediction_results['taa']))
     width = 0.25
@@ -58,7 +58,7 @@ def prediction_summary(cfg):
     plt.close()
 
 
-def prediction_subplots_bar(cfg):
+def prediction_subplots_bar(cfg, prediction_results_fname):
     
     def get_ticklabels(exp_ids):
         
@@ -78,7 +78,7 @@ def prediction_subplots_bar(cfg):
         train_sizes.append(len(train_fps))
 
     prediction_results = tools.load_json(os.path.join(
-        'results', cfg['prediction_results_fname']))
+        'results', prediction_results_fname))
 
     ind = np.arange(len(prediction_results['taa']))
     width = 0.25
@@ -120,7 +120,7 @@ def prediction_subplots_bar(cfg):
     plt.close()
     
 
-def prediction_subplots_scatter(cfg):
+def prediction_subplots_scatter(cfg, prediction_results_fname):
     
     def get_df_domains(exp_ids):
         
@@ -142,7 +142,7 @@ def prediction_subplots_scatter(cfg):
         train_sizes.append(len(train_fps))
 
     prediction_results = tools.load_json(os.path.join(
-        'results', cfg['prediction_results_fname']))
+        'results', prediction_results_fname))
 
     ax_exp = {0: (0, 3, 6, 9), 3: (12, 15, 18), 1: (13, 4, 19, 10),
               4: (1, 16, 7), 2: (17, 8, 20, 11), 5: (2, 14, 5)} 
@@ -255,7 +255,7 @@ def distribution_heatmap(cfg, metric='cityblock', make_fig=False):
     if make_fig:
         ax = sns.heatmap(df, cmap='viridis', annot=True, fmt='.2f')
         ax.figure.tight_layout()
-        plt.savefig('results/distribution_heatmap.pdf')
+        plt.savefig(f'results/distribution_heatmap_{metric}.pdf')
         plt.close()
     else:
         return df
@@ -291,9 +291,12 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', default='config.yaml')
     args = parser.parse_args()
     cfg = yaml.safe_load(open(args.config, 'r'))
+    
+    prediction_results_fname = 'prediction_results.json'
 
-    # prediction_subplots_bar(cfg)
-    # distribution_heatmap(cfg)
-    # distribution_barplot(cfg)
-    # distribution_barplot(cfg, True)
-    prediction_subplots_scatter(cfg)
+    prediction_subplots_bar(cfg, prediction_results_fname)
+    distribution_heatmap(cfg, 'cityblock', True)
+    distribution_heatmap(cfg, 'braycurtis', True)
+    distribution_barplot(cfg)
+    distribution_barplot(cfg, True)
+    prediction_subplots_scatter(cfg, prediction_results_fname)

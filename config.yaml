@@ -15,4 +15,3 @@ train_splits: {A: [RR,], B: [RR, SRT], C: [RR, FK], D: [RR, SRT, FK],
                E: [SRT,], F: [FK,], G: [SRT, FK]}
 domain_splits_fname: domain_splits.json
 train_data_stats_fname: train_data_stats.json
-prediction_results_fname: prediction_results.json
