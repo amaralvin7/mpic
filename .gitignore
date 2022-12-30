@@ -13,6 +13,7 @@ __pycache__/
 *.png
 *.zip
 *.pt
+*.csv
 
 weights
 results
