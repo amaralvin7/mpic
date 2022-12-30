@@ -285,6 +285,50 @@ def distribution_barplot(cfg, normalize=False):
     plt.savefig(f'results/distribution_barplot_{suffix}.pdf')
     plt.close()
 
+
+def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
+
+    exp_matrix = predict.get_experiment_matrix(cfg)
+    test_domains = [exp_matrix[i][1] for i in (0, 1, 2)]
+
+    split_id = 'A'  # split id for RR only
+    train_fps, _ = dataset.get_train_filepaths(cfg, split_id)
+    nonuniform_train_size = len(train_fps)
+    
+    # find the smallest number of observations that a class has
+    train_fps_by_class = [[f for f in train_fps if c in f] for c in cfg['classes']]
+    uniform_train_size = len(min(train_fps_by_class, key=len)) * len(cfg['classes'])
+
+    a_predictions = tools.load_json(os.path.join(
+        'results', ablation_predictions))
+    u_predictions = tools.load_json(os.path.join(
+        'results', uniform_predictions))
+    
+    fig, axs = plt.subplots(1, 3, figsize=(8, 4))
+    fig.subplots_adjust(bottom=0.15, hspace=0.4, wspace=0.5)
+    width = 0.25
+    
+    ind = (0, 1)
+    for i, (ax, test_domain) in enumerate(zip(axs, test_domains)):
+        twin = ax.twinx()
+        ax.set_xticks(ind, ('NU', 'U'))
+        ax.grid(visible=True, which='major', axis='y', zorder=1)
+        ax.bar(ind[0] - width, a_predictions['taa'][i],  width, yerr=a_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
+        ax.bar(ind[0], a_predictions['wfa'][i],  width, yerr=a_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
+        twin.bar(ind[0] + width, nonuniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
+        ta_bar_u = ax.bar(ind[1] - width, u_predictions['taa'][i],  width, yerr=u_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
+        wf_bar_u = ax.bar(ind[1], u_predictions['wfa'][i],  width, yerr=u_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
+        ts_bar_u = twin.bar(ind[1] + width, uniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
+        ax.set_ylim((0.4, 1))
+        twin.set_ylim((1000, 7000))
+        if i == 1:
+            ax.set_yticklabels([])
+            twin.set_yticklabels([])
+        ax.set_title(test_domain, fontsize=14)
+    fig.legend((ta_bar_u[0], wf_bar_u[0], ts_bar_u[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
+    plt.savefig(os.path.join('results/uniform_comparison_barplots.pdf'))
+    plt.close()
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -292,11 +336,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     cfg = yaml.safe_load(open(args.config, 'r'))
     
-    prediction_results_fname = 'prediction_results.json'
+    ablation_predictions = 'prediction_results_ablations.json'
+    uniform_predictions = 'prediction_results_uniform.json'
 
-    prediction_subplots_bar(cfg, prediction_results_fname)
-    distribution_heatmap(cfg, 'cityblock', True)
-    distribution_heatmap(cfg, 'braycurtis', True)
-    distribution_barplot(cfg)
-    distribution_barplot(cfg, True)
-    prediction_subplots_scatter(cfg, prediction_results_fname)
+    # prediction_subplots_bar(cfg, ablation_predictions)
+    # distribution_heatmap(cfg, 'cityblock', True)
+    # distribution_heatmap(cfg, 'braycurtis', True)
+    # distribution_barplot(cfg)
+    # distribution_barplot(cfg, True)
+    # prediction_subplots_scatter(cfg, ablation_predictions)
+    
+    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
