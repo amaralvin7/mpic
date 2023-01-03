@@ -35,7 +35,7 @@ def revise_CD_labels(df, columns):
         df[f'{c}_r'] = df[c].apply(lambda x: d[x])
 
 
-def revise_model_labels(df, col):
+def revise_model_labels(df, columns):
     
     d = {'aggregate': 'aggregate', 'bubble': 'unidentifiable',
          'fiber_blur': 'fiber', 'fiber_sharp': 'fiber',
@@ -45,7 +45,8 @@ def revise_model_labels(df, col):
          'salp_pellet': 'salp_pellet', 'short_pellet': 'short_pellet',
          'skip': 'unidentifiable', 'swimmer': 'swimmer'}
     
-    df[f'{col}_r'] = df[col].apply(lambda x: d[x])
+    for c in columns:
+        df[f'{c}_r'] = df[c].apply(lambda x: d[x])
 
 
 def compare_CD_agreement():
@@ -62,37 +63,37 @@ def compare_JC_labels():
     revise_CD_labels(CD_labels, ('ID',))
       
     model_labels = pd.read_csv('JC_predictions.csv')
-    ensemble_size = len(model_labels.columns) - 1
-    for i, r in model_labels.iterrows():
-        vote = max(set(r), key=list(r.values).count)
-        n_vote = sum(r == vote)
-        if n_vote > np.ceil(ensemble_size / 2):
-            model_labels.at[i, 'prediction'] = vote
-        else:
-            model_labels.at[i, 'prediction'] = 'noise'
-    model_labels = model_labels[['file', 'prediction']]
-    revise_model_labels(model_labels, 'prediction')
+    agreement_rates = []
+    columns = [c for c in model_labels.columns if 'prediction' in c]
+    revise_model_labels(model_labels, columns)
+    
+    for c in columns:
 
-    merged = CD_labels.merge(model_labels)
-    print(f'Aggreement rate: {sum(merged["ID_r"] == merged["prediction_r"]) / len(CD_labels) * 100:.0f}%')
-    merged.to_csv('JC_label_comparison.csv')
+        df = model_labels[['file', f'{c}_r']]
+        replicate = int(c.split('_')[1])
 
-    _, ax = plt.subplots(figsize=(10, 10))
-    metrics.ConfusionMatrixDisplay.from_predictions(
-        merged['ID_r'],
-        merged['prediction_r'],
-        cmap=plt.cm.Blues,
-        normalize=None,
-        xticks_rotation='vertical',
-        values_format='.0f',
-        ax=ax)
-    ax.set_title('Confusion matrix')
-    ax.set_ylabel('Human')
-    ax.set_xlabel('Model')
-    plt.tight_layout()
-    plt.savefig(
-        os.path.join('JC_confusionmatrix'))
-    plt.close()
+        merged = CD_labels.merge(df)
+        agreement = sum(merged["ID_r"] == merged[f"{c}_r"]) / len(CD_labels) * 100
+        agreement_rates.append(agreement)
+        print(f'Aggreement rate, replicate {replicate}: {agreement:.0f}%')
+
+        _, ax = plt.subplots(figsize=(10, 10))
+        metrics.ConfusionMatrixDisplay.from_predictions(
+            merged['ID_r'],
+            merged[f'{c}_r'],
+            cmap=plt.cm.Blues,
+            normalize=None,
+            xticks_rotation='vertical',
+            values_format='.0f',
+            ax=ax)
+        ax.set_title('Confusion matrix')
+        ax.set_ylabel('Human')
+        ax.set_xlabel('Model')
+        plt.tight_layout()
+        plt.savefig(os.path.join(f'JC_confusionmatrix_{replicate}'))
+        plt.close()
+
+    print(f'Overall agreement rate: {np.mean(agreement_rates):.2f} ± {np.std(agreement_rates, ddof=1):.2f}')
 
 if __name__ == '__main__':
     
