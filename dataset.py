@@ -14,26 +14,32 @@ import tools
 
 class ParticleImages(torch.utils.data.Dataset):
 
-    def __init__(self, cfg, filepaths, transformations):
+    def __init__(self, cfg, data_dir, filepaths, transformations, is_labeled=True):
 
-        self.data_dir = cfg['data_dir']
+        self.data_dir = data_dir
         self.filepaths = filepaths
         self.classes = sorted(cfg['classes'])
-        self.transformations = transformations
-        self.labels = [os.path.dirname(f) for f in filepaths]
         self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
+        self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
+        self.transformations = transformations
+        self.is_labeled = is_labeled
+        if self.is_labeled:
+            self.labels = [os.path.dirname(f) for f in filepaths]
 
     def __getitem__(self, index):
 
         filepath = os.path.join(self.data_dir, self.filepaths[index])
-        label = self.class_to_idx[self.labels[index]]
+        if self.is_labeled:
+            label = self.class_to_idx[self.labels[index]]
 
         with Image.open(filepath) as image:
             image = image.convert('RGB')
 
         image_tensor = self.transformations(image)
 
-        return image_tensor, filepath, label
+        if self.is_labeled:
+            return image_tensor, filepath, label
+        return image_tensor, filepath
 
     def __len__(self):
         return len(self.filepaths)
@@ -93,11 +99,11 @@ def get_transforms(cfg, mean=None, std=None, augment=False):
     return transformations
 
 
-def get_dataloader(cfg, filepaths, mean, std, augment=False):
+def get_dataloader(cfg, data_dir, filepaths, mean, std, augment=False, is_labeled=True):
 
     transformations = get_transforms(cfg, mean, std, augment)
     dataloader = torch.utils.data.DataLoader(
-        dataset=ParticleImages(cfg, filepaths, transformations),
+        dataset=ParticleImages(cfg, data_dir, filepaths, transformations, is_labeled),
         batch_size=cfg['batch_size'],
         shuffle=True,
         num_workers=cfg['n_workers'])
@@ -111,7 +117,7 @@ def calculate_data_stats(filepaths, cfg, train_split_id):
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
 
     print(f'Calculating data stats for train split {train_split_id}...')
-    dataset = ParticleImages(cfg, filepaths, get_transforms(cfg))
+    dataset = ParticleImages(cfg, cfg['train_data_dir'], filepaths, get_transforms(cfg))
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg['batch_size'], num_workers=0)
 

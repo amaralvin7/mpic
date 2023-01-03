@@ -13,7 +13,7 @@ from model import initialize_model
 from colors import *
 
 
-def predict_with_truth(dataloader, model, exp_id, replicate):
+def predict_labeled_data(dataloader, model, exp_id, replicate):
 
     print(f'Predicting experiment {exp_id}, replicate {replicate}...')
 
@@ -101,7 +101,7 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname):
             model = initialize_model(len(cfg['classes']), weights=weights)
             model.eval()
 
-            y_pred, y_true = predict_with_truth(
+            y_pred, y_true = predict_labeled_data(
                 predict_dl, model, exp_id, replicate)
             e_test_acc.append(metrics.accuracy_score(y_true, y_pred))
             e_macro_f1.append(

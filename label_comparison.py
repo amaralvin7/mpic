@@ -1,9 +1,9 @@
 
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import pandas as pd
-import shutil
-import sys
+from sklearn import metrics
 
 
 def labels_to_df(path, prefix):
@@ -54,7 +54,46 @@ def compare_CD_agreement():
     CD_labels = pd.read_csv('labeling_attempts.csv')
     revise_CD_labels(CD_labels, ('CD_1', 'CD_2'))
     print(f'CD aggreement rate: {sum(CD_labels["CD_1_r"] == CD_labels["CD_2_r"]) / len(CD_labels) * 100:.0f}%')
+    
+
+def compare_JC_labels():
+
+    CD_labels = pd.read_csv('JC_manually_classified_subset.csv')
+    revise_CD_labels(CD_labels, ('ID',))
+      
+    model_labels = pd.read_csv('JC_predictions.csv')
+    ensemble_size = len(model_labels.columns) - 1
+    for i, r in model_labels.iterrows():
+        vote = max(set(r), key=list(r.values).count)
+        n_vote = sum(r == vote)
+        if n_vote > np.ceil(ensemble_size / 2):
+            model_labels.at[i, 'prediction'] = vote
+        else:
+            model_labels.at[i, 'prediction'] = 'noise'
+    model_labels = model_labels[['file', 'prediction']]
+    revise_model_labels(model_labels, 'prediction')
+
+    merged = CD_labels.merge(model_labels)
+    print(f'Aggreement rate: {sum(merged["ID_r"] == merged["prediction_r"]) / len(CD_labels) * 100:.0f}%')
+    merged.to_csv('JC_label_comparison.csv')
+
+    _, ax = plt.subplots(figsize=(10, 10))
+    metrics.ConfusionMatrixDisplay.from_predictions(
+        merged['ID_r'],
+        merged['prediction_r'],
+        cmap=plt.cm.Blues,
+        normalize=None,
+        xticks_rotation='vertical',
+        values_format='.0f',
+        ax=ax)
+    ax.set_title('Confusion matrix')
+    ax.set_ylabel('Human')
+    ax.set_xlabel('Model')
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join('JC_confusionmatrix'))
+    plt.close()
 
 if __name__ == '__main__':
     
-    compare_CD_agreement()
+    compare_JC_labels()
