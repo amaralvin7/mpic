@@ -12,7 +12,6 @@ import dataset
 import predict
 import tools
 import torch
-from colors import *
 
 
 def prediction_summary(cfg, prediction_results_fname):
@@ -341,6 +340,15 @@ def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
     plt.close()
 
 if __name__ == '__main__':
+
+    black = '#000000'
+    orange = '#E69F00'
+    sky = '#56B4E9'
+    green = '#009E73'
+    blue = '#0072B2'
+    vermillion = '#D55E00'
+    radish = '#CC79A7'
+    white = '#FFFFFF'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', default='config.yaml')

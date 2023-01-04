@@ -1,10 +1,12 @@
 import argparse
 import re
 import os
+import sys
 
 import numpy as np
 import torch
 import yaml
+from itertools import chain, combinations
 from PIL import Image
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
@@ -149,13 +151,13 @@ def stratified_split(cfg, domain):
 
     classes = [
         c for c in os.listdir(
-            cfg['data_dir']) if os.path.isdir(
+            cfg['train_data_dir']) if os.path.isdir(
             os.path.join(
-                cfg['data_dir'],
+                cfg['train_data_dir'],
                 c)) and c in cfg['classes']]
     for c in classes:
         filepaths = []
-        for f in os.listdir(os.path.join(cfg['data_dir'], c)):
+        for f in os.listdir(os.path.join(cfg['train_data_dir'], c)):
             ext_ok = f.split('.')[1] in cfg['exts']
             if ext_ok and re.search('.+?(?=\\d)', f).group() == domain:
                 filepaths.append(os.path.join(c, f))
@@ -181,16 +183,17 @@ def write_domain_splits(cfg):
         domain_splits[d]['val'] = val_fps
         domain_splits[d]['test'] = test_fps
 
-    tools.write_json(domain_splits, cfg['domain_splits_fname'])
+    file_path = os.path.join('..', 'data', cfg['domain_splits_fname'])
+    tools.write_json(domain_splits, file_path)
 
 
-def get_train_filepaths(cfg, train_split_id):
+def get_train_filepaths(cfg, domains):
 
-    domain_splits = tools.load_json(cfg['domain_splits_fname'])
+    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     train_fps = []
     val_fps = []
 
-    for domain in cfg['train_splits'][train_split_id]:
+    for domain in domains:
         train_fps.extend(domain_splits[domain]['train'])
         val_fps.extend(domain_splits[domain]['val'])
 
@@ -205,17 +208,26 @@ def get_predict_filepaths(cfg, predict_domain):
     return predict_filepaths
 
 
+def powerset(iterable):
+    """https://docs.python.org/3/library/itertools.html#itertools-recipes"""
+    s = list(iterable)
+    return list(chain.from_iterable(combinations(s, r) for r in range(1, len(s)+1)))
+
+
 def write_train_data_stats(cfg):
 
     data_stats = {}
+    
+    train_splits = powerset(cfg['train_domains'])
 
-    for train_split_id in cfg['train_splits']:
-        train_fps, _ = get_train_filepaths(cfg, train_split_id)
+    for domains in train_splits:
+        train_split_id = ('_').join(domains)
+        train_fps, _ = get_train_filepaths(cfg, domains)
         mean, std = calculate_data_stats(train_fps, cfg, train_split_id)
         data_stats[train_split_id] = {'mean': mean.tolist(),
                                       'std': std.tolist()}
 
-    tools.write_json(data_stats, cfg['train_data_stats_fname'])
+    tools.write_json(data_stats, os.path.join('..', 'data', cfg['train_data_stats_fname']))
 
 
 def get_train_data_stats(cfg, train_split_id):
@@ -232,7 +244,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', default='config.yaml')
     args = parser.parse_args()
-    cfg = yaml.safe_load(open(args.config, 'r'))
+    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
     tools.set_seed(cfg, 'cpu')
 
     write_domain_splits(cfg)
