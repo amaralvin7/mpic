@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -124,7 +123,7 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
     
     def get_df_domains(exp_ids):
         
-        test_domain = exp_matrix[0][1]
+        test_domain = exp_matrix[exp_ids[0]][1]
         domains_by_exp = []
 
         for i in exp_ids:
@@ -149,7 +148,7 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
 
     # train size
     fig, axs = plt.subplots(2, 3, figsize=(8, 6))
-    fig.subplots_adjust(bottom=0.15, hspace=0.4, wspace=0.1)
+    fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
     
     for i, ax in enumerate(axs.flatten()):
         exp_ids = ax_exp[i]       
@@ -157,39 +156,51 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
         wfa = [prediction_results['wfa'][j] for j in exp_ids]
         ts = [train_sizes[j] for j in exp_ids]
         ta_plt = ax.scatter(ts, taa, c=blue, marker='o')
-        wf_plt = ax.scatter(ts, wfa, c=green, marker='^')        
+        wf_plt = ax.scatter(ts, wfa, c=green, marker='^')
+        ax.set_xlim((0, 12000))
+        if i < 3:
+            ax.set_ylim((0.89, 1))
+            ax.set_xticklabels([])
+        else:
+            ax.set_ylim((0.5, 1))
         if i not in (0, 3):
-            ax.set_yticklabels([])
+            ax.set_yticklabels([])          
+                    
+    axs.flatten()[0].set_title('RR', fontsize=14)
+    axs.flatten()[1].set_title('SRT', fontsize=14)
+    axs.flatten()[2].set_title('FK', fontsize=14)
+    fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
+    plt.savefig(os.path.join('results/prediction_subplots_scatter_trainsize.pdf'))
+    plt.close()
+
+    # distance
+    df = distribution_heatmap(cfg, 'braycurtis', False)
+    fig, axs = plt.subplots(2, 3, figsize=(8, 6))
+    fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
+
+    for i, ax in enumerate(axs.flatten()):
+        exp_ids = ax_exp[i]
+        train_domains, test_domain = get_df_domains(exp_ids)
+        distances = df.loc[test_domain][train_domains]
+        taa = [prediction_results['taa'][j] for j in exp_ids]
+        wfa = [prediction_results['wfa'][j] for j in exp_ids]
+        ta_plt = ax.scatter(distances, taa, c=blue, marker='o')
+        wf_plt = ax.scatter(distances, wfa, c=green, marker='^')
+        ax.set_xlim((-0.05, 0.8))
+        if i < 3:
+            ax.set_ylim((0.89, 1))
+            ax.set_xticklabels([])
+        else:
+            ax.set_ylim((0.5, 1))
+        if i not in (0, 3):
+            ax.set_yticklabels([])         
     
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SRT', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
-    plt.savefig(os.path.join('results/prediction_subplots_scatter_train.pdf'))
+    plt.savefig(os.path.join(f'results/prediction_subplots_scatter_BCdistance.pdf'))
     plt.close()
-
-    # cityblock
-    for metric in ('cityblock', 'braycurtis'):
-        df = distribution_heatmap(cfg, metric, False)
-
-        fig, axs = plt.subplots(2, 3, figsize=(8, 6))
-        fig.subplots_adjust(bottom=0.15, hspace=0.4, wspace=0.5)
-
-        for i, ax in enumerate(axs.flatten()):
-            exp_ids = ax_exp[i]
-            train_domains, test_domain = get_df_domains(exp_ids)
-            distances = df.loc[test_domain][train_domains]
-            taa = [prediction_results['taa'][j] for j in exp_ids]
-            wfa = [prediction_results['wfa'][j] for j in exp_ids]
-            ta_plt = ax.scatter(distances, taa, c=blue, marker='o')
-            wf_plt = ax.scatter(distances, wfa, c=green, marker='^')        
-        
-        axs.flatten()[0].set_title('RR', fontsize=14)
-        axs.flatten()[1].set_title('SRT', fontsize=14)
-        axs.flatten()[2].set_title('FK', fontsize=14)
-        fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
-        plt.savefig(os.path.join(f'results/prediction_subplots_scatter_{metric}.pdf'))
-        plt.close()
 
 
 def training_plots():
@@ -337,13 +348,11 @@ if __name__ == '__main__':
     cfg = yaml.safe_load(open(args.config, 'r'))
     
     ablation_predictions = 'prediction_results_ablations.json'
-    uniform_predictions = 'prediction_results_uniform.json'
+    # uniform_predictions = 'prediction_results_uniform.json'
 
     # prediction_subplots_bar(cfg, ablation_predictions)
     # distribution_heatmap(cfg, 'cityblock', True)
     # distribution_heatmap(cfg, 'braycurtis', True)
     # distribution_barplot(cfg)
     # distribution_barplot(cfg, True)
-    # prediction_subplots_scatter(cfg, ablation_predictions)
-    
-    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    prediction_subplots_scatter(cfg, ablation_predictions)
