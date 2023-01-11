@@ -4,9 +4,9 @@ import os
 
 import torch
 
-import dataset
-import tools
-from model import initialize_model
+import src.dataset as dataset
+import src.tools as tools
+from src.model import initialize_model
 
 
 def training_epoch(device, dataloader, model, optimizer, criterion, update):
@@ -64,12 +64,12 @@ def train_model(cfg, device, train_filepaths,
                 val_filepaths, mean, std, replicate_id):
 
     train_dl = dataset.get_dataloader(
-        cfg, train_filepaths, mean, std, augment=True)
-    val_dl = dataset.get_dataloader(cfg, val_filepaths, mean, std)
+        cfg, cfg['train_data_dir'], train_filepaths, mean, std, augment=True)
+    val_dl = dataset.get_dataloader(cfg, cfg['train_data_dir'], val_filepaths, mean, std)
 
     model = initialize_model(len(cfg['classes']))
 
-    optimizer = torch.optim.AdamW(model.parameters())
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg['learning_rate'], weight_decay=cfg['weight_decay'])
     criterion = torch.nn.CrossEntropyLoss()
 
     tl_hist = []

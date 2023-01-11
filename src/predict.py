@@ -7,10 +7,9 @@ import pandas as pd
 import torch
 import sklearn.metrics as metrics
 
-import dataset
-import tools
-from model import initialize_model
-from colors import *
+import src.dataset as dataset
+import src.tools as tools
+from src.model import initialize_model
 
 
 def predict_labeled_data(dataloader, model, exp_id, replicate):
@@ -39,7 +38,7 @@ def predict_labeled_data(dataloader, model, exp_id, replicate):
         output_dict=True)
 
     pd.DataFrame(report).transpose().to_csv(
-        os.path.join('results', f'pred_output_{exp_id}_{replicate}.csv'))
+        os.path.join('..', 'results', f'pred_output_{exp_id}_{replicate}.csv'))
 
     _, ax = plt.subplots(figsize=(10, 10))
     metrics.ConfusionMatrixDisplay.from_predictions(
@@ -55,7 +54,7 @@ def predict_labeled_data(dataloader, model, exp_id, replicate):
     ax.set_title('Confusion matrix')
     plt.tight_layout()
     plt.savefig(
-        os.path.join('results', f'confusionmatrix_{exp_id}_{replicate}'))
+        os.path.join('..', 'results', f'confusionmatrix_{exp_id}_{replicate}'))
     plt.close()
 
     return y_pred, y_true
@@ -64,14 +63,16 @@ def predict_labeled_data(dataloader, model, exp_id, replicate):
 def get_experiment_matrix(cfg):
 
     matrix = {}
-    combos = product(cfg['train_splits'], cfg['train_domains'])
+    train_splits = dataset.powerset(cfg['train_domains'])
+    train_split_ids = [('_').join(domains) for domains in train_splits]
+    combos = product(train_split_ids, cfg['train_domains'])
     for i, combo in enumerate(combos):
         matrix[i] = [*combo]
 
     return matrix
 
 
-def prediction_experiments(cfg, device, exp_matrix, save_fname):
+def prediction_experiments(cfg, device, exp_matrix, save_fname, uniform=False):
 
     test_acc_avgs = []
     macro_f1_avgs = []
@@ -80,6 +81,8 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname):
     test_acc_std = []
     macro_f1_std = []
     weight_f1_std = []
+    
+    uni_suffix = 'u' if uniform else ''
 
     for exp_id, (split_id, predict_domain) in exp_matrix.items():
 
@@ -89,14 +92,14 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname):
 
         mean, std = dataset.get_train_data_stats(cfg, split_id)
         predict_fps = dataset.get_predict_filepaths(cfg, predict_domain)
-        predict_dl = dataset.get_dataloader(cfg, predict_fps, mean, std)
-        models = [f for f in os.listdir('weights') if f'model_{split_id}' in f]
+        predict_dl = dataset.get_dataloader(cfg, cfg['train_data_dir'], predict_fps, mean, std)
+        models = [f for f in os.listdir(os.path.join('..', 'weights')) if f'model_{split_id}{uni_suffix}-' in f]
 
         for m in sorted(models):
 
             replicate = m.split('.')[0][-1]
             model_output = torch.load(
-                os.path.join('weights', m), map_location=device)
+                os.path.join('..', 'weights', m), map_location=device)
             weights = model_output['weights']
             model = initialize_model(len(cfg['classes']), weights=weights)
             model.eval()
@@ -131,5 +134,5 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname):
 
     tools.write_json(
         prediction_results,
-        os.path.join('results', save_fname))
+        os.path.join('..', 'results', save_fname))
     

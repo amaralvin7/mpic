@@ -11,7 +11,7 @@ from PIL import Image
 from torchvision import transforms
 from sklearn.model_selection import train_test_split
 
-import tools
+import src.tools as tools
 
 
 class ParticleImages(torch.utils.data.Dataset):
@@ -202,7 +202,7 @@ def get_train_filepaths(cfg, domains):
 
 def get_predict_filepaths(cfg, predict_domain):
 
-    domain_splits = tools.load_json(cfg['domain_splits_fname'])
+    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     predict_filepaths = domain_splits[predict_domain]['test']
 
     return predict_filepaths
@@ -232,7 +232,7 @@ def write_train_data_stats(cfg):
 
 def get_train_data_stats(cfg, train_split_id):
 
-    train_data_stats = tools.load_json(cfg['train_data_stats_fname'])
+    train_data_stats = tools.load_json(os.path.join('..', 'data', cfg['train_data_stats_fname']))
     mean = train_data_stats[train_split_id]['mean']
     std = train_data_stats[train_split_id]['std']
 
