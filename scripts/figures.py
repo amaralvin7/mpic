@@ -62,12 +62,14 @@ def get_exp_ids(cfg):
     
     exp_matrix = predict.get_experiment_matrix(cfg)
 
-    ax_exp = {0: (('RR', 'RR_SRT', 'RR_FK', 'RR_SRT_FK'), 'RR'),
-                  1: (('SRT', 'RR_SRT', 'SRT_FK', 'RR_SRT_FK'), 'SRT'),
-                  2: (('FK', 'RR_FK', 'SRT_FK', 'RR_SRT_FK'), 'FK'),
-                  3: (('SRT', 'FK', 'SRT_FK'), 'RR'),
-                  4: (('RR', 'FK', 'RR_FK'), 'SRT'),
-                  5: (('RR', 'SRT', 'RR_SRT'), 'FK')}
+    ax_exp = {0: (('RR', 'RR_SRT', 'RR_FK', 'RR_JC', 'RR_SRT_FK', 'RR_SRT_JC', 'RR_FK_JC', 'RR_SRT_FK_JC'), 'RR'),
+              1: (('SRT', 'RR_SRT', 'SRT_FK', 'SRT_JC', 'RR_SRT_FK', 'RR_SRT_JC', 'SRT_FK_JC', 'RR_SRT_FK_JC'), 'SRT'),
+              2: (('FK', 'RR_FK', 'SRT_FK', 'FK_JC', 'RR_SRT_FK', 'RR_FK_JC', 'SRT_FK_JC', 'RR_SRT_FK_JC'), 'FK'),
+              3: (('JC', 'RR_JC', 'SRT_JC', 'FK_JC', 'RR_SRT_JC', 'RR_FK_JC', 'SRT_FK_JC', 'RR_SRT_FK_JC'), 'JC'),
+              4: (('SRT', 'FK', 'JC', 'SRT_FK', 'SRT_JC', 'FK_JC'), 'RR'),
+              5: (('RR', 'FK', 'JC', 'RR_FK', 'RR_JC', 'FK_JC'), 'SRT'),
+              6: (('RR', 'SRT', 'JC', 'RR_SRT', 'RR_JC', 'SRT_JC'), 'FK'),
+              7: (('RR', 'SRT', 'FK', 'RR_SRT', 'RR_FK', 'SRT_FK'), 'JC')}
     
     exp_id_dict = {}
 
@@ -111,8 +113,8 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
     ind = np.arange(len(prediction_results['taa']))
     width = 0.25
 
-    fig, axs = plt.subplots(2, 3, figsize=(8, 6))
-    fig.subplots_adjust(bottom=0.15, hspace=0.4, wspace=0.1)
+    fig, axs = plt.subplots(2, 4, figsize=(13, 6))
+    fig.subplots_adjust(bottom=0.15, hspace=0.5, wspace=0.1)
     
     exp_id_dict = get_exp_ids(cfg)
 
@@ -124,17 +126,17 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
         ax.grid(visible=True, which='major', axis='y', zorder=1)
         taa = [prediction_results['taa'][j] for j in exp_ids]
         tas = [prediction_results['tas'][j] for j in exp_ids]
-        wfa = [prediction_results['wfa'][j] for j in exp_ids]
-        wfs = [prediction_results['wfs'][j] for j in exp_ids]
+        # wfa = [prediction_results['wfa'][j] for j in exp_ids]
+        # wfs = [prediction_results['wfs'][j] for j in exp_ids]
         ts = [train_sizes[j] for j in exp_ids]
         ta_bar = ax.bar(ind, taa,  width, yerr=tas, color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        wf_bar = ax.bar(ind + width, wfa,  width, yerr=wfs, color=green, error_kw={'elinewidth': 1}, zorder=10)
-        ts_bar = twin.bar(ind + width * 2, ts,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
-        ax.set_ylim((0.4, 1))
-        twin.set_ylim((0, 12000))
-        if i == 2 or i == 5:
+        # wf_bar = ax.bar(ind + width, wfa,  width, yerr=wfs, color=green, error_kw={'elinewidth': 1}, zorder=10)
+        ts_bar = twin.bar(ind + width, ts,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
+        ax.set_ylim((0.2, 1))
+        twin.set_ylim((0, 20000))
+        if i == 3 or i == 7:
             ax.set_yticklabels([])
-        elif i == 0 or i == 3:
+        elif i == 0 or i == 4:
             twin.set_yticklabels([])
         else:
             ax.set_yticklabels([])
@@ -142,8 +144,10 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SRT', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
-    fig.legend((ta_bar[0], wf_bar[0], ts_bar[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
-    plt.savefig(os.path.join('..', 'results/prediction_subplots.pdf'))
+    axs.flatten()[3].set_title('JC', fontsize=14)
+    # fig.legend((ta_bar[0], wf_bar[0], ts_bar[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
+    fig.legend((ta_bar[0], ts_bar[0]), ('test acc', 'train size'), loc='lower center', ncol=2, frameon=False)
+    plt.savefig(os.path.join('..', 'results/prediction_subplots.pdf'), bbox_inches='tight')
     plt.close()
     
 
@@ -178,60 +182,70 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
     exp_id_dict = get_exp_ids(cfg)
 
     # train size
-    fig, axs = plt.subplots(2, 3, figsize=(8, 6))
+    fig, axs = plt.subplots(2, 4, figsize=(8, 6))
     fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
     
     for i, ax in enumerate(axs.flatten()):
         exp_ids = exp_id_dict[i]     
         taa = [prediction_results['taa'][j] for j in exp_ids]
-        wfa = [prediction_results['wfa'][j] for j in exp_ids]
+        tas = [prediction_results['tas'][j] for j in exp_ids]
+        # wfa = [prediction_results['wfa'][j] for j in exp_ids]
         ts = [train_sizes[j] for j in exp_ids]
-        ta_plt = ax.scatter(ts, taa, c=blue, marker='o')
-        wf_plt = ax.scatter(ts, wfa, c=green, marker='^')
-        ax.set_xlim((0, 12000))
-        if i < 3:
-            ax.set_ylim((0.88, 1))
+        ta_plt = ax.errorbar(ts, taa, tas, c=blue, fmt='o', ecolor=black)
+        # ta_plt = ax.scatter(ts, taa, c=blue, marker='o')
+        # wf_plt = ax.scatter(ts, wfa, c=green, marker='^')
+        ax.set_xlim((0, 18000))
+        ax.set_ylim((0.3, 1.05))
+        if i < 4:
             ax.set_xticklabels([])
-        else:
-            ax.set_ylim((0.5, 1))
-        if i not in (0, 3):
-            ax.set_yticklabels([])          
+        if i not in (0, 4):
+            ax.set_yticklabels([])
+
+    axs.flatten()[0].set_ylabel('Accuracy (in-domain)')
+    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)')
+    fig.text(0.5, 0.04, 'Training size', ha='center')      
                     
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SRT', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
-    fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
-    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_trainsize.pdf'))
+    axs.flatten()[3].set_title('JC', fontsize=14)
+    # fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
+    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_trainsize.pdf'), bbox_inches='tight')
     plt.close()
 
     # distance
     df = distribution_heatmap(cfg, 'braycurtis', False)
-    fig, axs = plt.subplots(2, 3, figsize=(8, 6))
+    fig, axs = plt.subplots(2, 4, figsize=(8, 6))
     fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
 
     for i, ax in enumerate(axs.flatten()):
-
         exp_ids = exp_id_dict[i]
         train_domains, test_domain = get_df_domains(exp_ids)
         distances = df.loc[test_domain][train_domains]
         taa = [prediction_results['taa'][j] for j in exp_ids]
-        wfa = [prediction_results['wfa'][j] for j in exp_ids]
-        ta_plt = ax.scatter(distances, taa, c=blue, marker='o')
-        wf_plt = ax.scatter(distances, wfa, c=green, marker='^')
+        tas = [prediction_results['tas'][j] for j in exp_ids]
+        # wfa = [prediction_results['wfa'][j] for j in exp_ids]
+        ts = [train_sizes[j] for j in exp_ids]
+        ta_plt = ax.errorbar(distances, taa, tas, c=blue, fmt='o', ecolor=black)
+        # ta_plt = ax.scatter(ts, taa, c=blue, marker='o')
+        # wf_plt = ax.scatter(distances, wfa, c=green, marker='^')
         ax.set_xlim((-0.05, 0.8))
-        if i < 3:
-            ax.set_ylim((0.88, 1))
+        ax.set_ylim((0.3, 1.05))
+        if i < 4:
             ax.set_xticklabels([])
-        else:
-            ax.set_ylim((0.5, 1))
-        if i not in (0, 3):
-            ax.set_yticklabels([])         
+        if i not in (0, 4):
+            ax.set_yticklabels([])        
+    
+    axs.flatten()[0].set_ylabel('Accuracy (in-domain)')
+    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)')
+    fig.text(0.5, 0.04, 'Bray-Curtis distance', ha='center')
     
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SRT', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
-    fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
-    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_BCdistance.pdf'))
+    axs.flatten()[3].set_title('JC', fontsize=14)
+    # fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
+    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_BCdistance.pdf'), bbox_inches='tight')
     plt.close()
 
 
@@ -291,12 +305,13 @@ def get_class_count_df(cfg, normalize=False):
     
     return df
 
-def distribution_heatmap(cfg, metric='cityblock', make_fig=False):
+def distribution_heatmap(cfg, metric='braycurtis', make_fig=False):
     
     df = get_class_count_df(cfg, normalize=True)
     df = pd.DataFrame(squareform(pdist(df.T, metric=metric)), columns=df.columns, index=df.columns)
     if make_fig:
         ax = sns.heatmap(df, cmap='viridis', annot=True, fmt='.2f')
+        ax.figure.set_size_inches(8, 6)
         ax.figure.tight_layout()
         plt.savefig(os.path.join('..', 'results', f'distribution_heatmap_{metric}.pdf'))
         plt.close()
@@ -307,14 +322,15 @@ def distribution_barplot(cfg, normalize=False):
     
     df = get_class_count_df(cfg, normalize=normalize)
     ind = np.arange(len(df)) 
-    width = 0.25
-    bar1 = plt.bar(ind, df['RR'], width, color=blue)
-    bar2 = plt.bar(ind+width, df['SRT'], width, color=green)
-    bar3 = plt.bar(ind+width*2, df['FK'], width, color=orange)
+    width = 0.2
+    bar1 = plt.bar(ind-width*0.5, df['RR'], width, color=blue)
+    bar2 = plt.bar(ind+width*0.5, df['SRT'], width, color=green)
+    bar3 = plt.bar(ind+width*1.5, df['FK'], width, color=orange)
+    bar4 = plt.bar(ind+width*2.5, df['JC'], width, color=vermillion)
     plt.subplots_adjust(bottom=0.2)
     plt.xticks(ind+width, df.index.values)
     plt.xticks(rotation=45, ha='right')
-    plt.legend((bar1, bar2, bar3), ('RR', 'SRT', 'FK'), ncol=3, bbox_to_anchor=(0.5, 1.02), loc='lower center',
+    plt.legend((bar1, bar2, bar3, bar4), ('RR', 'SRT', 'FK', 'JC'), ncol=4, bbox_to_anchor=(0.5, 1.02), loc='lower center',
                 handletextpad=0.1, frameon=False)
 
     if normalize:
@@ -332,7 +348,7 @@ def distribution_barplot(cfg, normalize=False):
 def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
 
     exp_matrix = predict.get_experiment_matrix(cfg)
-    test_domains = [exp_matrix[i][1] for i in (0, 1, 2)]
+    test_domains = [exp_matrix[i][1] for i in (0, 1, 2, 3)]
 
     train_fps, _ = dataset.get_train_filepaths(cfg, ('RR',))
     nonuniform_train_size = len(train_fps)
@@ -346,7 +362,7 @@ def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
     u_predictions = tools.load_json(os.path.join(
         '..', 'results', uniform_predictions))
     
-    fig, axs = plt.subplots(1, 3, figsize=(8, 4))
+    fig, axs = plt.subplots(1, 4, figsize=(8, 4))
     fig.subplots_adjust(bottom=0.15, hspace=0.4, wspace=0.5)
     width = 0.25
     
@@ -355,19 +371,24 @@ def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
         twin = ax.twinx()
         ax.set_xticks(ind, ('NU', 'U'))
         ax.grid(visible=True, which='major', axis='y', zorder=1)
-        ax.bar(ind[0] - width, a_predictions['taa'][i],  width, yerr=a_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        ax.bar(ind[0], a_predictions['wfa'][i],  width, yerr=a_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
-        twin.bar(ind[0] + width, nonuniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
-        ta_bar_u = ax.bar(ind[1] - width, u_predictions['taa'][i],  width, yerr=u_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        wf_bar_u = ax.bar(ind[1], u_predictions['wfa'][i],  width, yerr=u_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
-        ts_bar_u = twin.bar(ind[1] + width, uniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
+        ax.bar(ind[0] - 0.5*width, a_predictions['taa'][i],  width, yerr=a_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
+        # ax.bar(ind[0], a_predictions['wfa'][i],  width, yerr=a_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
+        twin.bar(ind[0] + 0.5*width, nonuniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
+        ta_bar_u = ax.bar(ind[1] - 0.5*width, u_predictions['taa'][i],  width, yerr=u_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
+        # wf_bar_u = ax.bar(ind[1], u_predictions['wfa'][i],  width, yerr=u_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
+        ts_bar_u = twin.bar(ind[1] + 0.5*width, uniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
         ax.set_ylim((0.4, 1))
         twin.set_ylim((1000, 7000))
-        if i == 1:
+        if i == 0:
+            twin.set_yticklabels([])
+        elif i < len(axs) - 1:
             ax.set_yticklabels([])
             twin.set_yticklabels([])
+        else:
+            ax.set_yticklabels([])
         ax.set_title(test_domain, fontsize=14)
-    fig.legend((ta_bar_u[0], wf_bar_u[0], ts_bar_u[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
+    # fig.legend((ta_bar_u[0], wf_bar_u[0], ts_bar_u[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
+    fig.legend((ta_bar_u[0], ts_bar_u[0]), ('test acc', 'train size'), loc='lower center', ncol=3, frameon=False)
     plt.savefig(os.path.join('..', 'results', 'uniform_comparison_barplots.pdf'))
     plt.close()
 
@@ -390,10 +411,9 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # prediction_subplots_bar(cfg, ablation_predictions)
-    # distribution_heatmap(cfg, 'cityblock', True)
-    # distribution_heatmap(cfg, 'braycurtis', True)
-    # distribution_barplot(cfg)
-    # distribution_barplot(cfg, True)
-    # prediction_subplots_scatter(cfg, ablation_predictions)
+    distribution_barplot(cfg)
+    distribution_barplot(cfg, True)
+    distribution_heatmap(cfg, 'braycurtis', True)
+    prediction_subplots_bar(cfg, ablation_predictions)
+    prediction_subplots_scatter(cfg, ablation_predictions)
     uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
