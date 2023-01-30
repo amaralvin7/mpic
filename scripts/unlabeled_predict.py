@@ -1,26 +1,27 @@
 import argparse
 import os
+import sys
 
 import pandas as pd
 import torch
 import yaml
 from tqdm import tqdm
 
-import dataset
-from model import initialize_model
+import src.dataset as dataset
+from src.model import initialize_model
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config', default='config.yaml')
 args = parser.parse_args()
-cfg = yaml.safe_load(open(args.config, 'r'))
+cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
 
-train_split = 'D'  # RR, SRT, FK train split
+train_split = 'RR_SRT_FK_JC'  # RR, SRT, FK train split
 mean, std = dataset.get_train_data_stats(cfg, train_split)
-models = [f for f in os.listdir('weights') if f'model_{train_split}' in f]
+models = [f for f in os.listdir(os.path.join('..', 'weights')) if f'model_{train_split}' in f]
 
-unlabeled_data_dir = 'unlabeled'
+unlabeled_data_dir = '../jc_unlabeled'
 predict_fps = [f for f in os.listdir(unlabeled_data_dir) if f.split('.')[1] in cfg['exts']]
 predict_dl = dataset.get_dataloader(cfg, unlabeled_data_dir, predict_fps, mean, std, augment=False, is_labeled=False)
 
@@ -30,7 +31,7 @@ for m in models:
 
     replicate = m.split('.')[0][-1]
     saved_model_output = torch.load(
-        os.path.join('weights', m), map_location=device)
+        os.path.join('..', 'weights', m), map_location=device)
     weights = saved_model_output['weights']
     model = initialize_model(len(cfg['classes']), weights=weights)
     model.eval()
