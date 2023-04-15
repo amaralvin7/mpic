@@ -16,23 +16,22 @@ import src.tools as tools
 
 class ParticleImages(torch.utils.data.Dataset):
 
-    def __init__(self, cfg, data_dir, filepaths, transformations, is_labeled=True):
+    def __init__(self, cfg, data_df, transformations, is_labeled=True):
 
-        self.data_dir = data_dir
-        self.filepaths = filepaths
-        self.classes = sorted(cfg['classes'])
+        self.data_dir = os.path.join(cfg['data_dir'], 'images')
+        self.filenames = data_df['filename'].values
+        self.subdirs = data_df['subdir'].values
+        self.classes = sorted(cfg['train_classes'])
         self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
         self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
         self.transformations = transformations
         self.is_labeled = is_labeled
         if self.is_labeled:
-            self.labels = [os.path.dirname(f) for f in filepaths]
+            self.labels = self.subdirs
 
     def __getitem__(self, index):
 
-        filepath = os.path.join(self.data_dir, self.filepaths[index])
-        if self.is_labeled:
-            label = self.class_to_idx[self.labels[index]]
+        filepath = os.path.join(self.data_dir, self.subdirs[index], self.filenames[index])
 
         with Image.open(filepath) as image:
             image = image.convert('RGB')
@@ -40,11 +39,12 @@ class ParticleImages(torch.utils.data.Dataset):
         image_tensor = self.transformations(image)
 
         if self.is_labeled:
+            label = self.class_to_idx[self.labels[index]]
             return image_tensor, filepath, label
         return image_tensor, filepath
 
     def __len__(self):
-        return len(self.filepaths)
+        return len(self.filenames)
 
 
 class CustomPad:
@@ -101,11 +101,11 @@ def get_transforms(cfg, mean=None, std=None, augment=False):
     return transformations
 
 
-def get_dataloader(cfg, data_dir, filepaths, mean, std, augment=False, is_labeled=True):
+def get_dataloader(cfg, data_df, mean, std, augment=False, is_labeled=True):
 
     transformations = get_transforms(cfg, mean, std, augment)
     dataloader = torch.utils.data.DataLoader(
-        dataset=ParticleImages(cfg, data_dir, filepaths, transformations, is_labeled),
+        dataset=ParticleImages(cfg, data_df, transformations, is_labeled),
         batch_size=cfg['batch_size'],
         shuffle=True,
         num_workers=cfg['n_workers'])
@@ -113,13 +113,13 @@ def get_dataloader(cfg, data_dir, filepaths, mean, std, augment=False, is_labele
     return dataloader
 
 
-def calculate_data_stats(filepaths, cfg, train_split_id):
+def calculate_data_stats(cfg, data_df, train_split_id):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
 
     print(f'Calculating data stats for train split {train_split_id}...')
-    dataset = ParticleImages(cfg, cfg['train_data_dir'], filepaths, get_transforms(cfg))
+    dataset = ParticleImages(cfg, data_df, get_transforms(cfg))
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg['batch_size'], num_workers=0)
 
@@ -239,13 +239,14 @@ def get_train_data_stats(cfg, train_split_id):
     return mean, std
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default='config.yaml')
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
-    tools.set_seed(cfg, 'cpu')
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('-c', '--config', default='config.yaml')
+#     args = parser.parse_args()
+#     cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
+#     tools.set_seed(cfg, 'cpu')
 
-    write_domain_splits(cfg)
-    write_train_data_stats(cfg)
+#     write_domain_splits(cfg)
+#     write_train_data_stats(cfg)
+
