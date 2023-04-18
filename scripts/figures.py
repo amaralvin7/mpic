@@ -392,6 +392,133 @@ def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
     plt.savefig(os.path.join('..', 'results', 'uniform_comparison_barplots.pdf'))
     plt.close()
 
+
+def get_domain_color(domain):
+    
+    if domain == 'SRT':
+        c = green
+    elif domain == 'FK':
+        c = orange
+    elif domain  == 'JC':
+        c = vermillion
+    else:
+        c = blue
+    
+    return c
+
+
+def orig_flux_equations(row):
+
+    pc = row['orig_label']
+    esd = row['ESD']  # µm
+    area = row['area']  # m-2
+    time = row['time']  # d-1
+
+    if pc in ('aggregate', 'dense_detritus', 'mini_pellet', 'rhizaria', 'phytoplankton'):
+        w = esd
+        l = esd
+        v = (4/3) * np.pi * (esd/2)**3
+        if pc == 'aggregate':
+            a = 0.1 * 10**-9
+            b = 0.8
+        elif pc == 'dense_detritus':
+            a = 0.1 * 10**-9
+            b = 0.83
+        elif pc == 'mini_pellet':
+            a = 0.1 * 10**-9
+            b = 1
+        elif pc == 'rhizaria':
+            a = 0.004 * 10**-9
+            b = 0.939
+        else:
+            a = 0.288 * 10**-9
+            b = 0.811
+    elif pc in ('large_loose_pellet', 'long_fecal_pellet'):
+        if pc == 'large_loose_pellet':
+            w = (553 * esd) / (esd + 996)
+            b = 0.83
+        else:
+            w = (187 * esd) / (esd + 424)
+            b = 1
+        l = np.pi * (esd/2)**2 / w
+        v = l * np.pi * (w/2)**2
+        a = 0.1 * 10**-9
+    elif pc == 'short_pellet':
+        w = 0.54 * esd
+        l = esd**2 / w
+        v = (4/3) * (l/2) * np.pi * (w/2)**2
+        a = 0.1 * 10**-9
+        b = 1
+    elif pc == 'salp_pellet':
+        w = 0.63 * esd
+        l = np.pi * (esd/2)**2 / w
+        v = l * w * (w/4)
+        a = 0.04 * 10**-9
+        b = 1
+    else:
+        print(row)
+        print('UNIDENTIFIED PARTICLE in orig_flux_equations')
+    carbon =  (a * v**b) / 12.011  # mg to mmol
+    flux = carbon / (area * time)
+    
+    return flux
+
+
+def add_identity(axes, *line_args, **line_kwargs):
+# https://stackoverflow.com/questions/22104256/does-matplotlib-have-a-function-for-drawing-diagonal-lines-in-axis-coordinates
+    identity, = axes.plot([], [], *line_args, **line_kwargs)
+    def callback(axes):
+        low_x, high_x = axes.get_xlim()
+        low_y, high_y = axes.get_ylim()
+        low = max(low_x, low_y)
+        high = min(high_x, high_y)
+        identity.set_data([low, high], [low, high])
+    callback(axes)
+    axes.callbacks.connect('xlim_changed', callback)
+    axes.callbacks.connect('ylim_changed', callback)
+    return axes
+
+
+def calculate_fluxes(cfg):
+    
+    published = pd.read_csv('published_fluxes.csv')
+    metadata = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
+    predictions = pd.read_csv('../results/unlabeled_predictions.csv')
+    df = metadata.merge(predictions, how='left', on='filename')
+    df = df.loc[df['ESD'].notnull()]  # 23 filenames are in the data folder but not in the metadata
+    
+    
+    # calculate of luxes from original labels
+    orig_flux_classes = ['salp_pellet', 'long_fecal_pellet', 'large_loose_pellet',
+                         'aggregate', 'dense_detritus', 'mini_pellet', 'rhizaria',
+                         'phytoplankton', 'short_pellet']
+
+    
+    #rr_fk_df = df.loc[(df['orig_label'].notnull())]
+    rr_fk_df = df.loc[(df['domain'] == 'RR')]
+    rr_fk_df = rr_fk_df[rr_fk_df['orig_label'].isin(orig_flux_classes)]
+
+    for c in orig_flux_classes:
+        fig, ax = plt.subplots()
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('Published')        
+        for s in rr_fk_df['sample'].unique():
+            sdf = rr_fk_df.loc[(rr_fk_df['sample'] == s) & (rr_fk_df['orig_label'] == c)].copy()
+            published_flux = published.loc[(published['Trap'] == s)][c].values[0]
+            # measured_flux = sdf.iloc[0]['measured_flux']
+            color = blue#get_domain_color(sdf.iloc[0]['domain'])
+            if len(sdf) > 0:
+                sdf['predicted_flux'] = sdf.apply(lambda row: orig_flux_equations(row), axis=1)
+            else:
+                sdf['predicted_flux'] = 0
+            predicted_flux = sdf['predicted_flux'].sum()
+            ax.text(predicted_flux, published_flux, s)
+            ax.scatter(predicted_flux, published_flux, c=color)
+
+        add_identity(ax, color=black, ls='--')
+        fig.savefig(f'../results/{c}.png', bbox_inches='tight')
+        
+    
 if __name__ == '__main__':
 
     black = '#000000'
@@ -411,9 +538,10 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg)
-    distribution_barplot(cfg, True)
-    distribution_heatmap(cfg, 'braycurtis', True)
-    prediction_subplots_bar(cfg, ablation_predictions)
-    prediction_subplots_scatter(cfg, ablation_predictions)
-    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    # distribution_barplot(cfg)
+    # distribution_barplot(cfg, True)
+    # distribution_heatmap(cfg, 'braycurtis', True)
+    # prediction_subplots_bar(cfg, ablation_predictions)
+    # prediction_subplots_scatter(cfg, ablation_predictions)
+    # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    calculate_fluxes(cfg)
