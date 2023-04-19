@@ -407,61 +407,121 @@ def get_domain_color(domain):
     return c
 
 
-def orig_flux_equations(row):
-
-    pc = row['orig_label']
-    esd = row['ESD']  # µm
-    area = row['area']  # m-2
-    time = row['time']  # d-1
-
-    if pc in ('aggregate', 'dense_detritus', 'mini_pellet', 'rhizaria', 'phytoplankton'):
+def particle_volume(p_class, esd, w_params=None):
+    
+    if p_class == 'sphere':
         w = esd
         l = esd
-        v = (4/3) * np.pi * (esd/2)**3
-        if pc == 'aggregate':
-            a = 0.1 * 10**-9
-            b = 0.8
-        elif pc == 'dense_detritus':
-            a = 0.1 * 10**-9
-            b = 0.83
-        elif pc == 'mini_pellet':
-            a = 0.1 * 10**-9
-            b = 1
-        elif pc == 'rhizaria':
-            a = 0.004 * 10**-9
-            b = 0.939
-        else:
-            a = 0.288 * 10**-9
-            b = 0.811
-    elif pc in ('large_loose_pellet', 'long_fecal_pellet'):
-        if pc == 'large_loose_pellet':
-            w = (553 * esd) / (esd + 996)
-            b = 0.83
-        else:
-            w = (187 * esd) / (esd + 424)
-            b = 1
+        v = (4/3) * np.pi * (esd/2)**3        
+    elif p_class == 'cylinder':
+        w = (w_params[0] * esd) / (esd + w_params[1])
         l = np.pi * (esd/2)**2 / w
         v = l * np.pi * (w/2)**2
-        a = 0.1 * 10**-9
-    elif pc == 'short_pellet':
+    elif p_class == 'ellipsoid':
         w = 0.54 * esd
         l = esd**2 / w
         v = (4/3) * (l/2) * np.pi * (w/2)**2
-        a = 0.1 * 10**-9
-        b = 1
-    elif pc == 'salp_pellet':
+    elif p_class == 'cuboid':
         w = 0.63 * esd
         l = np.pi * (esd/2)**2 / w
         v = l * w * (w/4)
-        a = 0.04 * 10**-9
-        b = 1
     else:
-        print(row)
-        print('UNIDENTIFIED PARTICLE in orig_flux_equations')
+        print('UNIDENTIFIED PARTICLE in particle_volume')
+        
+    return v
+
+
+def shape_to_flux(a, b, v, area, time):
+    
     carbon =  (a * v**b) / 12.011  # mg to mmol
     flux = carbon / (area * time)
     
     return flux
+
+
+def orig_flux_equations(row):
+
+    p_class = row['orig_label']
+    esd = row['ESD']  # µm
+    area = row['area']  # m-2
+    time = row['time']  # d-1
+
+    if p_class in ('aggregate', 'dense_detritus', 'mini_pellet', 'rhizaria', 'phytoplankton'):
+        v = particle_volume('sphere', esd)
+        if p_class == 'aggregate':
+            a = 0.1 * 10**-9
+            b = 0.8
+        elif p_class == 'dense_detritus':
+            a = 0.1 * 10**-9
+            b = 0.83
+        elif p_class == 'mini_pellet':
+            a = 0.1 * 10**-9
+            b = 1
+        elif p_class == 'rhizaria':
+            a = 0.004 * 10**-9
+            b = 0.939
+        else:  # phytoplankton
+            a = 0.288 * 10**-9
+            b = 0.811
+    elif p_class in ('large_loose_pellet', 'long_fecal_pellet'):
+        a = 0.1 * 10**-9
+        if p_class == 'large_loose_pellet':
+            v = particle_volume('cylinder', esd, (553, 996))
+            b = 0.83
+        else:
+            v = particle_volume('cylinder', esd, (187, 424))
+            b = 1
+    elif p_class == 'short_pellet':
+        v = particle_volume('ellipsoid', esd)
+        a = 0.1 * 10**-9
+        b = 1
+    elif p_class == 'salp_pellet':
+        v = particle_volume('cuboid', esd)
+        a = 0.04 * 10**-9
+        b = 1
+    else:
+        return 0
+    
+    return shape_to_flux(a, b, v, area, time)
+
+
+def new_flux_equations(row, col):
+
+    p_class = row[col]
+    esd = row['ESD']  # µm
+    area = row['area']  # m-2
+    time = row['time']  # d-1
+
+    if p_class in ('aggregate', 'mini_pellet', 'rhizaria', 'phyto_long', 'phyto_round', 'phyto_dino'):
+        v = particle_volume('sphere', esd)
+        if p_class == 'aggregate':
+            a = 0.07 * 10**-9
+            b = 0.83
+        elif p_class == 'mini_pellet':
+            a = 0.07 * 10**-9
+            b = 1
+        elif p_class == 'rhizaria':
+            a = 0.004 * 10**-9
+            b = 0.939
+        else:  # phytoplankton
+            a = 0.288 * 10**-9
+            b = 0.811
+    elif p_class == 'long_pellet':
+        v = particle_volume('cylinder', esd, (264, 584))
+        a = 0.07 * 10**-9
+        b = 1
+    elif p_class == 'short_pellet':
+        v = particle_volume('ellipsoid', esd)
+        a = 0.07 * 10**-9
+        b = 1
+    elif p_class == 'salp_pellet':
+        v = particle_volume('cuboid', esd)
+        a = 0.04 * 10**-9
+        b = 1
+    else:
+        return 0
+    
+    return shape_to_flux(a, b, v, area, time)
 
 
 def add_identity(axes, *line_args, **line_kwargs):
@@ -480,43 +540,50 @@ def add_identity(axes, *line_args, **line_kwargs):
 
 
 def calculate_fluxes(cfg):
-    
-    published = pd.read_csv('published_fluxes.csv')
     metadata = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
     predictions = pd.read_csv('../results/unlabeled_predictions.csv')
     df = metadata.merge(predictions, how='left', on='filename')
-    df = df.loc[df['ESD'].notnull()]  # 23 filenames are in the data folder but not in the metadata
+    rr_fk_df = df.loc[df['ESD'].notnull() & df['domain'].isin(('RR', 'FK'))]  # 23 filenames are in the data folder but not in the metadata
     
-    
-    # calculate of luxes from original labels
-    orig_flux_classes = ['salp_pellet', 'long_fecal_pellet', 'large_loose_pellet',
-                         'aggregate', 'dense_detritus', 'mini_pellet', 'rhizaria',
-                         'phytoplankton', 'short_pellet']
+    fig, axs = plt.subplots(1, 3, figsize=(12,4))
+    axs[0].set_xlabel('Original')
+    axs[0].set_ylabel('Predicted')
+    axs[1].set_xlabel('Measured')
+    axs[1].set_ylabel('Predicted')
+    axs[2].set_xlabel('Measured')
+    axs[2].set_ylabel('Original')
+            
+    for s in rr_fk_df['sample'].unique():
+        
+        sdf = rr_fk_df.loc[(rr_fk_df['sample'] == s)].copy()
+        meas_flux = sdf['measured_flux'].unique()[0]
+        orig_flux = sdf.apply(lambda row: orig_flux_equations(row), axis=1).sum()
+        
+        pred_fluxes = []
+        labeled = sdf.loc[sdf['subdir'] != 'none']
+        unlabeled = sdf.loc[sdf['subdir'] == 'none']
+        pred_flux_labeled = labeled.apply(lambda row: new_flux_equations(row, 'subdir'), axis=1).sum()
+        pred_columns = [c for c in sdf.columns if 'prediction_' in c]
+        for col in pred_columns:
+            pred_flux_unlabeled = unlabeled.apply(lambda row: new_flux_equations(row, col), axis=1).sum()
+            pred_fluxes.append(pred_flux_labeled + pred_flux_unlabeled)
+        pred_flux = np.mean(pred_fluxes)
+        pred_flux_e = np.std(pred_fluxes, ddof=1)
+        
+        color = get_domain_color(sdf.iloc[0]['domain'])
+        axs[0].errorbar(orig_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+        axs[1].errorbar(meas_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+        axs[2].scatter(meas_flux, orig_flux, c=color, s=16)
+        
+        if np.abs(pred_flux - orig_flux) > 0.25:
+            axs[0].text(orig_flux, pred_flux, s)
+            axs[1].text(meas_flux, pred_flux, s)
+            axs[2].text(meas_flux, orig_flux, s)
 
-    
-    #rr_fk_df = df.loc[(df['orig_label'].notnull())]
-    rr_fk_df = df.loc[(df['domain'] == 'RR')]
-    rr_fk_df = rr_fk_df[rr_fk_df['orig_label'].isin(orig_flux_classes)]
-
-    for c in orig_flux_classes:
-        fig, ax = plt.subplots()
-        ax.set_xlabel('Predicted')
-        ax.set_ylabel('Published')        
-        for s in rr_fk_df['sample'].unique():
-            sdf = rr_fk_df.loc[(rr_fk_df['sample'] == s) & (rr_fk_df['orig_label'] == c)].copy()
-            published_flux = published.loc[(published['Trap'] == s)][c].values[0]
-            # measured_flux = sdf.iloc[0]['measured_flux']
-            color = blue#get_domain_color(sdf.iloc[0]['domain'])
-            if len(sdf) > 0:
-                sdf['predicted_flux'] = sdf.apply(lambda row: orig_flux_equations(row), axis=1)
-            else:
-                sdf['predicted_flux'] = 0
-            predicted_flux = sdf['predicted_flux'].sum()
-            ax.text(predicted_flux, published_flux, s)
-            ax.scatter(predicted_flux, published_flux, c=color)
-
+    for ax in axs:
+        ax.set_ylim([0, 6])
         add_identity(ax, color=black, ls='--')
-        fig.savefig(f'../results/{c}.png', bbox_inches='tight')
+    fig.savefig(f'../results/flux_comparison.png', bbox_inches='tight')
         
     
 if __name__ == '__main__':
