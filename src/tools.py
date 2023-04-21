@@ -1,8 +1,10 @@
 import json
+import os
 import random
 import time
 
 import numpy as np
+import pandas as pd
 import torch
 
 
@@ -37,3 +39,9 @@ def load_json(filename):
         data = json.load(file)
 
     return data
+
+def load_metadata(cfg):
+
+    df = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
+    
+    return df

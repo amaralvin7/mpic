@@ -8,10 +8,8 @@ n_workers: 0
 val_size: 0.1
 learning_rate: 0.001
 weight_decay: 0.01
-# data_dir: '../../mpic_data'
-data_dir: '../../../../../imgs'
-exts: [jpg, tiff]
-train_classes: [aggregate, bubble, fiber_blur, fiber_sharp, long_pellet, mini_pellet, noise, short_pellet, swimmer]
-train_domains: [RR, SRT, FK, JC]
+data_dir: '../../data/mpic'
+# data_dir: '../../../../../imgs'
+ablation_classes: [aggregate, bubble, fiber_blur, fiber_sharp, long_pellet, mini_pellet, noise, short_pellet, swimmer]
+domains: [RR, SR, FK, JC]
 domain_splits_fname: domain_splits.json
-train_data_stats_fname: train_data_stats.json

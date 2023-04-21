@@ -540,7 +540,7 @@ def add_identity(axes, *line_args, **line_kwargs):
 
 
 def calculate_fluxes(cfg):
-    metadata = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
+    metadata = tools.load_metadata(cfg)
     predictions = pd.read_csv('../results/unlabeled_predictions.csv')
     df = metadata.merge(predictions, how='left', on='filename')
     rr_fk_df = df.loc[df['ESD'].notnull() & df['domain'].isin(('RR', 'FK'))]  # 23 filenames are in the data folder but not in the metadata

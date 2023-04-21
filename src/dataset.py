@@ -141,7 +141,7 @@ def calculate_data_stats(cfg, data_df, train_split_id):
     return mean, std
 
 
-def stratified_split(cfg, domain):
+def stratified_split(cfg, df):
 
     test_size = cfg['val_size']
     val_size = test_size / (1 - test_size)
@@ -149,18 +149,11 @@ def stratified_split(cfg, domain):
     val_fps = []
     test_fps = []
 
-    classes = [
-        c for c in os.listdir(
-            cfg['train_data_dir']) if os.path.isdir(
-            os.path.join(
-                cfg['train_data_dir'],
-                c)) and c in cfg['classes']]
+    classes = df['subdir'].unique()
+    
     for c in classes:
-        filepaths = []
-        for f in os.listdir(os.path.join(cfg['train_data_dir'], c)):
-            ext_ok = f.split('.')[1] in cfg['exts']
-            if ext_ok and re.search('.+?(?=\\d)', f).group() == domain:
-                filepaths.append(os.path.join(c, f))
+        c_df = df.loc[df['subdir'] == c]
+        filepaths = [os.path.join(c,f) for f in c_df['filename']]
         c_trainval_fps, c_test_fps = train_test_split(
             filepaths, test_size=test_size, random_state=cfg['seed'])
         test_fps.extend(c_test_fps)
@@ -172,13 +165,14 @@ def stratified_split(cfg, domain):
     return train_fps, val_fps, test_fps
 
 
-def write_domain_splits(cfg):
+def write_domain_splits(cfg, df):
 
     domain_splits = {}
 
-    for d in cfg['train_domains']:
+    for d in cfg['domains']:
         domain_splits[d] = {}
-        train_fps, val_fps, test_fps = stratified_split(cfg, d)
+        d_df = df.loc[df['domain'] == d]
+        train_fps, val_fps, test_fps = stratified_split(cfg, d_df)
         domain_splits[d]['train'] = train_fps
         domain_splits[d]['val'] = val_fps
         domain_splits[d]['test'] = test_fps
@@ -239,14 +233,16 @@ def get_train_data_stats(cfg, train_split_id):
     return mean, std
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('-c', '--config', default='config.yaml')
-#     args = parser.parse_args()
-#     cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
-#     tools.set_seed(cfg, 'cpu')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', default='config.yaml')
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
+    tools.set_seed(cfg, 'cpu')
 
-#     write_domain_splits(cfg)
-#     write_train_data_stats(cfg)
+    df = tools.load_metadata(cfg)
+    df = df.loc[df['subdir'] != 'none']
+    write_domain_splits(cfg, df)
+    # write_train_data_stats(cfg, df, 'splits.json', 'stats')
 
