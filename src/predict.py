@@ -27,35 +27,35 @@ def predict_labeled_data(dataloader, model, exp_id, replicate):
             y_pred.extend(preds.tolist())
             y_true.extend(labels.tolist())
 
-    classes = dataloader.dataset.classes
-    class_idxs = list(range(len(classes)))
-    report = metrics.classification_report(
-        y_true,
-        y_pred,
-        zero_division=0,
-        labels=class_idxs,
-        target_names=classes,
-        output_dict=True)
+    # classes = dataloader.dataset.classes
+    # class_idxs = list(range(len(classes)))
+    # report = metrics.classification_report(
+    #     y_true,
+    #     y_pred,
+    #     zero_division=0,
+    #     labels=class_idxs,
+    #     target_names=classes,
+    #     output_dict=True)
 
-    pd.DataFrame(report).transpose().to_csv(
-        os.path.join('..', 'results', f'pred_output_{exp_id}_{replicate}.csv'))
+    # pd.DataFrame(report).transpose().to_csv(
+    #     os.path.join('..', 'results', f'pred_output_{exp_id}_{replicate}.csv'))
 
-    _, ax = plt.subplots(figsize=(10, 10))
-    metrics.ConfusionMatrixDisplay.from_predictions(
-        y_true,
-        y_pred,
-        labels=class_idxs,
-        display_labels=classes,
-        cmap=plt.cm.Blues,
-        normalize=None,
-        xticks_rotation='vertical',
-        values_format='.0f',
-        ax=ax)
-    ax.set_title('Confusion matrix')
-    plt.tight_layout()
-    plt.savefig(
-        os.path.join('..', 'results', f'confusionmatrix_{exp_id}_{replicate}'))
-    plt.close()
+    # _, ax = plt.subplots(figsize=(10, 10))
+    # metrics.ConfusionMatrixDisplay.from_predictions(
+    #     y_true,
+    #     y_pred,
+    #     labels=class_idxs,
+    #     display_labels=classes,
+    #     cmap=plt.cm.Blues,
+    #     normalize=None,
+    #     xticks_rotation='vertical',
+    #     values_format='.0f',
+    #     ax=ax)
+    # ax.set_title('Confusion matrix')
+    # plt.tight_layout()
+    # plt.savefig(
+    #     os.path.join('..', 'results', f'confusionmatrix_{exp_id}_{replicate}'))
+    # plt.close()
 
     return y_pred, y_true
 
@@ -63,9 +63,9 @@ def predict_labeled_data(dataloader, model, exp_id, replicate):
 def get_experiment_matrix(cfg):
 
     matrix = {}
-    train_splits = dataset.powerset(cfg['train_domains'])
+    train_splits = dataset.powerset(cfg['domains'])
     train_split_ids = [('_').join(domains) for domains in train_splits]
-    combos = product(train_split_ids, cfg['train_domains'])
+    combos = product(train_split_ids, cfg['domains'])
     for i, combo in enumerate(combos):
         matrix[i] = [*combo]
 
@@ -90,9 +90,9 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname, uniform=False):
         e_macro_f1 = []
         e_weight_f1 = []
 
-        mean, std = dataset.get_train_data_stats(cfg, split_id)
-        predict_fps = dataset.get_predict_filepaths(cfg, predict_domain)
-        predict_dl = dataset.get_dataloader(cfg, cfg['train_data_dir'], predict_fps, mean, std)
+        mean, std = dataset.get_data_stats(split_id)
+        predict_fps = dataset.get_predict_filepaths(cfg, predict_domain, cfg['ablation_classes'])
+        predict_dl = dataset.get_dataloader(cfg, predict_fps, cfg['ablation_classes'], mean, std)
         models = [f for f in os.listdir(os.path.join('..', 'weights')) if f'model_{split_id}{uni_suffix}-' in f]
 
         for m in sorted(models):
@@ -101,7 +101,7 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname, uniform=False):
             model_output = torch.load(
                 os.path.join('..', 'weights', m), map_location=device)
             weights = model_output['weights']
-            model = initialize_model(len(cfg['classes']), weights=weights)
+            model = initialize_model(len(predict_dl.dataset.classes), weights=weights)
             model.eval()
 
             y_pred, y_true = predict_labeled_data(

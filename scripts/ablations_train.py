@@ -15,13 +15,13 @@ args = parser.parse_args()
 cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
 tools.set_seed(cfg, device)
 
-train_splits = dataset.powerset(cfg['train_domains'])
+train_splits = dataset.powerset(cfg['domains'])
 
 for domains in train_splits:
 
     train_split_id = ('_').join(domains)
-    train_fps, val_fps = dataset.get_train_filepaths(cfg, domains)
-    mean, std = dataset.get_train_data_stats(cfg, train_split_id)
+    train_fps, val_fps = dataset.compile_domain_filepaths(cfg, domains, cfg['ablation_classes'])
+    mean, std = dataset.get_data_stats(train_split_id)
 
     print(f'---------Training Model {train_split_id}...')
     for i in range(cfg['replicates']):

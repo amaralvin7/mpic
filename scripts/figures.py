@@ -62,14 +62,14 @@ def get_exp_ids(cfg):
     
     exp_matrix = predict.get_experiment_matrix(cfg)
 
-    ax_exp = {0: (('RR', 'RR_SRT', 'RR_FK', 'RR_JC', 'RR_SRT_FK', 'RR_SRT_JC', 'RR_FK_JC', 'RR_SRT_FK_JC'), 'RR'),
-              1: (('SRT', 'RR_SRT', 'SRT_FK', 'SRT_JC', 'RR_SRT_FK', 'RR_SRT_JC', 'SRT_FK_JC', 'RR_SRT_FK_JC'), 'SRT'),
-              2: (('FK', 'RR_FK', 'SRT_FK', 'FK_JC', 'RR_SRT_FK', 'RR_FK_JC', 'SRT_FK_JC', 'RR_SRT_FK_JC'), 'FK'),
-              3: (('JC', 'RR_JC', 'SRT_JC', 'FK_JC', 'RR_SRT_JC', 'RR_FK_JC', 'SRT_FK_JC', 'RR_SRT_FK_JC'), 'JC'),
-              4: (('SRT', 'FK', 'JC', 'SRT_FK', 'SRT_JC', 'FK_JC'), 'RR'),
-              5: (('RR', 'FK', 'JC', 'RR_FK', 'RR_JC', 'FK_JC'), 'SRT'),
-              6: (('RR', 'SRT', 'JC', 'RR_SRT', 'RR_JC', 'SRT_JC'), 'FK'),
-              7: (('RR', 'SRT', 'FK', 'RR_SRT', 'RR_FK', 'SRT_FK'), 'JC')}
+    ax_exp = {0: (('RR', 'RR_SR', 'RR_FK', 'RR_JC', 'RR_SR_FK', 'RR_SR_JC', 'RR_FK_JC', 'RR_SR_FK_JC'), 'RR'),
+              1: (('SR', 'RR_SR', 'SR_FK', 'SR_JC', 'RR_SR_FK', 'RR_SR_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'SR'),
+              2: (('FK', 'RR_FK', 'SR_FK', 'FK_JC', 'RR_SR_FK', 'RR_FK_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'FK'),
+              3: (('JC', 'RR_JC', 'SR_JC', 'FK_JC', 'RR_SR_JC', 'RR_FK_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'JC'),
+              4: (('SR', 'FK', 'JC', 'SR_FK', 'SR_JC', 'FK_JC'), 'RR'),
+              5: (('RR', 'FK', 'JC', 'RR_FK', 'RR_JC', 'FK_JC'), 'SR'),
+              6: (('RR', 'SR', 'JC', 'RR_SR', 'RR_JC', 'SR_JC'), 'FK'),
+              7: (('RR', 'SR', 'FK', 'RR_SR', 'RR_FK', 'SR_FK'), 'JC')}
     
     exp_id_dict = {}
 
@@ -84,7 +84,7 @@ def get_exp_ids(cfg):
     return exp_id_dict
 
 
-def prediction_subplots_bar(cfg, prediction_results_fname):
+def prediction_subplots_bar(cfg, classes, prediction_results_fname):
     
     def get_ticklabels(exp_ids):
         
@@ -103,7 +103,7 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
         domains = split_id.split('_')
         train_size = 0
         for d in domains:
-            train_fps, _ = dataset.get_train_filepaths(cfg, [d])
+            train_fps, _ = dataset.compile_domain_filepaths(cfg, [d], classes)
             train_size += len(train_fps)
         train_sizes.append(train_size)
 
@@ -142,7 +142,7 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
             ax.set_yticklabels([])
             twin.set_yticklabels([])
     axs.flatten()[0].set_title('RR', fontsize=14)
-    axs.flatten()[1].set_title('SRT', fontsize=14)
+    axs.flatten()[1].set_title('SR', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     axs.flatten()[3].set_title('JC', fontsize=14)
     # fig.legend((ta_bar[0], wf_bar[0], ts_bar[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
@@ -151,7 +151,7 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
     plt.close()
     
 
-def prediction_subplots_scatter(cfg, prediction_results_fname):
+def prediction_subplots_scatter(cfg, classes, prediction_results_fname):
     
     def get_df_domains(exp_ids):
         
@@ -172,7 +172,7 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
         domains = split_id.split('_')
         train_size = 0
         for d in domains:
-            train_fps, _ = dataset.get_train_filepaths(cfg, [d])
+            train_fps, _ = dataset.compile_domain_filepaths(cfg, [d], classes)
             train_size += len(train_fps)
         train_sizes.append(train_size)
 
@@ -206,7 +206,7 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
     fig.text(0.5, 0.04, 'Training size', ha='center')      
                     
     axs.flatten()[0].set_title('RR', fontsize=14)
-    axs.flatten()[1].set_title('SRT', fontsize=14)
+    axs.flatten()[1].set_title('SR', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     axs.flatten()[3].set_title('JC', fontsize=14)
     # fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
@@ -214,7 +214,7 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
     plt.close()
 
     # distance
-    df = distribution_heatmap(cfg, 'braycurtis', False)
+    df = distribution_heatmap(cfg, classes, 'braycurtis', False)
     fig, axs = plt.subplots(2, 4, figsize=(8, 6))
     fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
 
@@ -241,7 +241,7 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
     fig.text(0.5, 0.04, 'Bray-Curtis distance', ha='center')
     
     axs.flatten()[0].set_title('RR', fontsize=14)
-    axs.flatten()[1].set_title('SRT', fontsize=14)
+    axs.flatten()[1].set_title('SR', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     axs.flatten()[3].set_title('JC', fontsize=14)
     # fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
@@ -251,12 +251,12 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
 
 def training_plots():
 
-    models = [f for f in os.listdir('weights') if f'.pt' in f]
+    models = [f for f in os.listdir('../weights') if f'.pt' in f]
 
     for m in models:
         split = m.split('_')
         replicate_id = '_'.join(split[2:]).split('.')[0]
-        model_output = torch.load(os.path.join('weights', m),
+        model_output = torch.load(os.path.join('../weights', m),
                                   map_location='cpu')
         num_epochs = len(model_output['train_loss_hist'])
 
@@ -281,15 +281,13 @@ def training_plots():
         plt.close()
 
 
-def get_class_count_df(cfg, normalize=False):
+def get_class_count_df(cfg, classes, normalize=False):
 
-    classes = cfg['classes']
-    split_ids = dataset.powerset(cfg['train_domains'])
-    domains = cfg['train_domains']
+    split_ids = dataset.powerset(cfg['domains'])
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     
     df_list = []
-    for d in domains:  # first, get all of the counts in the individual domains
+    for d in cfg['domains']:  # first, get all of the counts in the individual domains
         counts_by_label = []
         for c in classes:
             counts_by_label.append(sum(c in s for s in domain_splits[d]['train']))
@@ -305,9 +303,9 @@ def get_class_count_df(cfg, normalize=False):
     
     return df
 
-def distribution_heatmap(cfg, metric='braycurtis', make_fig=False):
+def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
     
-    df = get_class_count_df(cfg, normalize=True)
+    df = get_class_count_df(cfg, classses, normalize=True)
     df = pd.DataFrame(squareform(pdist(df.T, metric=metric)), columns=df.columns, index=df.columns)
     if make_fig:
         ax = sns.heatmap(df, cmap='viridis', annot=True, fmt='.2f')
@@ -318,19 +316,19 @@ def distribution_heatmap(cfg, metric='braycurtis', make_fig=False):
     else:
         return df
 
-def distribution_barplot(cfg, normalize=False):
+def distribution_barplot(cfg, classses, normalize=False):
     
-    df = get_class_count_df(cfg, normalize=normalize)
+    df = get_class_count_df(cfg, classses, normalize=normalize)
     ind = np.arange(len(df)) 
     width = 0.2
     bar1 = plt.bar(ind-width*0.5, df['RR'], width, color=blue)
-    bar2 = plt.bar(ind+width*0.5, df['SRT'], width, color=green)
+    bar2 = plt.bar(ind+width*0.5, df['SR'], width, color=green)
     bar3 = plt.bar(ind+width*1.5, df['FK'], width, color=orange)
     bar4 = plt.bar(ind+width*2.5, df['JC'], width, color=vermillion)
     plt.subplots_adjust(bottom=0.2)
     plt.xticks(ind+width, df.index.values)
     plt.xticks(rotation=45, ha='right')
-    plt.legend((bar1, bar2, bar3, bar4), ('RR', 'SRT', 'FK', 'JC'), ncol=4, bbox_to_anchor=(0.5, 1.02), loc='lower center',
+    plt.legend((bar1, bar2, bar3, bar4), ('RR', 'SR', 'FK', 'JC'), ncol=4, bbox_to_anchor=(0.5, 1.02), loc='lower center',
                 handletextpad=0.1, frameon=False)
 
     if normalize:
@@ -350,12 +348,12 @@ def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
     exp_matrix = predict.get_experiment_matrix(cfg)
     test_domains = [exp_matrix[i][1] for i in (0, 1, 2, 3)]
 
-    train_fps, _ = dataset.get_train_filepaths(cfg, ('RR',))
+    train_fps, _ = dataset.compile_domain_filepaths(cfg, ('RR',), cfg['ablation_classes'])
     nonuniform_train_size = len(train_fps)
     
     # find the smallest number of observations that a class has
-    train_fps_by_class = [[f for f in train_fps if c in f] for c in cfg['classes']]
-    uniform_train_size = len(min(train_fps_by_class, key=len)) * len(cfg['classes'])
+    train_fps_by_class = [[f for f in train_fps if c in f] for c in cfg['ablation_classes']]
+    uniform_train_size = len(min(train_fps_by_class, key=len)) * len(cfg['ablation_classes'])
 
     a_predictions = tools.load_json(os.path.join(
         '..', 'results', ablation_predictions))
@@ -395,7 +393,7 @@ def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
 
 def get_domain_color(domain):
     
-    if domain == 'SRT':
+    if domain == 'SR':
         c = green
     elif domain == 'FK':
         c = orange
@@ -605,10 +603,10 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg)
-    # distribution_barplot(cfg, True)
-    # distribution_heatmap(cfg, 'braycurtis', True)
-    # prediction_subplots_bar(cfg, ablation_predictions)
-    # prediction_subplots_scatter(cfg, ablation_predictions)
-    # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
-    calculate_fluxes(cfg)
+    distribution_barplot(cfg, cfg['ablation_classes'])
+    distribution_barplot(cfg, cfg['ablation_classes'], True)
+    distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
+    prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
+    prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
+    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    # calculate_fluxes(cfg)

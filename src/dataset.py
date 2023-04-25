@@ -16,22 +16,21 @@ import src.tools as tools
 
 class ParticleImages(torch.utils.data.Dataset):
 
-    def __init__(self, cfg, df, transformations, is_labeled=True):
+    def __init__(self, cfg, filepaths, classes, transformations, is_labeled=True):
 
         self.data_dir = os.path.join(cfg['data_dir'], 'images')
-        self.filenames = df['filename'].values
-        self.subdirs = df['subdir'].values
-        self.classes = sorted([c for c in df['subdir'].unique() if c != 'none'])
+        self.filepaths = filepaths
+        self.classes = sorted(classes)
         self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
         self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
         self.transformations = transformations
         self.is_labeled = is_labeled
         if self.is_labeled:
-            self.labels = self.subdirs
+            self.labels = [os.path.dirname(f) for f in filepaths]
 
     def __getitem__(self, index):
 
-        filepath = os.path.join(self.data_dir, self.subdirs[index], self.filenames[index])
+        filepath = os.path.join(self.data_dir, self.filepaths[index])
 
         with Image.open(filepath) as image:
             image = image.convert('RGB')
@@ -44,7 +43,7 @@ class ParticleImages(torch.utils.data.Dataset):
         return image_tensor, filepath
 
     def __len__(self):
-        return len(self.filenames)
+        return len(self.filepaths)
 
 
 class CustomPad:
@@ -101,11 +100,11 @@ def get_transforms(cfg, mean=None, std=None, augment=False):
     return transformations
 
 
-def get_dataloader(cfg, data_df, mean, std, augment=False, is_labeled=True):
+def get_dataloader(cfg, filepaths, classes, mean, std, augment=False, is_labeled=True):
 
     transformations = get_transforms(cfg, mean, std, augment)
     dataloader = torch.utils.data.DataLoader(
-        dataset=ParticleImages(cfg, data_df, transformations, is_labeled),
+        dataset=ParticleImages(cfg, filepaths, classes, transformations, is_labeled),
         batch_size=cfg['batch_size'],
         shuffle=True,
         num_workers=cfg['n_workers'])
@@ -113,13 +112,13 @@ def get_dataloader(cfg, data_df, mean, std, augment=False, is_labeled=True):
     return dataloader
 
 
-def calculate_data_stats(cfg, df):
+def calculate_data_stats(cfg, filepaths, classes):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
 
     print(f'Calculating data stats...')
-    dataset = ParticleImages(cfg, df, get_transforms(cfg))
+    dataset = ParticleImages(cfg, filepaths, classes, get_transforms(cfg))
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg['batch_size'], num_workers=0)
 
@@ -192,18 +191,21 @@ def compile_domain_filepaths(cfg, domains, classes=None):
             d_train_fps = [f for f in domain_splits[domain]['train'] if f.split('/')[0] in classes]
             d_val_fps = [f for f in domain_splits[domain]['val'] if f.split('/')[0] in classes]
         else:
-            d_train_fps = [f for f in domain_splits[domain]['train']]
-            d_val_fps = [f for f in domain_splits[domain]['val']]           
+            d_train_fps = domain_splits[domain]['train']
+            d_val_fps = domain_splits[domain]['val']           
         train_fps.extend(d_train_fps)
         val_fps.extend(d_val_fps)
 
     return train_fps, val_fps
 
 
-def get_predict_filepaths(cfg, predict_domain):
+def get_predict_filepaths(cfg, domain, classes=None):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
-    predict_filepaths = domain_splits[predict_domain]['test']
+    if classes: 
+        predict_filepaths = [f for f in domain_splits[domain]['test'] if f.split('/')[0] in classes]
+    else:
+        predict_filepaths = domain_splits[domain]['test']
 
     return predict_filepaths
 
@@ -214,34 +216,36 @@ def powerset(iterable):
     return list(chain.from_iterable(combinations(s, r) for r in range(1, len(s)+1)))
 
 
-def write_train_data_stats(cfg, df, write_to, for_ablations=False):
+def write_train_data_stats(cfg, write_to, for_ablations=False):
     
-    def fps_to_data_stats(fps):
+    def filepaths_to_data_stats(filepaths):
 
-        fnames = [os.path.basename(f) for f in fps]
-        temp_df = df.loc[df['filename'].isin(fnames)]
-        mean, std = calculate_data_stats(cfg, temp_df)
+        mean, std = calculate_data_stats(cfg, filepaths, classes)
         stats_dict = {'mean': mean.tolist(), 'std': std.tolist()}
         
         return stats_dict
         
     if for_ablations:
+        classes = cfg['ablation_classes']
         stats = {}
         train_splits = powerset(cfg['domains'])
         for domains in train_splits:
             train_split_id = ('_').join(domains)
-            train_fps, _ = compile_domain_filepaths(cfg, domains, cfg['ablation_classes'])
-            stats[train_split_id] = fps_to_data_stats(train_fps)
+            train_fps, _ = compile_domain_filepaths(cfg, domains, classes)
+            stats[train_split_id] = filepaths_to_data_stats(train_fps)
     else:
+        classes = cfg['all_classes']
         train_fps, _ = compile_domain_filepaths(cfg, cfg['domains'])
-        stats = fps_to_data_stats(train_fps)
+        stats = filepaths_to_data_stats(train_fps)
 
     tools.write_json(stats, os.path.join('..', 'data', write_to))
 
 
-def get_data_stats(cfg, train_split_id=None):
+def get_data_stats(train_split_id=None):
+    
+    data_stats_fname = 'data_stats_ablations.json' if train_split_id else 'data_stats.json'
+    train_data_stats = tools.load_json(os.path.join('..', 'data', data_stats_fname))
 
-    train_data_stats = tools.load_json(os.path.join('..', 'data', cfg['train_data_stats_fname']))
     if train_split_id:
         mean = train_data_stats[train_split_id]['mean']
         std = train_data_stats[train_split_id]['std']
@@ -262,7 +266,7 @@ if __name__ == '__main__':
 
     df = tools.load_metadata(cfg)
     df = df.loc[df['subdir'] != 'none']
-    
+
     write_domain_splits(cfg, df)
-    write_train_data_stats(cfg, df, 'train_data_stats.json', True)
-    write_train_data_stats(cfg, df, 'train_data_stats_full.json', False)
+    write_train_data_stats(cfg, 'data_stats.json', False)
+    write_train_data_stats(cfg, 'data_stats_ablations.json', True)

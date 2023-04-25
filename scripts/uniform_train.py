@@ -16,10 +16,10 @@ args = parser.parse_args()
 cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
 tools.set_seed(cfg, device)
 
-train_fps, val_fps = dataset.get_train_filepaths(cfg, ('RR',))
+train_fps, val_fps = dataset.compile_domain_filepaths(cfg, ('RR',), cfg['ablation_classes'])
 
 # separate_train_fps by class
-train_fps_by_class = [[f for f in train_fps if c in f] for c in cfg['classes']]
+train_fps_by_class = [[f for f in train_fps if c in f] for c in cfg['ablation_classes']]
 
 # find the smallest number of observations that a class has
 n = len(min(train_fps_by_class, key=len))
@@ -28,7 +28,7 @@ n = len(min(train_fps_by_class, key=len))
 train_fps_uniform = []
 for l in train_fps_by_class:
     train_fps_uniform.extend(l[:n])
-mean, std = dataset.calculate_data_stats(train_fps_uniform, cfg, 'RR_uniform')
+mean, std = dataset.calculate_data_stats(cfg, train_fps_uniform, cfg['ablation_classes'])
 
 # train replicates
 model_name = 'RRu'
