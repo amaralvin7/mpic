@@ -199,17 +199,6 @@ def compile_domain_filepaths(cfg, domains, classes=None):
     return train_fps, val_fps
 
 
-def get_predict_filepaths(cfg, domain, classes=None):
-
-    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
-    if classes: 
-        predict_filepaths = [f for f in domain_splits[domain]['test'] if f.split('/')[0] in classes]
-    else:
-        predict_filepaths = domain_splits[domain]['test']
-
-    return predict_filepaths
-
-
 def powerset(iterable):
     """https://docs.python.org/3/library/itertools.html#itertools-recipes"""
     s = list(iterable)

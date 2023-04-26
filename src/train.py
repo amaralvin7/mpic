@@ -56,10 +56,6 @@ def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicat
     classes = set([f.split('/')[0] for f in train_filepaths])
     train_dl = dataset.get_dataloader(cfg, train_filepaths, classes, mean, std, augment=True)
     val_dl = dataset.get_dataloader(cfg, val_filepaths, classes, mean, std)
-    # print(train_dl.dataset.classes)
-    # print(val_dl.dataset.classes)
-    # import sys
-    # sys.exit()
     model = initialize_model(len(classes))
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg['learning_rate'], weight_decay=cfg['weight_decay'])

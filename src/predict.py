@@ -73,6 +73,8 @@ def get_experiment_matrix(cfg):
 
 
 def prediction_experiments(cfg, device, exp_matrix, save_fname, uniform=False):
+    
+    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
 
     test_acc_avgs = []
     macro_f1_avgs = []
@@ -91,7 +93,7 @@ def prediction_experiments(cfg, device, exp_matrix, save_fname, uniform=False):
         e_weight_f1 = []
 
         mean, std = dataset.get_data_stats(split_id)
-        predict_fps = dataset.get_predict_filepaths(cfg, predict_domain, cfg['ablation_classes'])
+        predict_fps = [f for f in domain_splits[predict_domain]['test'] if f.split('/')[0] in cfg['ablation_classes']]
         predict_dl = dataset.get_dataloader(cfg, predict_fps, cfg['ablation_classes'], mean, std)
         models = [f for f in os.listdir(os.path.join('..', 'weights')) if f'model_{split_id}{uni_suffix}-' in f]
 

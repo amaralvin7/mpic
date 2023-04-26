@@ -573,7 +573,7 @@ def calculate_fluxes(cfg):
         axs[1].errorbar(meas_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
         axs[2].scatter(meas_flux, orig_flux, c=color, s=16)
         
-        if np.abs(pred_flux - orig_flux) > 0.25:
+        if np.abs(pred_flux - orig_flux) > 0.3:
             axs[0].text(orig_flux, pred_flux, s)
             axs[1].text(meas_flux, pred_flux, s)
             axs[2].text(meas_flux, orig_flux, s)
@@ -603,10 +603,10 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg, cfg['ablation_classes'])
-    distribution_barplot(cfg, cfg['ablation_classes'], True)
-    distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
-    prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
-    prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
-    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
-    # calculate_fluxes(cfg)
+    # distribution_barplot(cfg, cfg['ablation_classes'])
+    # distribution_barplot(cfg, cfg['ablation_classes'], True)
+    # distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
+    # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
+    # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
+    # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    calculate_fluxes(cfg)

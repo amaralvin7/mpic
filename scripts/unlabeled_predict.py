@@ -17,14 +17,14 @@ parser.add_argument('-c', '--config', default='config.yaml')
 args = parser.parse_args()
 cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
 
-train_split = 'RR_SRT_FK_JC'  # RR, SRT, FK train split
-mean, std = dataset.get_train_data_stats(cfg, train_split)
-models = [f for f in os.listdir(os.path.join('..', 'weights')) if f'model_{train_split}' in f]
+mean, std = dataset.get_data_stats()
+models = [f for f in os.listdir(os.path.join('..', 'weights')) if 'FULL' in f]
 
 metadata_df = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
-predict_df = metadata_df.loc[metadata_df['subdir'] == 'none']
-predict_df = predict_df[['filename', 'subdir']]
-predict_dl = dataset.get_dataloader(cfg, predict_df, mean, std, augment=False, is_labeled=False)
+predict_df = metadata_df.loc[metadata_df['subdir'] == 'none'].copy()
+predict_df['filepath'] = predict_df['subdir'] + '/' + predict_df['filename']
+predict_fps = predict_df['filepath'].values
+predict_dl = dataset.get_dataloader(cfg, predict_fps, cfg['all_classes'], mean, std, is_labeled=False)
 
 df_list = []
 
@@ -34,7 +34,7 @@ for m in models:
     saved_model_output = torch.load(
         os.path.join('..', 'weights', m), map_location=device)
     weights = saved_model_output['weights']
-    model = initialize_model(len(cfg['train_classes']), weights=weights)
+    model = initialize_model(len(cfg['all_classes']), weights=weights)
     model.eval()
             
     y_pred = []
@@ -55,5 +55,5 @@ for m in models:
 dfs = [df.set_index('filename') for df in df_list]
 merged = pd.concat(dfs, axis=1)
 
-merged.to_csv('unlabeled_predictions.csv')
+merged.to_csv('../results/unlabeled_predictions.csv')
 
