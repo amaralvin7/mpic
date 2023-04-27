@@ -581,6 +581,17 @@ def calculate_fluxes(cfg):
     axs[0].legend(lines, labels, frameon=False, handlelength=1)
 
     fig.savefig(f'../results/flux_comparison.png', bbox_inches='tight')
+
+
+def print_image_counts():
+
+    metadata = tools.load_metadata(cfg)
+    for domain in metadata['domain'].unique():
+        df = metadata.loc[metadata['domain'] == domain]
+        labeled = df.loc[df['subdir'] != 'none']
+        n_labeled = len(labeled)
+        percent_labeled = n_labeled/len(df) * 100
+        print(f'{domain}: {len(df)} images, {n_labeled} labeled ({percent_labeled:.0f}%)')
         
     
 if __name__ == '__main__':
@@ -608,4 +619,5 @@ if __name__ == '__main__':
     # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
-    calculate_fluxes(cfg)
+    # calculate_fluxes(cfg)
+    print_image_counts()
