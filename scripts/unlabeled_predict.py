@@ -21,8 +21,8 @@ mean, std = dataset.get_data_stats()
 models = [f for f in os.listdir(os.path.join('..', 'weights')) if 'FULL' in f]
 
 metadata_df = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
-predict_df = metadata_df.loc[metadata_df['subdir'] == 'none'].copy()
-predict_df['filepath'] = predict_df['subdir'] + '/' + predict_df['filename']
+predict_df = metadata_df.loc[metadata_df['label'] == 'none'].copy()
+predict_df['filepath'] = predict_df['label'] + '/' + predict_df['filename']
 predict_fps = predict_df['filepath'].values
 predict_dl = dataset.get_dataloader(cfg, predict_fps, cfg['all_classes'], mean, std, is_labeled=False)
 
@@ -50,7 +50,7 @@ for m in models:
             y_pred.extend([predict_dl.dataset.idx_to_class[p] for p in preds.tolist()])
             y_fnames.extend([os.path.basename(f) for f in filepaths])
 
-    df_list.append(pd.DataFrame({'filename': y_fnames, f'prediction_{replicate}': y_pred}))
+    df_list.append(pd.DataFrame({'filename': y_fnames, f'prediction{replicate}': y_pred}))
 
 dfs = [df.set_index('filename') for df in df_list]
 merged = pd.concat(dfs, axis=1)

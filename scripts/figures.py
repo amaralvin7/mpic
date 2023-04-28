@@ -438,14 +438,14 @@ def shape_to_flux(a, b, v, area, time):
     return flux
 
 
-def flux_equations(row, col):
+def flux_equations(row, label_col):
 
-    p_class = row[col]
+    p_class = row[label_col]
     esd = row['ESD']  # µm
     area = row['area']  # m-2
     time = row['time']  # d-1
 
-    if p_class in ('aggregate', 'mini_pellet', 'rhizaria', 'phytoplankton'):
+    if p_class in ('aggregate', 'mini_pellet', 'rhizaria') or 'phyto' in p_class:
         v = particle_volume('sphere', esd)
         if p_class == 'aggregate':
             a = 0.07 * 10**-9
@@ -471,41 +471,13 @@ def flux_equations(row, col):
         v = particle_volume('cuboid', esd)
         a = 0.04 * 10**-9
         b = 1
-    elif p_class in ('fiber', 'swimmer', 'unidentifiable'):
+    elif p_class in ('noise', 'bubble', 'swimmer', 'unidentifiable') or 'fiber' in p_class:
         return 0
     else:
         print('UNKNOWN PARTICLE TYPE')
         sys.exit()
     
     return shape_to_flux(a, b, v, area, time)
-
-
-def commonize_manual_labels():
-    
-    d = {'aggregate': 'aggregate', 'amphipod': 'swimmer', 'copepod': 'swimmer',
-         'dense_detritus': 'aggregate', 'fiber': 'fiber',
-         'foraminifera': 'swimmer', 'large_loose_pellet': 'long_pellet',
-         'long_fecal_pellet': 'long_pellet', 'mini_pellet': 'mini_pellet',
-         'phytoplankton': 'phytoplankton', 'pteropod': 'swimmer',
-         'rhizaria': 'rhizaria', 'salp_pellet': 'salp_pellet',
-         'short_pellet': 'short_pellet', 'unidentifiable': 'unidentifiable',
-         'zooplankton': 'swimmer', 'zooplankton_part': 'swimmer'}
-    
-    return d
-
-
-def commonize_model_labels():
-    
-    d = {'aggregate': 'aggregate', 'bubble': 'unidentifiable',
-         'fiber_blur': 'fiber', 'fiber_sharp': 'fiber',
-         'long_pellet': 'long_pellet', 'mini_pellet': 'mini_pellet',
-         'noise': 'unidentifiable', 'phyto_long': 'phytoplankton',
-         'phyto_round': 'phytoplankton', 'phyto_dino': 'phytoplankton',
-         'rhizaria': 'rhizaria', 'salp_pellet': 'salp_pellet',
-         'short_pellet': 'short_pellet', 'none': 'unidentifiable',
-         'swimmer': 'swimmer'}
-
-    return d
 
 
 def add_identity(axes, *line_args, **line_kwargs):
@@ -523,39 +495,51 @@ def add_identity(axes, *line_args, **line_kwargs):
     return axes
 
 
-def calculate_fluxes(cfg):
+def calculate_flux_df(cfg):
+    
+    def row_flux(row):
+        
+        if row['label'] != 'none':
+            row['label_flux'] = flux_equations(row, 'label')
+        else:
+            for c in pred_columns:
+                row[f'{c}_flux'] = flux_equations(row, c)
+        if row['domain'] in ('RR', 'FK'):
+            row['olabel_flux'] = flux_equations(row, 'olabel_group')
+        
+        return row
 
     metadata = tools.load_metadata(cfg)
     predictions = pd.read_csv('../results/unlabeled_predictions.csv')
     df = metadata.merge(predictions, how='left', on='filename')
-    model_labels = commonize_model_labels()
-    manual_labels = commonize_manual_labels()
 
     df = df.loc[df['ESD'].notnull()].copy()  # 23 filenames are in the data folder but not in the metadata
-    df['subdir_common'] = df['subdir'].apply(lambda x: model_labels[x])
+    pred_columns = [c for c in df.columns if 'prediction' in c]
+    df = df.apply(row_flux, axis=1)
+    
+    df.to_csv('../results/fluxes.csv')
+
+
+def flux_comparison(cfg):
     
     fig, axs = plt.subplots(1, 3, figsize=(12,4))
     axs[0].set_xlabel('Original')
     axs[0].set_ylabel('Predicted')
     axs[1].set_xlabel('Measured')
     axs[2].set_xlabel('Measured')
+    
+    # df = calculate_flux_df(cfg)
+    df = pd.read_csv('../results/fluxes.csv')
             
     for s in df['sample'].unique():
+
         sdf = df.loc[(df['sample'] == s)].copy()
         meas_flux = sdf['measured_flux'].unique()[0]
-        meas_flux_e = sdf['measured_flux_u'].unique()[0]
-        pred_fluxes = []
-        labeled = sdf.loc[sdf['subdir'] != 'none'].copy()
-        if len(labeled) > 0:  # JC65 has no labeled images
-            pred_flux_labeled = labeled.apply(lambda row: flux_equations(row, 'subdir_common'), axis=1).sum()
-        else:
-            pred_flux_labeled = 0
-        unlabeled = sdf.loc[sdf['subdir'] == 'none'].copy()
-        pred_columns = [c for c in sdf.columns if 'prediction_' in c]
-        for col in pred_columns:
-            unlabeled[f'{col}_common'] = unlabeled[col].apply(lambda x: model_labels[x])
-            pred_flux_unlabeled = unlabeled.apply(lambda row: flux_equations(row, f'{col}_common'), axis=1).sum()
-            pred_fluxes.append(pred_flux_labeled + pred_flux_unlabeled)
+        meas_flux_e = sdf['measured_flux_e'].unique()[0]
+        
+        pred_columns = [c for c in df.columns if '_' in c and c.split('_')[0][0] == 'p']
+        pred_fluxes = [sdf['label_flux'].sum() + sdf[c].sum() for c in pred_columns]
+            
         pred_flux = np.mean(pred_fluxes)
         pred_flux_e = np.std(pred_fluxes, ddof=1)
         
@@ -566,9 +550,7 @@ def calculate_fluxes(cfg):
         axs[2].set_xscale('log')
         
         if sdf['domain'].unique()[0] in ('RR', 'FK'):
-            sdf['orig_label_common'] = sdf['orig_label'].apply(lambda x: manual_labels[x])
-            orig_flux = sdf.apply(lambda row: flux_equations(row, 'orig_label_common'), axis=1).sum()
-            axs[0].errorbar(orig_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            axs[0].errorbar(sdf['olabel_flux'].sum(), pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
 
     for ax in axs:
         add_identity(ax, color=black, ls='--')
@@ -588,7 +570,7 @@ def print_image_counts():
     metadata = tools.load_metadata(cfg)
     for domain in metadata['domain'].unique():
         df = metadata.loc[metadata['domain'] == domain]
-        labeled = df.loc[df['subdir'] != 'none']
+        labeled = df.loc[df['label'] != 'none']
         n_labeled = len(labeled)
         percent_labeled = n_labeled/len(df) * 100
         print(f'{domain}: {len(df)} images, {n_labeled} labeled ({percent_labeled:.0f}%)')
@@ -619,5 +601,6 @@ if __name__ == '__main__':
     # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
-    # calculate_fluxes(cfg)
-    print_image_counts()
+    # calculate_flux_df(cfg)
+    flux_comparison(cfg)
+    # print_image_counts()

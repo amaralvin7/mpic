@@ -148,10 +148,10 @@ def stratified_split(cfg, df):
     val_fps = []
     test_fps = []
 
-    classes = df['subdir'].unique()
+    classes = df['label'].unique()
     
     for c in classes:
-        c_df = df.loc[df['subdir'] == c]
+        c_df = df.loc[df['label'] == c]
         filepaths = [os.path.join(c,f) for f in c_df['filename']]
         c_trainval_fps, c_test_fps = train_test_split(
             filepaths, test_size=test_size, random_state=cfg['seed'])
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     tools.set_seed(cfg, 'cpu')
 
     df = tools.load_metadata(cfg)
-    df = df.loc[df['subdir'] != 'none']
+    df = df.loc[df['label'] != 'none']
 
     write_domain_splits(cfg, df)
     write_train_data_stats(cfg, 'data_stats.json', False)
