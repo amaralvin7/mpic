@@ -513,9 +513,6 @@ def calculate_flux_df(cfg):
     predictions = pd.read_csv('../results/unlabeled_predictions.csv')
     df = metadata.merge(predictions, how='left', on='filename')
     
-    bad = get_bad_srt()
-    df = df[~df['filename'].isin(bad)]
-    
     df = df.loc[df['ESD'].notnull()].copy()  # 23 filenames are in the data folder but not in the metadata
     pred_columns = [c for c in df.columns if 'prediction' in c]
     df = df.apply(row_flux, axis=1)
@@ -577,18 +574,7 @@ def print_image_counts():
         n_labeled = len(labeled)
         percent_labeled = n_labeled/len(df) * 100
         print(f'{domain}: {len(df)} images, {n_labeled} labeled ({percent_labeled:.0f}%)')
-
-
-def get_bad_srt():
-
-    bad = ['SRT19_7x_obl_3_19641.tiff', 'SRT19_7x_obl_2_30040.tiff', 'SRT19_7x_obl_1_29831.tiff',
-           'SRT19_7x_obl_1_29957.tiff', 'SRT19_7x_obl_2_29922.tiff', 'SRT19_7x_obl_1_29632.tiff',
-           'SRT20_7x_obl_1_27205.tiff', 'SRT20_7x_obl_3_27102.tiff', 'SRT20_7x_obl_3_26771.tiff',
-           'SRT19_7x_obl_2_29938.tiff', 'SRT31_7x_obl_2_33990.tiff', 'SRT20_7x_obl_3_26426.tiff',
-           'SRT20_7x_obl_3_26378.tiff', 'SRT20_7x_obl_3_26381.tiff']
     
-    return bad
-        
     
 if __name__ == '__main__':
 
@@ -609,12 +595,12 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg, cfg['ablation_classes'])
-    # distribution_barplot(cfg, cfg['ablation_classes'], True)
-    # distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
-    # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
-    # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
-    # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    distribution_barplot(cfg, cfg['ablation_classes'])
+    distribution_barplot(cfg, cfg['ablation_classes'], True)
+    distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
+    prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
+    prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
+    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     calculate_flux_df(cfg)
     flux_comparison(cfg)
     # print_image_counts()
