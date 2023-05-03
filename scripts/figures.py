@@ -565,6 +565,15 @@ def flux_comparison(cfg):
     fig.savefig(f'../results/flux_comparison.png', bbox_inches='tight')
 
 
+def print_relabel_rate(cfg):
+
+    df = tools.load_metadata(cfg)
+    df = df.loc[df['relabel'].notnull()][['olabel_group', 'relabel_group']]
+    n_matches = len(df[df.nunique(axis=1) == 1])
+    relabel_rate = n_matches / len(df)
+    print(relabel_rate)
+
+
 def print_image_counts():
 
     metadata = tools.load_metadata(cfg)
@@ -595,12 +604,12 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg, cfg['ablation_classes'])
-    distribution_barplot(cfg, cfg['ablation_classes'], True)
-    distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
-    prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
-    prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
-    uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
-    calculate_flux_df(cfg)
-    flux_comparison(cfg)
-    # print_image_counts()
+    # distribution_barplot(cfg, cfg['ablation_classes'])
+    # distribution_barplot(cfg, cfg['ablation_classes'], True)
+    # distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
+    # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
+    # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
+    # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
+    # calculate_flux_df(cfg)
+    # flux_comparison(cfg)
+    print_relabel_rate(cfg)
