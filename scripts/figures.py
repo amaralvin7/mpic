@@ -3,6 +3,7 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
+import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -517,10 +518,10 @@ def calculate_flux_df(cfg):
     pred_columns = [c for c in df.columns if 'prediction' in c]
     df = df.apply(row_flux, axis=1)
     
-    df.to_csv('../results/fluxes.csv')
+    df.to_csv('../results/fluxes.csv', index=False)
 
 
-def flux_comparison(cfg):
+def flux_comparison():
     
     fig, axs = plt.subplots(1, 3, figsize=(12,4))
     axs[0].set_xlabel('Original')
@@ -528,10 +529,12 @@ def flux_comparison(cfg):
     axs[1].set_xlabel('Measured')
     axs[2].set_xlabel('Measured')
     
-    # df = calculate_flux_df(cfg)
-    df = pd.read_csv('../results/fluxes.csv')
+    df = pd.read_csv('../results/fluxes.csv', index_col=False)
             
     for s in df['sample'].unique():
+        
+        # if s[0] == 'J' and int(s[2:]) >= 49:
+        #     continue
 
         sdf = df.loc[(df['sample'] == s)].copy()
         meas_flux = sdf['measured_flux'].unique()[0]
@@ -562,7 +565,47 @@ def flux_comparison(cfg):
     labels = ['FK', 'JC', 'RR', 'SR']
     axs[0].legend(lines, labels, frameon=False, handlelength=1)
 
-    fig.savefig(f'../results/flux_comparison.png', bbox_inches='tight')
+    fig.savefig(f'../results/flux_comparison.pdf', bbox_inches='tight')
+
+
+def flux_comparison_by_class():
+    
+    classes = ('aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phyto')
+    
+    fig, axs = plt.subplots(2, 4, figsize=(12,6), tight_layout=True)
+    axs = axs.flatten()
+    axs[-1].set_visible(False)
+    fig.supxlabel('Original')
+    fig.supylabel('Predicted')
+    
+    df = pd.read_csv('../results/fluxes.csv', index_col=False)
+    df = df.loc[df['olabel_group'].notnull()]
+    pred_columns = [c for c in df.columns if '_' not in c and 'pred' in c]
+            
+    for s in df['sample'].unique():
+
+        sdf = df.loc[(df['sample'] == s)].copy()
+        color = get_domain_color(sdf['domain'].unique()[0])
+        
+        for i, clss in enumerate(classes):
+ 
+            pred_fluxes = [sdf[sdf['label'].str.contains(clss)]['label_flux'].sum()
+                           + sdf[sdf[c].str.contains(clss, na=False)][f'{c}_flux'].sum() for c in pred_columns]
+            pred_flux = np.mean(pred_fluxes)
+            pred_flux_e = np.std(pred_fluxes, ddof=1)
+            
+            axs[i].errorbar(sdf[sdf['olabel_group'].str.contains(clss)]['olabel_flux'].sum(), pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            
+    for i, clss in enumerate(classes):
+        add_identity(axs[i], color=black, ls='--')
+        axs[i].text(0.98, 0.02, clss, ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+
+    lines = [Line2D([0], [0], color=orange, lw=4),
+             Line2D([0], [0], color=blue, lw=4)]
+    labels = ['FK', 'RR']
+    axs[0].legend(lines, labels, frameon=False, handlelength=1)
+
+    fig.savefig(f'../results/flux_comparison_byclass.pdf', bbox_inches='tight')
 
 
 def print_relabel_rate(cfg):
@@ -611,5 +654,6 @@ if __name__ == '__main__':
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
-    # flux_comparison(cfg)
-    print_relabel_rate(cfg)
+    # print_relabel_rate(cfg)
+    # flux_comparison()
+    flux_comparison_by_class()
