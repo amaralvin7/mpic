@@ -11,7 +11,9 @@ import torch
 import yaml
 from itertools import product
 from matplotlib.lines import Line2D
+from sklearn.metrics import ConfusionMatrixDisplay
 from scipy.spatial.distance import pdist, squareform
+from tqdm import tqdm
 
 import src.dataset as dataset
 import src.predict as predict
@@ -446,7 +448,7 @@ def flux_equations(row, label_col):
     area = row['area']  # m-2
     time = row['time']  # d-1
 
-    if p_class in ('aggregate', 'mini_pellet', 'rhizaria') or 'phyto' in p_class:
+    if p_class in ('aggregate', 'mini_pellet', 'rhizaria', 'phytoplankton'):
         v = particle_volume('sphere', esd)
         if p_class == 'aggregate':
             a = 0.07 * 10**-9
@@ -472,7 +474,7 @@ def flux_equations(row, label_col):
         v = particle_volume('cuboid', esd)
         a = 0.04 * 10**-9
         b = 1
-    elif p_class in ('noise', 'bubble', 'swimmer', 'unidentifiable') or 'fiber' in p_class:
+    elif p_class in ('unidentifiable', 'fiber', 'swimmer'):
         return 0
     else:
         print('UNKNOWN PARTICLE TYPE')
@@ -498,13 +500,25 @@ def add_identity(axes, *line_args, **line_kwargs):
 
 def calculate_flux_df(cfg):
     
+    d = {'bubble': 'unidentifiable', 'noise': 'unidentifiable',
+         'phyto_long': 'phytoplankton', 'phyto_round': 'phytoplankton', 'phyto_dino': 'phytoplankton',
+         'fiber_blur': 'fiber', 'fiber_sharp': 'fiber'}
+    
     def row_flux(row):
-        
+
         if row['label'] != 'none':
-            row['label_flux'] = flux_equations(row, 'label')
+            if row['label'] in d:
+                row['label_group'] = d[row['label']]
+            else:
+                row['label_group'] = row['label']
+            row['label_flux'] = flux_equations(row, 'label_group')
         else:
             for c in pred_columns:
-                row[f'{c}_flux'] = flux_equations(row, c)
+                if row[c] in d:
+                    row[f'{c}_group'] = d[row[c]]
+                else:
+                    row[f'{c}_group'] = row[c]
+                row[f'{c}_flux'] = flux_equations(row, f'{c}_group')
         if row['domain'] in ('RR', 'FK'):
             row['olabel_flux'] = flux_equations(row, 'olabel_group')
         
@@ -515,8 +529,9 @@ def calculate_flux_df(cfg):
     df = metadata.merge(predictions, how='left', on='filename')
     
     df = df.loc[df['ESD'].notnull()].copy()  # 23 filenames are in the data folder but not in the metadata
-    pred_columns = [c for c in df.columns if 'prediction' in c]
-    df = df.apply(row_flux, axis=1)
+    pred_columns = [c for c in df.columns if 'pred' in c]
+    tqdm.pandas()
+    df = df.progress_apply(row_flux, axis=1)
     
     df.to_csv('../results/fluxes.csv', index=False)
 
@@ -529,7 +544,7 @@ def flux_comparison():
     axs[1].set_xlabel('Measured')
     axs[2].set_xlabel('Measured')
     
-    df = pd.read_csv('../results/fluxes.csv', index_col=False)
+    df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
             
     for s in df['sample'].unique():
         
@@ -540,7 +555,7 @@ def flux_comparison():
         meas_flux = sdf['measured_flux'].unique()[0]
         meas_flux_e = sdf['measured_flux_e'].unique()[0]
         
-        pred_columns = [c for c in df.columns if '_' in c and c.split('_')[0][0] == 'p']
+        pred_columns = [c for c in df.columns if 'pred' in c and 'flux' in c]
         pred_fluxes = [sdf['label_flux'].sum() + sdf[c].sum() for c in pred_columns]
             
         pred_flux = np.mean(pred_fluxes)
@@ -578,7 +593,7 @@ def flux_comparison_by_class():
     fig.supxlabel('Original')
     fig.supylabel('Predicted')
     
-    df = pd.read_csv('../results/fluxes.csv', index_col=False)
+    df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
     df = df.loc[df['olabel_group'].notnull()]
     pred_columns = [c for c in df.columns if '_' not in c and 'pred' in c]
             
@@ -608,14 +623,77 @@ def flux_comparison_by_class():
     fig.savefig(f'../results/flux_comparison_byclass.pdf', bbox_inches='tight')
 
 
-def print_relabel_rate(cfg):
+def agreement_rates():
+    
+    def compare_cols(df, col1, col2):
+        
+        n_matches = len(df[df[col1] == df[col2]])
+        relabel_rate = n_matches / len(df) * 100
+        
+        return relabel_rate
+    
+    flux_classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phyto']
+    all_classes = flux_classes + ['fiber', 'swimmer', 'unidentifiable']
+        
+    # load df
+    df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
+    df = df.loc[df['olabel'].notnull()]
+    
+    # group model labels
+    pred_cols = [c for c in df.columns if 'pred' in c and 'group' in c]
+    
+    # Original vs. relabeled
+    relabeled = df.loc[df['relabel_group'].notnull()]
+    r = compare_cols(relabeled, 'olabel_group', 'relabel_group')
+    print(f'Original, relabeled: {r:.2f}')
+    
+    print('-----------------')
+    
+    # Unambiguous comparisons
+    unambig = df.loc[df['label'] != 'none']
+    r = compare_cols(unambig, 'olabel_group', 'label_group')
+    print(f'Original, labeled unambig: {r:.2f}')
+    
+    unambig_relabeled = unambig.loc[unambig['relabel_group'].notnull()]
+    r = compare_cols(unambig_relabeled, 'relabel_group', 'label_group')
+    print(f'Relabeled, labeled unambig: {r:.2f}')
+    
+    r = compare_cols(unambig_relabeled, 'olabel_group', 'relabel_group')
+    print(f'Original, relabeled (both unambig): {r:.2f}')
+    
+    print('-----------------')
 
-    df = tools.load_metadata(cfg)
-    df = df.loc[df['relabel'].notnull()][['olabel_group', 'relabel_group']]
-    n_matches = len(df[df.nunique(axis=1) == 1])
-    relabel_rate = n_matches / len(df)
-    print(relabel_rate)
-
+    # Ambiguous comparisons
+    ambig = df.loc[df['label'] == 'none']
+    r = []
+    for c in pred_cols:
+        r.append(compare_cols(ambig, 'olabel_group', c))
+    print(f'Original, labeled ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
+    
+    ambig_relabeled = ambig.loc[ambig['relabel_group'].notnull()]
+    r = []
+    for c in pred_cols:
+        r.append(compare_cols(ambig_relabeled, 'relabel_group', c))
+    print(f'Relabeled, labeled ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
+    
+    r = compare_cols(ambig_relabeled, 'olabel_group', 'relabel_group')
+    print(f'Original, relabeled (both ambig): {r:.2f}')
+    
+    print('-----------------')
+    
+    # for c in pred_cols:
+    for c in pred_cols:
+        i = c.split('_')[0][-1]
+        t = ambig[['olabel_group', c]]
+        t = t[t.isin(flux_classes).any(axis=1)]
+        fig, ax = plt.subplots()
+        ConfusionMatrixDisplay.from_predictions(t['olabel_group'], t[c], ax=ax, cmap=plt.cm.Greens, xticks_rotation=90, labels=all_classes)
+        ax.set_ylabel('Original')
+        ax.set_xlabel(f'Prediction {i}')
+        ax.axhline(len(flux_classes) - 0.5, color=black)
+        ax.axvline(len(flux_classes) - 0.5, color=black)
+        fig.savefig(f'../results/cmatrix_{i}.pdf', bbox_inches='tight')
+    
 
 def print_image_counts():
 
@@ -654,6 +732,6 @@ if __name__ == '__main__':
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
-    # print_relabel_rate(cfg)
     # flux_comparison()
-    flux_comparison_by_class()
+    # flux_comparison_by_class()
+    # agreement_rates()
