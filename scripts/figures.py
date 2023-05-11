@@ -320,15 +320,20 @@ def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
     else:
         return df
 
-def distribution_barplot(cfg, classses, normalize=False):
+def distribution_barplot(cfg, normalize=False):
     
-    df = get_class_count_df(cfg, classses, normalize=normalize)
+    classes = ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp',
+               'long_pellet', 'mini_pellet', 'noise', 'short_pellet', 'swimmer',
+               'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet']
+    
+    df = get_class_count_df(cfg, classes, normalize=normalize)
     ind = np.arange(len(df)) 
     width = 0.2
     bar1 = plt.bar(ind-width*0.5, df['RR'], width, color=blue)
     bar2 = plt.bar(ind+width*0.5, df['SR'], width, color=green)
     bar3 = plt.bar(ind+width*1.5, df['FK'], width, color=orange)
     bar4 = plt.bar(ind+width*2.5, df['JC'], width, color=vermillion)
+    plt.axvline(8.75, c=black, ls=':')
     plt.subplots_adjust(bottom=0.2)
     plt.xticks(ind+width, df.index.values)
     plt.xticks(rotation=45, ha='right')
@@ -730,13 +735,13 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg, cfg['ablation_classes'])
-    # distribution_barplot(cfg, cfg['ablation_classes'], True)
+    distribution_barplot(cfg)
+    distribution_barplot(cfg, True)
     # distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
     # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
-    flux_comparison()
+    # flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
