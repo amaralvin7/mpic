@@ -70,10 +70,10 @@ def get_exp_ids(cfg):
               1: (('SR', 'RR_SR', 'SR_FK', 'SR_JC', 'RR_SR_FK', 'RR_SR_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'SR'),
               2: (('FK', 'RR_FK', 'SR_FK', 'FK_JC', 'RR_SR_FK', 'RR_FK_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'FK'),
               3: (('JC', 'RR_JC', 'SR_JC', 'FK_JC', 'RR_SR_JC', 'RR_FK_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'JC'),
-              4: (('SR', 'FK', 'JC', 'SR_FK', 'SR_JC', 'FK_JC'), 'RR'),
-              5: (('RR', 'FK', 'JC', 'RR_FK', 'RR_JC', 'FK_JC'), 'SR'),
-              6: (('RR', 'SR', 'JC', 'RR_SR', 'RR_JC', 'SR_JC'), 'FK'),
-              7: (('RR', 'SR', 'FK', 'RR_SR', 'RR_FK', 'SR_FK'), 'JC')}
+              4: (('SR', 'FK', 'JC', 'SR_FK', 'SR_JC', 'FK_JC', 'SR_FK_JC'), 'RR'),
+              5: (('RR', 'FK', 'JC', 'RR_FK', 'RR_JC', 'FK_JC', 'RR_FK_JC'), 'SR'),
+              6: (('RR', 'SR', 'JC', 'RR_SR', 'RR_JC', 'SR_JC', 'RR_SR_JC'), 'FK'),
+              7: (('RR', 'SR', 'FK', 'RR_SR', 'RR_FK', 'SR_FK', 'RR_SR_FK'), 'JC')}
     
     exp_id_dict = {}
 
@@ -151,7 +151,7 @@ def prediction_subplots_bar(cfg, classes, prediction_results_fname):
     axs.flatten()[3].set_title('JC', fontsize=14)
     # fig.legend((ta_bar[0], wf_bar[0], ts_bar[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
     fig.legend((ta_bar[0], ts_bar[0]), ('test acc', 'train size'), loc='lower center', ncol=2, frameon=False)
-    plt.savefig(os.path.join('..', 'results/prediction_subplots.pdf'), bbox_inches='tight')
+    plt.savefig(os.path.join('..', 'results/prediction_subplots_bar.pdf'), bbox_inches='tight')
     plt.close()
     
 
@@ -538,11 +538,13 @@ def calculate_flux_df(cfg):
 
 def flux_comparison():
     
-    fig, axs = plt.subplots(1, 3, figsize=(12,4))
-    axs[0].set_xlabel('Original')
-    axs[0].set_ylabel('Predicted')
-    axs[1].set_xlabel('Measured')
-    axs[2].set_xlabel('Measured')
+    fig, axs = plt.subplots(2, 2, figsize=(6,6))
+    axs = axs.flatten()
+    
+    fig.supylabel('Predicted', fontsize=14)
+    plt.subplots_adjust(wspace=0.3)
+    axs[2].set_xlabel('Original', fontsize=14)
+    axs[3].set_xlabel('Measured', fontsize=14)
     
     df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
             
@@ -563,15 +565,18 @@ def flux_comparison():
         
         color = get_domain_color(sdf['domain'].unique()[0])
         axs[1].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-        axs[2].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-        axs[2].set_yscale('log')
-        axs[2].set_xscale('log')
+        axs[3].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
         
         if sdf['domain'].unique()[0] in ('RR', 'FK'):
             axs[0].errorbar(sdf['olabel_flux'].sum(), pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            axs[2].errorbar(sdf['olabel_flux'].sum(), pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
 
-    for ax in axs:
+    for i, ax in enumerate(axs):
         add_identity(ax, color=black, ls='--')
+        if i > 1:
+            ax.set_yscale('log')
+            ax.set_xscale('log')
+            
 
     lines = [Line2D([0], [0], color=orange, lw=4),
              Line2D([0], [0], color=vermillion, lw=4),
@@ -668,13 +673,13 @@ def agreement_rates():
     r = []
     for c in pred_cols:
         r.append(compare_cols(ambig, 'olabel_group', c))
-    print(f'Original, labeled ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
+    print(f'Original, predicted ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
     
     ambig_relabeled = ambig.loc[ambig['relabel_group'].notnull()]
     r = []
     for c in pred_cols:
         r.append(compare_cols(ambig_relabeled, 'relabel_group', c))
-    print(f'Relabeled, labeled ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
+    print(f'Relabeled, predicted ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
     
     r = compare_cols(ambig_relabeled, 'olabel_group', 'relabel_group')
     print(f'Original, relabeled (both ambig): {r:.2f}')
@@ -732,6 +737,6 @@ if __name__ == '__main__':
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
-    # flux_comparison()
+    flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
