@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 
+import cartopy
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import numpy as np
@@ -714,6 +715,38 @@ def print_image_counts():
         n_labeled = len(labeled)
         percent_labeled = n_labeled/len(df) * 100
         print(f'{domain}: {len(df)} images, {n_labeled} labeled ({percent_labeled:.0f}%)')
+
+
+def draw_map():
+    
+    jc = get_domain_color('JC')
+    sr = get_domain_color('SR')
+    rr = get_domain_color('RR')
+    fk = get_domain_color('FK')
+
+    lats = (22.3, 27.7, 34.7, 50, 49, 34.3)
+    lons = (-151.9, -139.5, -123.5, -145, -15, -120)
+    cols = (fk, fk, fk, rr, jc, sr)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
+    ax.add_feature(cartopy.feature.LAND.with_scale('110m'), color='k', zorder=2)
+    ax.set_extent([-160, 0, 10, 70], crs=cartopy.crs.PlateCarree())
+    gl = ax.gridlines(draw_labels=['left', 'bottom'], zorder=1)
+    # gl.xlines = False
+
+    ax.scatter(lons, lats, color=cols, s=30, zorder=3)
+    lines = [Line2D([0], [0], color=orange, lw=4),
+             Line2D([0], [0], color=vermillion, lw=4),
+             Line2D([0], [0], color=blue, lw=4),
+             Line2D([0], [0], color=green, lw=4)]
+    labels = ['FK', 'JC', 'RR', 'SR']
+    ax.legend(lines, labels, frameon=True, handlelength=1, ncols=2, 
+              loc=(0.63,0.04), framealpha=1, columnspacing=1.6,
+              edgecolor=white)
+        
+    plt.savefig('../results/map.pdf', bbox_inches='tight')
+    plt.close()
     
     
 if __name__ == '__main__':
@@ -735,8 +768,8 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg)
-    distribution_barplot(cfg, True)
+    # distribution_barplot(cfg)
+    # distribution_barplot(cfg, True)
     # distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
     # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
@@ -745,3 +778,4 @@ if __name__ == '__main__':
     # flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
+    draw_map()
