@@ -295,11 +295,12 @@ def get_class_count_df(cfg, classes, normalize=False):
     for d in cfg['domains']:  # first, get all of the counts in the individual domains
         counts_by_label = []
         for c in classes:
-            counts_by_label.append(sum(c in s for s in domain_splits[d]['train']))
+            split_filepaths = domain_splits[d]['train'] + domain_splits[d]['val'] + domain_splits[d]['test']
+            counts_by_label.append(sum(c in f for f in split_filepaths))
         df_list.append(pd.DataFrame(counts_by_label, index=classes, columns=[d]))
     df = pd.concat(df_list, axis=1)
 
-    for i in split_ids:
+    for i in split_ids:  # for splits that have more than one domain
         if len(i) > 1:
             df[('_').join(i)] = df[list(i)].sum(axis=1)
     if normalize:
@@ -307,6 +308,7 @@ def get_class_count_df(cfg, classes, normalize=False):
             df[c] = df[c] / df[c].sum()
     
     return df
+
 
 def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
     
@@ -321,35 +323,46 @@ def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
     else:
         return df
 
+
 def distribution_barplot(cfg, normalize=False):
     
     classes = ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp',
                'long_pellet', 'mini_pellet', 'noise', 'short_pellet', 'swimmer',
                'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet']
     
-    df = get_class_count_df(cfg, classes, normalize=normalize)
-    ind = np.arange(len(df)) 
+    ind = np.arange(len(classes)) 
     width = 0.2
-    bar1 = plt.bar(ind-width*0.5, df['RR'], width, color=blue)
-    bar2 = plt.bar(ind+width*0.5, df['SR'], width, color=green)
-    bar3 = plt.bar(ind+width*1.5, df['FK'], width, color=orange)
-    bar4 = plt.bar(ind+width*2.5, df['JC'], width, color=vermillion)
-    plt.axvline(8.75, c=black, ls=':')
-    plt.subplots_adjust(bottom=0.2)
-    plt.xticks(ind+width, df.index.values)
-    plt.xticks(rotation=45, ha='right')
-    plt.legend((bar1, bar2, bar3, bar4), ('RR', 'SR', 'FK', 'JC'), ncol=4, bbox_to_anchor=(0.5, 1.02), loc='lower center',
-                handletextpad=0.1, frameon=False)
+    
+    fig, axs = plt.subplots(2, 1, figsize=(6, 6), tight_layout=True)
+    fig.subplots_adjust(bottom=0.2)
+    
+    for i, normalize in enumerate((False, True)):
+        
+        df = get_class_count_df(cfg, classes, normalize=normalize)
 
-    if normalize:
-        ylabel = 'Fraction of observations'
-        suffix = 'fractions'
-    else:
-        ylabel = 'Number of observations'
-        suffix = 'totals'
-        plt.yscale('log')
-    plt.ylabel(ylabel)
-    plt.savefig(os.path.join('..', 'results', f'distribution_barplot_{suffix}.pdf'))
+        axs[i].bar(ind-width*0.5, df['FK'], width, color=orange)
+        axs[i].bar(ind+width*0.5, df['JC'], width, color=vermillion)
+        axs[i].bar(ind+width*1.5, df['RR'], width, color=blue)
+        axs[i].bar(ind+width*2.5, df['SR'], width, color=green)
+        axs[i].set_xticks(ind+width, df.index.values, rotation=45, ha='right')
+        axs[i].axvline(8.75, c=black, ls=':')
+        
+        if i == 0:
+            axs[i].set_ylabel('Number of observations', fontsize=12)
+            axs[i].set_yscale('log')
+            axs[i].tick_params(labelbottom=False) 
+        else:
+            axs[i].set_ylabel('Fraction of observations', fontsize=12)
+
+    lines = [Line2D([0], [0], color=orange, lw=6),
+             Line2D([0], [0], color=vermillion, lw=6),
+             Line2D([0], [0], color=blue, lw=6),
+             Line2D([0], [0], color=green, lw=6)]
+    labels = ['FK', 'JC', 'RR', 'SR']
+    axs[0].legend(lines, labels, ncol=4, bbox_to_anchor=(0.5, 1.02), loc='lower center',
+              frameon=False, handlelength=1)
+        
+    plt.savefig(os.path.join('..', 'results', f'distribution_barplot.pdf'), bbox_inches='tight')
     plt.close()
 
 
@@ -768,9 +781,8 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg)
-    # distribution_barplot(cfg, True)
-    # distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
+    distribution_barplot(cfg)
+    distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
     # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
@@ -778,4 +790,4 @@ if __name__ == '__main__':
     # flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
-    draw_map()
+    # draw_map()
