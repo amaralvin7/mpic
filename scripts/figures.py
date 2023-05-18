@@ -89,7 +89,7 @@ def get_exp_ids(cfg):
     return exp_id_dict
 
 
-def prediction_subplots_bar(cfg, classes, prediction_results_fname):
+def prediction_subplots_bar(cfg, prediction_results_fname):
     
     def get_ticklabels(exp_ids):
         
@@ -101,57 +101,35 @@ def prediction_subplots_bar(cfg, classes, prediction_results_fname):
         return labels
     
     exp_matrix = predict.get_experiment_matrix(cfg)
-    train_sizes = []
-
-    for i in exp_matrix:  # get training sizes
-        split_id = exp_matrix[i][0]
-        domains = split_id.split('_')
-        train_size = 0
-        for d in domains:
-            train_fps, _ = dataset.compile_domain_filepaths(cfg, [d], classes)
-            train_size += len(train_fps)
-        train_sizes.append(train_size)
 
     prediction_results = tools.load_json(os.path.join(
         '..', 'results', prediction_results_fname))
 
     ind = np.arange(len(prediction_results['taa']))
-    width = 0.25
+    width = 0.4
 
     fig, axs = plt.subplots(2, 4, figsize=(13, 6))
-    fig.subplots_adjust(bottom=0.15, hspace=0.5, wspace=0.1)
+    fig.subplots_adjust(left=0.08, hspace=0.5, wspace=0.1)
+    fig.supylabel('Test Accuracy', fontsize=14)
     
     exp_id_dict = get_exp_ids(cfg)
 
     for i, ax in enumerate(axs.flatten()):
-        twin = ax.twinx()
         exp_ids = exp_id_dict[i]
         ind = np.arange(len(exp_ids))
         ax.set_xticks(ind + width, get_ticklabels(exp_ids))
         ax.grid(visible=True, which='major', axis='y', zorder=1)
         taa = [prediction_results['taa'][j] for j in exp_ids]
         tas = [prediction_results['tas'][j] for j in exp_ids]
-        # wfa = [prediction_results['wfa'][j] for j in exp_ids]
-        # wfs = [prediction_results['wfs'][j] for j in exp_ids]
-        ts = [train_sizes[j] for j in exp_ids]
-        ta_bar = ax.bar(ind, taa,  width, yerr=tas, color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        # wf_bar = ax.bar(ind + width, wfa,  width, yerr=wfs, color=green, error_kw={'elinewidth': 1}, zorder=10)
-        ts_bar = twin.bar(ind + width, ts,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
+        ax.bar(ind + width, taa,  width, yerr=tas, color=blue, error_kw={'elinewidth': 1}, zorder=10)
         ax.set_ylim((0.2, 1))
-        twin.set_ylim((0, 20000))
-        if i == 3 or i == 7:
+        if i not in (0, 4):
             ax.set_yticklabels([])
-        elif i == 0 or i == 4:
-            twin.set_yticklabels([])
-        else:
-            ax.set_yticklabels([])
-            twin.set_yticklabels([])
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SR', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     axs.flatten()[3].set_title('JC', fontsize=14)
-    # fig.legend((ta_bar[0], wf_bar[0], ts_bar[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
-    fig.legend((ta_bar[0], ts_bar[0]), ('test acc', 'train size'), loc='lower center', ncol=2, frameon=False)
+
     plt.savefig(os.path.join('..', 'results/prediction_subplots_bar.pdf'), bbox_inches='tight')
     plt.close()
     
@@ -781,9 +759,8 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg)
-    distribution_heatmap(cfg, cfg['ablation_classes'], 'braycurtis', True)
-    # prediction_subplots_bar(cfg, cfg['ablation_classes'], ablation_predictions)
+    # distribution_barplot(cfg)
+    prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
