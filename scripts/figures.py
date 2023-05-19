@@ -110,7 +110,7 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
 
     fig, axs = plt.subplots(2, 4, figsize=(13, 6))
     fig.subplots_adjust(left=0.08, hspace=0.5, wspace=0.1)
-    fig.supylabel('Test Accuracy', fontsize=14)
+    fig.supylabel('Accuracy', fontsize=14)
     
     exp_id_dict = get_exp_ids(cfg)
 
@@ -134,7 +134,7 @@ def prediction_subplots_bar(cfg, prediction_results_fname):
     plt.close()
     
 
-def prediction_subplots_scatter(cfg, classes, prediction_results_fname):
+def prediction_subplots_scatter(cfg, prediction_results_fname):
     
     def get_df_domains(exp_ids):
         
@@ -149,6 +149,7 @@ def prediction_subplots_scatter(cfg, classes, prediction_results_fname):
     
     exp_matrix = predict.get_experiment_matrix(cfg)
     train_sizes = []
+    classes = cfg['ablation_classes']
 
     for i in exp_matrix:  # get training sizes
         split_id = exp_matrix[i][0]
@@ -172,31 +173,30 @@ def prediction_subplots_scatter(cfg, classes, prediction_results_fname):
         exp_ids = exp_id_dict[i]     
         taa = [prediction_results['taa'][j] for j in exp_ids]
         tas = [prediction_results['tas'][j] for j in exp_ids]
-        # wfa = [prediction_results['wfa'][j] for j in exp_ids]
         ts = [train_sizes[j] for j in exp_ids]
-        ta_plt = ax.errorbar(ts, taa, tas, c=blue, fmt='o', ecolor=black)
-        # ta_plt = ax.scatter(ts, taa, c=blue, marker='o')
-        # wf_plt = ax.scatter(ts, wfa, c=green, marker='^')
-        ax.set_xlim((0, 18000))
-        ax.set_ylim((0.3, 1.05))
+        ax.errorbar(ts, taa, tas, c=blue, fmt='o', ecolor=black)
+        ax.set_xlim((0, 17000))
         if i < 4:
             ax.set_xticklabels([])
+            ax.set_ylim((0.8, 1))
+        else:
+            ax.set_ylim((0.3, 1))
         if i not in (0, 4):
             ax.set_yticklabels([])
 
-    axs.flatten()[0].set_ylabel('Accuracy (in-domain)')
-    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)')
+    axs.flatten()[0].set_ylabel('Accuracy (in-domain)', labelpad=10)
+    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)', labelpad=10)
     fig.text(0.5, 0.04, 'Training size', ha='center')      
                     
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SR', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     axs.flatten()[3].set_title('JC', fontsize=14)
-    # fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
+    
     plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_trainsize.pdf'), bbox_inches='tight')
     plt.close()
 
-    # distance
+    # dissimilarity
     df = distribution_heatmap(cfg, classes, 'braycurtis', False)
     fig, axs = plt.subplots(2, 4, figsize=(8, 6))
     fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
@@ -207,28 +207,28 @@ def prediction_subplots_scatter(cfg, classes, prediction_results_fname):
         distances = df.loc[test_domain][train_domains]
         taa = [prediction_results['taa'][j] for j in exp_ids]
         tas = [prediction_results['tas'][j] for j in exp_ids]
-        # wfa = [prediction_results['wfa'][j] for j in exp_ids]
         ts = [train_sizes[j] for j in exp_ids]
-        ta_plt = ax.errorbar(distances, taa, tas, c=blue, fmt='o', ecolor=black)
-        # ta_plt = ax.scatter(ts, taa, c=blue, marker='o')
-        # wf_plt = ax.scatter(distances, wfa, c=green, marker='^')
-        ax.set_xlim((-0.05, 0.8))
-        ax.set_ylim((0.3, 1.05))
+        ax.errorbar(distances, taa, tas, c=blue, fmt='o', ecolor=black)
+        ax.set_xlim((-0.05, 0.6))
         if i < 4:
             ax.set_xticklabels([])
+            ax.set_ylim((0.8, 1))
+        else:
+            ax.set_ylim((0.3, 1))
         if i not in (0, 4):
-            ax.set_yticklabels([])        
+            ax.set_yticklabels([])
+
     
-    axs.flatten()[0].set_ylabel('Accuracy (in-domain)')
-    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)')
-    fig.text(0.5, 0.04, 'Bray-Curtis distance', ha='center')
+    axs.flatten()[0].set_ylabel('Accuracy (in-domain)', labelpad=10)
+    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)', labelpad=10)
+    fig.text(0.5, 0.04, 'Bray-Curtis dissimilarity', ha='center')
     
     axs.flatten()[0].set_title('RR', fontsize=14)
     axs.flatten()[1].set_title('SR', fontsize=14)
     axs.flatten()[2].set_title('FK', fontsize=14)
     axs.flatten()[3].set_title('JC', fontsize=14)
-    # fig.legend((ta_plt, wf_plt), ('test acc', 'weight f1'), loc='lower center', ncol=2, frameon=False)
-    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_BCdistance.pdf'), bbox_inches='tight')
+
+    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_BCdis.pdf'), bbox_inches='tight')
     plt.close()
 
 
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     # distribution_barplot(cfg)
     prediction_subplots_bar(cfg, ablation_predictions)
-    # prediction_subplots_scatter(cfg, cfg['ablation_classes'], ablation_predictions)
+    prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
     # flux_comparison()
