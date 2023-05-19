@@ -535,13 +535,13 @@ def calculate_flux_df(cfg):
 
 def flux_comparison():
     
-    fig, axs = plt.subplots(2, 2, figsize=(6,6))
+    fig, axs = plt.subplots(2, 2, figsize=(8,8))
+    fig.subplots_adjust(left=0.1, wspace=0.2)
     axs = axs.flatten()
     
-    fig.supylabel('Predicted', fontsize=14)
-    plt.subplots_adjust(wspace=0.3)
-    axs[2].set_xlabel('Original', fontsize=14)
-    axs[3].set_xlabel('Measured', fontsize=14)
+    fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    axs[2].set_xlabel('Original flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    axs[3].set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
     
     df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
             
@@ -589,11 +589,12 @@ def flux_comparison_by_class():
     
     classes = ('aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phyto')
     
-    fig, axs = plt.subplots(2, 4, figsize=(12,6), tight_layout=True)
+    fig, axs = plt.subplots(2, 4, figsize=(12,6))
+    fig.subplots_adjust(left=0.08, wspace=0.3)
     axs = axs.flatten()
     axs[-1].set_visible(False)
-    fig.supxlabel('Original')
-    fig.supylabel('Predicted')
+    fig.supxlabel('Original flux (mmol m$^{-2}$ d$^{-1}$)')
+    fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)')
     
     df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
     df = df.loc[df['olabel_group'].notnull()]
@@ -683,18 +684,28 @@ def agreement_rates():
     
     print('-----------------')
     
-    # for c in pred_cols:
+    fig, axs = plt.subplots(3, 2, figsize=(16, 20))
+    fig.subplots_adjust(hspace=0.5)
+    axs = axs.flatten()
+    axs[-1].set_visible(False)
+
     for c in pred_cols:
         i = c.split('_')[0][-1]
+        ax = axs[int(i)]
         t = ambig[['olabel_group', c]]
         t = t[t.isin(flux_classes).any(axis=1)]
-        fig, ax = plt.subplots()
-        ConfusionMatrixDisplay.from_predictions(t['olabel_group'], t[c], ax=ax, cmap=plt.cm.Greens, xticks_rotation=90, labels=all_classes)
-        ax.set_ylabel('Original')
-        ax.set_xlabel(f'Prediction {i}')
-        ax.axhline(len(flux_classes) - 0.5, color=black)
-        ax.axvline(len(flux_classes) - 0.5, color=black)
-        fig.savefig(f'../results/cmatrix_{i}.pdf', bbox_inches='tight')
+        cm = ConfusionMatrixDisplay.from_predictions(t['olabel_group'], t[c], ax=ax, cmap=plt.cm.Greens, xticks_rotation=90, labels=all_classes, colorbar=False)
+        if i in ('0', '2', '4'):
+            ax.set_ylabel('Original')
+        else:
+            ax.set_ylabel('')
+        ax.set_xlabel(f'Model replicate {int(i) + 1}')
+        # https://stackoverflow.com/questions/66483409/adjust-size-of-confusionmatrixdisplay-scikitlearn
+        cax = fig.add_axes([ax.get_position().x1+0.01, ax.get_position().y0, 0.01, ax.get_position().height])
+        plt.colorbar(cm.im_,  cax=cax, ax=ax)
+        # ax.axhline(len(flux_classes) - 0.5, color=black)
+        # ax.axvline(len(flux_classes) - 0.5, color=black)
+    fig.savefig(f'../results/cmatrixes.pdf', bbox_inches='tight')
     
 
 def print_image_counts():
@@ -760,8 +771,8 @@ if __name__ == '__main__':
     uniform_predictions = 'prediction_results_uniform.json'
 
     # distribution_barplot(cfg)
-    prediction_subplots_bar(cfg, ablation_predictions)
-    prediction_subplots_scatter(cfg, ablation_predictions)
+    # prediction_subplots_bar(cfg, ablation_predictions)
+    # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
     # flux_comparison()
