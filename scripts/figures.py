@@ -587,7 +587,7 @@ def flux_comparison():
 
 def flux_comparison_by_class():
     
-    classes = ('aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phyto')
+    classes = ('aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton')
     
     fig, axs = plt.subplots(2, 4, figsize=(12,6))
     fig.subplots_adjust(left=0.08, wspace=0.3)
@@ -607,8 +607,8 @@ def flux_comparison_by_class():
         
         for i, clss in enumerate(classes):
  
-            pred_fluxes = [sdf[sdf['label'].str.contains(clss)]['label_flux'].sum()
-                           + sdf[sdf[c].str.contains(clss, na=False)][f'{c}_flux'].sum() for c in pred_columns]
+            pred_fluxes = [sdf[sdf['label_group'] == clss]['label_flux'].sum()
+                           + sdf[sdf[f'{c}_group'] == clss][f'{c}_flux'].sum() for c in pred_columns]
             pred_flux = np.mean(pred_fluxes)
             pred_flux_e = np.std(pred_fluxes, ddof=1)
             
@@ -635,7 +635,7 @@ def agreement_rates():
         
         return relabel_rate
     
-    flux_classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phyto']
+    flux_classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
     all_classes = flux_classes + ['fiber', 'swimmer', 'unidentifiable']
         
     # load df
@@ -705,7 +705,7 @@ def agreement_rates():
         plt.colorbar(cm.im_,  cax=cax, ax=ax)
         # ax.axhline(len(flux_classes) - 0.5, color=black)
         # ax.axvline(len(flux_classes) - 0.5, color=black)
-    fig.savefig(f'../results/cmatrixes.pdf', bbox_inches='tight')
+    fig.savefig(f'../results/cmatrices.pdf', bbox_inches='tight')
     
 
 def print_image_counts():
@@ -776,6 +776,6 @@ if __name__ == '__main__':
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
     # flux_comparison()
-    # flux_comparison_by_class()
-    # agreement_rates()
+    flux_comparison_by_class()
+    agreement_rates()
     # draw_map()
