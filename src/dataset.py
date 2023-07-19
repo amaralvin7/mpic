@@ -257,5 +257,5 @@ if __name__ == '__main__':
     df = df.loc[df['label'] != 'none']
 
     write_domain_splits(cfg, df)
-    write_train_data_stats(cfg, 'data_stats.json', False)
-    write_train_data_stats(cfg, 'data_stats_ablations.json', True)
+    # write_train_data_stats(cfg, 'data_stats.json', False)
+    # write_train_data_stats(cfg, 'data_stats_ablations.json', True)

@@ -302,27 +302,29 @@ def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
         return df
 
 
-def distribution_barplot(cfg, normalize=False):
+def distribution_barplot(cfg):
     
     classes = ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp',
                'long_pellet', 'mini_pellet', 'noise', 'short_pellet', 'swimmer',
                'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet']
     
     ind = np.arange(len(classes)) 
-    width = 0.2
+    width = 0.15
     
-    fig, axs = plt.subplots(2, 1, figsize=(6, 6), tight_layout=True)
+    fig, axs = plt.subplots(2, 1, figsize=(9, 6), tight_layout=True)
     fig.subplots_adjust(bottom=0.2)
     
     for i, normalize in enumerate((False, True)):
         
         df = get_class_count_df(cfg, classes, normalize=normalize)
 
-        axs[i].bar(ind-width*0.5, df['FK'], width, color=orange)
+        axs[i].bar(ind-width*2.5, df['FA'], width, color=orange)
+        axs[i].bar(ind-width*1.5, df['FB'], width, color=sky)
+        axs[i].bar(ind-width*0.5, df['FC'], width, color=radish)
         axs[i].bar(ind+width*0.5, df['JC'], width, color=vermillion)
         axs[i].bar(ind+width*1.5, df['RR'], width, color=blue)
         axs[i].bar(ind+width*2.5, df['SR'], width, color=green)
-        axs[i].set_xticks(ind+width, df.index.values, rotation=45, ha='right')
+        axs[i].set_xticks(ind, df.index.values, rotation=45, ha='right')
         axs[i].axvline(8.75, c=black, ls=':')
         
         if i == 0:
@@ -333,11 +335,13 @@ def distribution_barplot(cfg, normalize=False):
             axs[i].set_ylabel('Fraction of observations', fontsize=12)
 
     lines = [Line2D([0], [0], color=orange, lw=6),
+             Line2D([0], [0], color=sky, lw=6),
+             Line2D([0], [0], color=radish, lw=6),
              Line2D([0], [0], color=vermillion, lw=6),
              Line2D([0], [0], color=blue, lw=6),
              Line2D([0], [0], color=green, lw=6)]
-    labels = ['FK', 'JC', 'RR', 'SR']
-    axs[0].legend(lines, labels, ncol=4, bbox_to_anchor=(0.5, 1.02), loc='lower center',
+    labels = ['FA', 'FB', 'FC', 'JC', 'RR', 'SR']
+    axs[0].legend(lines, labels, ncol=6, bbox_to_anchor=(0.5, 1.02), loc='lower center',
               frameon=False, handlelength=1)
         
     plt.savefig(os.path.join('..', 'results', f'distribution_barplot.pdf'), bbox_inches='tight')
@@ -396,12 +400,16 @@ def get_domain_color(domain):
     
     if domain == 'SR':
         c = green
-    elif domain == 'FK':
-        c = orange
     elif domain  == 'JC':
         c = vermillion
-    else:
+    elif domain == 'RR':
         c = blue
+    elif domain == 'FA':
+        c = orange
+    elif domain == 'FB':
+        c = sky
+    else:
+        c = radish
     
     return c
 
@@ -720,15 +728,13 @@ def print_image_counts():
 
 
 def draw_map():
-    
-    jc = get_domain_color('JC')
-    sr = get_domain_color('SR')
-    rr = get_domain_color('RR')
-    fk = get_domain_color('FK')
 
     lats = (22.3, 27.7, 34.7, 50, 49, 34.3)
     lons = (-151.9, -139.5, -123.5, -145, -15, -120)
-    cols = (fk, fk, fk, rr, jc, sr)
+    text_lats = (25.3, 30.7, 34.7, 53, 52, 30.3)
+    text_lons = (-151.9, -139.5, -128.5, -145, -15, -120)
+    domains = ['FA', 'FB', 'FC', 'RR', 'JC', 'SR']
+    cols = [get_domain_color(d) for d in domains]
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
@@ -738,14 +744,8 @@ def draw_map():
     # gl.xlines = False
 
     ax.scatter(lons, lats, color=cols, s=30, zorder=3)
-    lines = [Line2D([0], [0], color=orange, lw=4),
-             Line2D([0], [0], color=vermillion, lw=4),
-             Line2D([0], [0], color=blue, lw=4),
-             Line2D([0], [0], color=green, lw=4)]
-    labels = ['FK', 'JC', 'RR', 'SR']
-    ax.legend(lines, labels, frameon=True, handlelength=1, ncols=2, 
-              loc=(0.63,0.04), framealpha=1, columnspacing=1.6,
-              edgecolor=white)
+    for i, d in enumerate(domains):
+        ax.text(text_lons[i], text_lats[i], d, va='center', ha='center')
         
     plt.savefig('../results/map.pdf', bbox_inches='tight')
     plt.close()
@@ -770,12 +770,12 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg)
+    distribution_barplot(cfg)
     # prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
     # flux_comparison()
-    flux_comparison_by_class()
-    agreement_rates()
-    # draw_map()
+    # flux_comparison_by_class()
+    # agreement_rates()
+    draw_map()
