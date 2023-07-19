@@ -449,7 +449,7 @@ def shape_to_flux(a, b, v, area, time):
 def flux_equations(row, label_col):
 
     p_class = row[label_col]
-    esd = row['ESD']  # µm
+    esd = row['esd']  # µm
     area = row['area']  # m-2
     time = row['time']  # d-1
 
@@ -533,7 +533,7 @@ def calculate_flux_df(cfg):
     predictions = pd.read_csv('../results/unlabeled_predictions.csv')
     df = metadata.merge(predictions, how='left', on='filename')
     
-    df = df.loc[df['ESD'].notnull()].copy()  # 23 filenames are in the data folder but not in the metadata
+    df = df.loc[df['esd'].notnull()].copy()  # 23 filenames are in the data folder but not in the metadata
     pred_columns = [c for c in df.columns if 'pred' in c]
     tqdm.pandas()
     df = df.progress_apply(row_flux, axis=1)
@@ -749,6 +749,32 @@ def draw_map():
         
     plt.savefig('../results/map.pdf', bbox_inches='tight')
     plt.close()
+
+def esd_by_class(cfg):
+
+    df = tools.load_metadata(cfg)[['label', 'esd', 'domain']]
+    df = df.loc[(df['esd'].notnull() & df['label'] != 'none')]
+    df['color'] = df.apply(lambda x: get_domain_color(x['domain']), axis=1)
+
+    classes = cfg['all_classes']
+    mean_esds = [df.loc[df['label'] == c]['esd'].mean() for c in classes]
+    classes = [x for _, x in sorted(zip(mean_esds, classes))]
+
+    fig, ax = plt.subplots(tight_layout=True)
+    ax.set_xticks(np.arange(len(classes)), classes, rotation=45, ha='right')
+    ax.set_yscale('log')
+    ax.set_ylabel('ESD (µm)')
+
+    for i, c in enumerate(classes):
+        c_df = df[df['label'] == c]
+        ax.scatter([i] * len(c_df), c_df['esd'], c=c_df['color'], s=1)
+
+    domains = ['FA', 'FB', 'FC', 'JC', 'RR', 'SR']
+    lines = [Line2D([0], [0], color=get_domain_color(d), lw=6) for d in domains]
+    ax.legend(lines, domains, ncol=2, loc='upper left', frameon=False, handlelength=1)
+    
+    plt.savefig('../results/esd_by_class.pdf', bbox_inches='tight')
+    plt.close()
     
     
 if __name__ == '__main__':
@@ -770,7 +796,7 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg)
+    # distribution_barplot(cfg)
     # prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
@@ -778,4 +804,5 @@ if __name__ == '__main__':
     # flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
-    draw_map()
+    # draw_map()
+    esd_by_class(cfg)
