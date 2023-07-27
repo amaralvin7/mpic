@@ -304,9 +304,8 @@ def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
 
 def distribution_barplot(cfg):
     
-    classes = ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp',
-               'long_pellet', 'mini_pellet', 'noise', 'short_pellet', 'swimmer',
-               'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet']
+    classes = ['aggregate', 'long_pellet', 'mini_pellet', 'short_pellet',  'phyto_dino', 'phyto_long',
+               'phyto_round', 'rhizaria', 'salp_pellet', 'noise', 'swimmer', 'bubble', 'fiber_blur', 'fiber_sharp',]
     
     ind = np.arange(len(classes)) 
     width = 0.15
@@ -325,7 +324,7 @@ def distribution_barplot(cfg):
         axs[i].bar(ind+width*1.5, df['RR'], width, color=blue)
         axs[i].bar(ind+width*2.5, df['SR'], width, color=green)
         axs[i].set_xticks(ind, df.index.values, rotation=45, ha='right')
-        axs[i].axvline(8.75, c=black, ls=':')
+        axs[i].axvline(8.42, c=black, ls=':')
         
         if i == 0:
             axs[i].set_ylabel('Number of observations', fontsize=12)
@@ -757,22 +756,25 @@ def esd_by_class(cfg):
     df['color'] = df.apply(lambda x: get_domain_color(x['domain']), axis=1)
 
     classes = cfg['all_classes']
-    mean_esds = [df.loc[df['label'] == c]['esd'].mean() for c in classes]
-    classes = [x for _, x in sorted(zip(mean_esds, classes))]
+    median_esds = [df.loc[df['label'] == c]['esd'].median() for c in classes]
+    classes = [x for _, x in sorted(zip(median_esds, classes))]
+    median_esds.sort()
 
-    fig, ax = plt.subplots(tight_layout=True)
-    ax.set_xticks(np.arange(len(classes)), classes, rotation=45, ha='right')
-    ax.set_yscale('log')
-    ax.set_ylabel('ESD (µm)')
+    fig, axs = plt.subplots(3, 5, tight_layout=True, figsize=(14,6))
+    axs = axs.flatten()
+    axs[-1].axis('off')
+    fig.supxlabel('ESD (µm)')
+    fig.supylabel('Frequency')
 
     for i, c in enumerate(classes):
         c_df = df[df['label'] == c]
-        ax.scatter([i] * len(c_df), c_df['esd'], c=c_df['color'], s=1)
+        axs[i].hist(c_df['esd'])
+        axs[i].axvline(median_esds[i], color=black, ls='--')
+        axs[i].text(0.98, 0.98, c, ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+        axs[i].text(0.98, 0.84, f'med: {median_esds[i]:.0f}', ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+        axs[i].text(0.98, 0.70, f'min: {c_df["esd"].min():.0f}', ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+        axs[i].text(0.98, 0.56, f'max: {c_df["esd"].max():.0f}', ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
 
-    domains = ['FA', 'FB', 'FC', 'JC', 'RR', 'SR']
-    lines = [Line2D([0], [0], color=get_domain_color(d), lw=6) for d in domains]
-    ax.legend(lines, domains, ncol=2, loc='upper left', frameon=False, handlelength=1)
-    
     plt.savefig('../results/esd_by_class.pdf', bbox_inches='tight')
     plt.close()
     
@@ -796,7 +798,7 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg)
+    distribution_barplot(cfg)
     # prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
