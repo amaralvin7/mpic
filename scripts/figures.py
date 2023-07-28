@@ -602,8 +602,8 @@ def flux_comparison():
 
     fig.savefig(f'../results/flux_comparison.pdf', bbox_inches='tight')
 
-    print(mean_squared_error(rrfk_orig, rrfk_pred))
-    print(mean_squared_error(all_meas, all_pred))
+    print(np.sqrt(mean_squared_error(rrfk_orig, rrfk_pred)))
+    print(np.sqrt(mean_squared_error(all_meas, all_pred)))
 
 
 def flux_comparison_by_class():
