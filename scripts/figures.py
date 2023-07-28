@@ -12,7 +12,7 @@ import torch
 import yaml
 from itertools import product
 from matplotlib.lines import Line2D
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import ConfusionMatrixDisplay, mean_squared_error
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 
@@ -551,6 +551,11 @@ def flux_comparison():
     axs[3].set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
     
     df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
+
+    all_pred = []
+    all_meas = []
+    rrfk_pred = []
+    rrfk_orig = []
             
     for s in df['sample'].unique():
         
@@ -570,10 +575,16 @@ def flux_comparison():
         color = get_domain_color(sdf['domain'].unique()[0])
         axs[1].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
         axs[3].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+
+        all_pred.append(pred_flux)
+        all_meas.append(meas_flux)
         
         if sdf['domain'].unique()[0] in ('RR', 'FK'):
-            axs[0].errorbar(sdf['olabel_flux'].sum(), pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-            axs[2].errorbar(sdf['olabel_flux'].sum(), pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            orig_flux = sdf['olabel_flux'].sum()
+            rrfk_pred.append(pred_flux)
+            rrfk_orig.append(orig_flux)
+            axs[0].errorbar(orig_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            axs[2].errorbar(orig_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
 
     for i, ax in enumerate(axs):
         add_identity(ax, color=black, ls='--')
@@ -590,6 +601,9 @@ def flux_comparison():
     axs[0].legend(lines, labels, frameon=False, handlelength=1)
 
     fig.savefig(f'../results/flux_comparison.pdf', bbox_inches='tight')
+
+    print(mean_squared_error(rrfk_orig, rrfk_pred))
+    print(mean_squared_error(all_meas, all_pred))
 
 
 def flux_comparison_by_class():
@@ -798,13 +812,13 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg)
+    # distribution_barplot(cfg)
     # prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
-    # flux_comparison()
+    flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
     # draw_map()
-    esd_by_class(cfg)
+    # esd_by_class(cfg)
