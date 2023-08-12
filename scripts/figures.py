@@ -317,12 +317,11 @@ def distribution_barplot(cfg):
         
         df = get_class_count_df(cfg, classes, normalize=normalize)
 
-        axs[i].bar(ind-width*2.5, df['FA'], width, color=orange)
-        axs[i].bar(ind-width*1.5, df['FB'], width, color=sky)
-        axs[i].bar(ind-width*0.5, df['FC'], width, color=radish)
-        axs[i].bar(ind+width*0.5, df['JC'], width, color=vermillion)
-        axs[i].bar(ind+width*1.5, df['RR'], width, color=blue)
-        axs[i].bar(ind+width*2.5, df['SR'], width, color=green)
+        axs[i].bar(ind-width*2, df['FC'], width, color=orange)
+        axs[i].bar(ind-width*1, df['FO'], width, color=sky)
+        axs[i].bar(ind, df['JC'], width, color=vermillion)
+        axs[i].bar(ind+width*1, df['RR'], width, color=blue)
+        axs[i].bar(ind+width*2, df['SR'], width, color=green)
         axs[i].set_xticks(ind, df.index.values, rotation=45, ha='right')
         axs[i].axvline(8.42, c=black, ls=':')
         
@@ -335,11 +334,10 @@ def distribution_barplot(cfg):
 
     lines = [Line2D([0], [0], color=orange, lw=6),
              Line2D([0], [0], color=sky, lw=6),
-             Line2D([0], [0], color=radish, lw=6),
              Line2D([0], [0], color=vermillion, lw=6),
              Line2D([0], [0], color=blue, lw=6),
              Line2D([0], [0], color=green, lw=6)]
-    labels = ['FA', 'FB', 'FC', 'JC', 'RR', 'SR']
+    labels = ['FC', 'FO', 'JC', 'RR', 'SR']
     axs[0].legend(lines, labels, ncol=6, bbox_to_anchor=(0.5, 1.02), loc='lower center',
               frameon=False, handlelength=1)
         
@@ -403,12 +401,10 @@ def get_domain_color(domain):
         c = vermillion
     elif domain == 'RR':
         c = blue
-    elif domain == 'FA':
+    elif domain == 'FC':
         c = orange
-    elif domain == 'FB':
-        c = sky
     else:
-        c = radish
+        c = sky
     
     return c
 
@@ -744,9 +740,9 @@ def draw_map():
 
     lats = (22.3, 27.7, 34.7, 50, 49, 34.3)
     lons = (-151.9, -139.5, -123.5, -145, -15, -120)
-    text_lats = (25.3, 30.7, 34.7, 53, 52, 30.3)
-    text_lons = (-151.9, -139.5, -128.5, -145, -15, -120)
-    domains = ['FA', 'FB', 'FC', 'RR', 'JC', 'SR']
+    text_lats = (25, 34.7, 53, 52, 30.3)
+    text_lons = (-145.7, -128.5, -145, -15, -120)
+    domains = ['FO', 'FO', 'FC', 'RR', 'JC', 'SR']
     cols = [get_domain_color(d) for d in domains]
 
     fig = plt.figure()
@@ -757,7 +753,7 @@ def draw_map():
     # gl.xlines = False
 
     ax.scatter(lons, lats, color=cols, s=30, zorder=3)
-    for i, d in enumerate(domains):
+    for i, d in enumerate(domains[1:]):
         ax.text(text_lons[i], text_lats[i], d, va='center', ha='center')
         
     plt.savefig('../results/map.pdf', bbox_inches='tight')
@@ -767,7 +763,7 @@ def esd_by_class(cfg):
 
     df = tools.load_metadata(cfg)[['label', 'esd', 'domain']]
     df = df.loc[(df['esd'].notnull() & df['label'] != 'none')]
-    df['color'] = df.apply(lambda x: get_domain_color(x['domain']), axis=1)
+    # df['color'] = df.apply(lambda x: get_domain_color(x['domain']), axis=1)
 
     classes = cfg['all_classes']
     median_esds = [df.loc[df['label'] == c]['esd'].median() for c in classes]
@@ -812,13 +808,14 @@ if __name__ == '__main__':
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    # distribution_barplot(cfg)
+    distribution_barplot(cfg)
     # prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
     # calculate_flux_df(cfg)
-    flux_comparison()
+    # flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
-    # draw_map()
-    # esd_by_class(cfg)
+    draw_map()
+    esd_by_class(cfg)
+    # print_image_counts()

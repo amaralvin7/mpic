@@ -12,5 +12,5 @@ weight_decay: 0.01
 data_dir: '../../../../../mpic_data/imgs'
 ablation_classes: [aggregate, bubble, fiber_blur, fiber_sharp, long_pellet, mini_pellet, noise, short_pellet, swimmer]
 all_classes: ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp', 'long_pellet', 'mini_pellet', 'noise', 'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer']
-domains: [RR, SR, JC, FA, FB, FC]
+domains: [RR, SR, JC, FC, FO]
 domain_splits_fname: domain_splits.json
