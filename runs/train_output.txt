@@ -1,0 +1,10 @@
+(mpic) vinicius@sara3-0:~/mpic/runs$ python pad_exp_train.py 
+---------Training Models (pad=True)...
+Rep. 0: 35 epochs in 68m 9s. Best val acc 97.17%
+Rep. 1: 21 epochs in 37m 40s. Best val acc 95.24%
+Rep. 2: 30 epochs in 53m 31s. Best val acc 96.38%
+---------Training Models (pad=False)...
+Rep. 0: 22 epochs in 53m 17s. Best val acc 96.48%
+Rep. 1: 33 epochs in 79m 21s. Best val acc 97.46%
+Rep. 2: 25 epochs in 60m 2s. Best val acc 96.25%
+(mpic) vinicius@sara3-0:~/mpic/runs$

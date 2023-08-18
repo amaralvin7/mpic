@@ -234,12 +234,12 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
 
 def training_plots():
 
-    models = [f for f in os.listdir('../weights') if f'.pt' in f]
+    models = [f for f in os.listdir('../runs/weights') if f'.pt' in f]
 
     for m in models:
-        split = m.split('_')
-        replicate_id = '_'.join(split[2:]).split('.')[0]
-        model_output = torch.load(os.path.join('../weights', m),
+        # split = m.split('_')
+        # replicate_id = '_'.join(split[2:]).split('.')[0]
+        model_output = torch.load(os.path.join('../runs/weights', m),
                                   map_location='cpu')
         num_epochs = len(model_output['train_loss_hist'])
 
@@ -250,7 +250,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_acc_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'results', f'accuracy_{replicate_id}.png'))
+        plt.savefig(os.path.join('..', 'runs', 'figs', f'accuracy_{m.split(".")[0]}.png'))
         plt.close()
 
         plt.xlabel('Training Epochs')
@@ -260,7 +260,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_loss_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'results', f'loss_{replicate_id}.png'))
+        plt.savefig(os.path.join('..', 'runs', 'figs', f'loss_{m.split(".")[0]}.png'))
         plt.close()
 
 
@@ -765,7 +765,7 @@ def esd_by_class(cfg):
     df = df.loc[(df['esd'].notnull() & df['label'] != 'none')]
     # df['color'] = df.apply(lambda x: get_domain_color(x['domain']), axis=1)
 
-    classes = cfg['all_classes']
+    classes = cfg['classes']
     median_esds = [df.loc[df['label'] == c]['esd'].median() for c in classes]
     classes = [x for _, x in sorted(zip(median_esds, classes))]
     median_esds.sort()
@@ -785,7 +785,7 @@ def esd_by_class(cfg):
         axs[i].text(0.98, 0.70, f'min: {c_df["esd"].min():.0f}', ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
         axs[i].text(0.98, 0.56, f'max: {c_df["esd"].max():.0f}', ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
 
-    plt.savefig('../results/esd_by_class.pdf', bbox_inches='tight')
+    plt.savefig('../runs/esd_by_class.png', bbox_inches='tight')
     plt.close()
     
     
@@ -800,15 +800,12 @@ if __name__ == '__main__':
     radish = '#CC79A7'
     white = '#FFFFFF'
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default='config.yaml')
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
+    cfg = yaml.safe_load(open('../runs/config.yaml', 'r'))
     
     ablation_predictions = 'prediction_results_ablations.json'
     uniform_predictions = 'prediction_results_uniform.json'
 
-    distribution_barplot(cfg)
+    # distribution_barplot(cfg)
     # prediction_subplots_bar(cfg, ablation_predictions)
     # prediction_subplots_scatter(cfg, ablation_predictions)
     # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
@@ -816,6 +813,7 @@ if __name__ == '__main__':
     # flux_comparison()
     # flux_comparison_by_class()
     # agreement_rates()
-    draw_map()
-    esd_by_class(cfg)
+    # draw_map()
+    # esd_by_class(cfg)
     # print_image_counts()
+    training_plots()

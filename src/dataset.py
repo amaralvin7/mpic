@@ -1,7 +1,5 @@
 import argparse
-import re
 import os
-import sys
 
 import numpy as np
 import torch
@@ -16,11 +14,11 @@ import src.tools as tools
 
 class ParticleImages(torch.utils.data.Dataset):
 
-    def __init__(self, cfg, filepaths, classes, transformations, is_labeled=True):
+    def __init__(self, cfg, filepaths, transformations, is_labeled=True):
 
-        self.data_dir = os.path.join(cfg['data_dir'], 'images')
+        self.data_dir = os.path.join(cfg['data_dir'], 'imgs')
         self.filepaths = filepaths
-        self.classes = sorted(classes)
+        self.classes = sorted(cfg['classes'])
         self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
         self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
         self.transformations = transformations
@@ -78,15 +76,20 @@ class CustomPad:
         return padded_image
 
 
-def get_transforms(cfg, mean=None, std=None, augment=False):
+def get_transforms(cfg, mean=None, std=None, augment=False, pad=True):
 
     if augment:
         p = 0.5
     else:
         p = 0
+    
+    if pad:
+        resize = CustomPad(cfg['input_size'])
+    else:
+        resize = transforms.Resize((cfg['input_size'], cfg['input_size']))
 
     transform_list = [
-        CustomPad(cfg['input_size']),
+        resize,
         transforms.RandomApply([transforms.RandomRotation((90, 90))], p),
         transforms.RandomHorizontalFlip(p),
         transforms.RandomVerticalFlip(p),
@@ -100,25 +103,25 @@ def get_transforms(cfg, mean=None, std=None, augment=False):
     return transformations
 
 
-def get_dataloader(cfg, filepaths, classes, mean, std, augment=False, is_labeled=True):
+def get_dataloader(cfg, filepaths, mean, std, augment=False, pad=True, is_labeled=True, shuffle=True):
 
-    transformations = get_transforms(cfg, mean, std, augment)
+    transformations = get_transforms(cfg, mean, std, augment=augment, pad=pad)
     dataloader = torch.utils.data.DataLoader(
-        dataset=ParticleImages(cfg, filepaths, classes, transformations, is_labeled),
+        dataset=ParticleImages(cfg, filepaths, transformations, is_labeled),
         batch_size=cfg['batch_size'],
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=cfg['n_workers'])
 
     return dataloader
 
 
-def calculate_data_stats(cfg, filepaths, classes):
+def calculate_data_stats(cfg, filepaths, pad):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
 
     print(f'Calculating data stats...')
-    dataset = ParticleImages(cfg, filepaths, classes, get_transforms(cfg))
+    dataset = ParticleImages(cfg, filepaths, get_transforms(cfg, pad=pad))
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg['batch_size'], num_workers=0)
 
@@ -180,7 +183,7 @@ def write_domain_splits(cfg, df):
     tools.write_json(domain_splits, file_path)
 
 
-def compile_domain_filepaths(cfg, domains, classes=None):
+def compile_trainval_filepaths(cfg, domains, classes=None):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     train_fps = []
@@ -197,6 +200,17 @@ def compile_domain_filepaths(cfg, domains, classes=None):
         val_fps.extend(d_val_fps)
 
     return train_fps, val_fps
+
+def compile_test_filepaths(cfg, domain, classes=None):
+
+    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
+
+    if classes:
+        test_fps = [f for f in domain_splits[domain]['test'] if f.split('/')[0] in classes]
+    else:
+        test_fps = domain_splits[domain]['test']        
+
+    return test_fps
 
 
 def powerset(iterable):

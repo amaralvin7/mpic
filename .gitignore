@@ -15,7 +15,9 @@ __pycache__/
 *.zip
 *.pt
 *.csv
+*.pdf
 
-weights
-results
+*figs
+*weights
+
 

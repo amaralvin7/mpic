@@ -1,6 +1,4 @@
 import copy
-import csv
-import os
 
 import torch
 
@@ -23,7 +21,7 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     loss_total = 0.0
     acc_total = 0.0
 
-    for _, (inputs, _, labels) in enumerate(dataloader):
+    for inputs, _, labels in dataloader:
 
         inputs = inputs.to(device)
         labels = labels.to(device)
@@ -51,11 +49,11 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     return loss_total, acc_total
 
 
-def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicate_id):
-    
+def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicate_id, pad):
+
     classes = set([f.split('/')[0] for f in train_filepaths])
-    train_dl = dataset.get_dataloader(cfg, train_filepaths, classes, mean, std, augment=True)
-    val_dl = dataset.get_dataloader(cfg, val_filepaths, classes, mean, std)
+    train_dl = dataset.get_dataloader(cfg, train_filepaths, mean, std, augment=True, pad=pad)
+    val_dl = dataset.get_dataloader(cfg, val_filepaths, mean, std, augment=False, pad=pad)
     model = initialize_model(len(classes))
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg['learning_rate'], weight_decay=cfg['weight_decay'])

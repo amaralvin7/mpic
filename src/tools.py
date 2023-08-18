@@ -42,6 +42,6 @@ def load_json(filename):
 
 def load_metadata(cfg):
 
-    df = pd.read_csv(os.path.join(os.path.dirname(cfg['data_dir']), 'metadata', 'metadata.csv'))
+    df = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
     
     return df
