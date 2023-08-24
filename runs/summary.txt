@@ -1,1 +1,0 @@
-Tested the effect of CustomPad vs. naive resize of images during preprocessing on model performance. Trained 3 replicates with both preprocessing methods on ('SR', 'RR', 'FC', 'FO'), tested on 'JC'. Normalization was omitted during prepreocesseing. Padding generally improves precision, recall, and F1 score. Thus, should use padding instead of resize.

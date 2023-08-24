@@ -12,9 +12,9 @@ import src.tools as tools
 from src.model import initialize_model
 
 
-def predict_labeled_data(device, dataloader, model_fn):
+def predict_labeled_data(device, dataloader, run_folder, model_fn):
 
-    model_output = torch.load(os.path.join('..', 'runs', 'weights', model_fn), map_location=device)
+    model_output = torch.load(f'../runs/{run_folder}/weights/{model_fn}', map_location=device)
     weights = model_output['weights']
     model = initialize_model(len(dataloader.dataset.classes), weights=weights)
     model.eval()

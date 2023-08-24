@@ -1,4 +1,3 @@
-import argparse
 import os
 
 import numpy as np
@@ -103,7 +102,7 @@ def get_transforms(cfg, mean=None, std=None, augment=False, pad=True):
     return transformations
 
 
-def get_dataloader(cfg, filepaths, mean, std, augment=False, pad=True, is_labeled=True, shuffle=True):
+def get_dataloader(cfg, filepaths, mean=None, std=None, augment=False, pad=True, is_labeled=True, shuffle=True):
 
     transformations = get_transforms(cfg, mean, std, augment=augment, pad=pad)
     dataloader = torch.utils.data.DataLoader(
@@ -151,7 +150,7 @@ def stratified_split(cfg, df):
     val_fps = []
     test_fps = []
 
-    classes = df['label'].unique()
+    classes = cfg['classes']
     
     for c in classes:
         c_df = df.loc[df['label'] == c]
@@ -183,35 +182,33 @@ def write_domain_splits(cfg, df):
     tools.write_json(domain_splits, file_path)
 
 
-def compile_trainval_filepaths(cfg, domains, classes=None):
+def compile_trainval_filepaths(cfg, domains):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     train_fps = []
     val_fps = []
 
     for domain in domains:
-        if classes:
-            d_train_fps = [f for f in domain_splits[domain]['train'] if f.split('/')[0] in classes]
-            d_val_fps = [f for f in domain_splits[domain]['val'] if f.split('/')[0] in classes]
-        else:
-            d_train_fps = domain_splits[domain]['train']
-            d_val_fps = domain_splits[domain]['val']           
+        d_train_fps = domain_splits[domain]['train']
+        d_val_fps = domain_splits[domain]['val']           
         train_fps.extend(d_train_fps)
         val_fps.extend(d_val_fps)
 
     return train_fps, val_fps
 
-def compile_test_filepaths(cfg, domain, classes=None):
+def compile_test_filepaths(cfg, domain):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
-
-    if classes:
-        test_fps = [f for f in domain_splits[domain]['test'] if f.split('/')[0] in classes]
-    else:
-        test_fps = domain_splits[domain]['test']        
+    test_fps = domain_splits[domain]['test']        
 
     return test_fps
 
+def compile_domain_filepaths(cfg, domain):
+
+    train_fps, val_fps = compile_trainval_filepaths(cfg, (domain,))
+    test_fps = compile_test_filepaths(cfg, domain)
+
+    return train_fps + val_fps + test_fps
 
 def powerset(iterable):
     """https://docs.python.org/3/library/itertools.html#itertools-recipes"""
@@ -261,10 +258,7 @@ def get_data_stats(train_split_id=None):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default='config.yaml')
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
+    cfg = yaml.safe_load(open('../config.yaml', 'r'))
     tools.set_seed(cfg, 'cpu')
 
     df = tools.load_metadata(cfg)

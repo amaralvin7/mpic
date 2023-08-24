@@ -7,8 +7,7 @@ import yaml
 
 import src.dataset as dataset
 
-cfg_filename = 'config.yaml'
-cfg = yaml.safe_load(open('./config.yaml', 'r'))
+cfg = yaml.safe_load(open('../config.yaml', 'r'))
 
 filepaths =['aggregate/JC21_7x_obl_12_24999.tiff',
             'bubble/JC8_32x_obl_6b_24105.tiff',
@@ -33,4 +32,5 @@ for j, l in enumerate(loaders):
             axs[i,j].spines[['top', 'right', 'bottom', 'left']].set_visible(False)
 axs[0,0].set_title('CustomPad')
 axs[0,1].set_title('Resize')
-fig.savefig('../runs/figs/visualize_transforms.png')
+run_folder = 'pad_exp_targetRR'
+fig.savefig(f'../runs/{run_folder}/figs/visualize_transforms.png')

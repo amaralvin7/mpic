@@ -1,4 +1,3 @@
-import argparse
 import os
 import sys
 
@@ -12,7 +11,7 @@ import torch
 import yaml
 from itertools import product
 from matplotlib.lines import Line2D
-from sklearn.metrics import ConfusionMatrixDisplay, mean_squared_error
+from sklearn.metrics import ConfusionMatrixDisplay, mean_squared_error, classification_report
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 
@@ -234,12 +233,12 @@ def prediction_subplots_scatter(cfg, prediction_results_fname):
 
 def training_plots():
 
-    models = [f for f in os.listdir('../runs/weights') if f'.pt' in f]
+    models = [f for f in os.listdir(os.path.join('..', 'results', 'weights')) if f'.pt' in f]
 
     for m in models:
         # split = m.split('_')
         # replicate_id = '_'.join(split[2:]).split('.')[0]
-        model_output = torch.load(os.path.join('../runs/weights', m),
+        model_output = torch.load(os.path.join('..', 'results', 'weights', m),
                                   map_location='cpu')
         num_epochs = len(model_output['train_loss_hist'])
 
@@ -250,7 +249,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_acc_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'runs', 'figs', f'accuracy_{m.split(".")[0]}.png'))
+        plt.savefig(os.path.join('..', 'results', 'figs', f'accuracy_{m.split(".")[0]}.png'))
         plt.close()
 
         plt.xlabel('Training Epochs')
@@ -260,7 +259,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_loss_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'runs', 'figs', f'loss_{m.split(".")[0]}.png'))
+        plt.savefig(os.path.join('..', 'results', 'figs', f'loss_{m.split(".")[0]}.png'))
         plt.close()
 
 
@@ -477,6 +476,8 @@ def flux_equations(row, label_col):
     elif p_class in ('unidentifiable', 'fiber', 'swimmer'):
         return 0
     else:
+        print(row['filename'])
+        print(row)
         print('UNKNOWN PARTICLE TYPE')
         sys.exit()
     
@@ -498,7 +499,7 @@ def add_identity(axes, *line_args, **line_kwargs):
     return axes
 
 
-def calculate_flux_df(cfg):
+def calculate_flux_df(cfg, domain=None):
     
     d = {'bubble': 'unidentifiable', 'noise': 'unidentifiable',
          'phyto_long': 'phytoplankton', 'phyto_round': 'phytoplankton', 'phyto_dino': 'phytoplankton',
@@ -512,46 +513,44 @@ def calculate_flux_df(cfg):
             else:
                 row['label_group'] = row['label']
             row['label_flux'] = flux_equations(row, 'label_group')
-        else:
-            for c in pred_columns:
-                if row[c] in d:
-                    row[f'{c}_group'] = d[row[c]]
-                else:
-                    row[f'{c}_group'] = row[c]
-                row[f'{c}_flux'] = flux_equations(row, f'{c}_group')
+
+        for c in pred_columns:
+            if row[c] in d:
+                row[f'{c}_group'] = d[row[c]]
+            else:
+                row[f'{c}_group'] = row[c]
+            row[f'{c}_flux'] = flux_equations(row, f'{c}_group')
+
         if row['domain'] in ('RR', 'FK'):
             row['olabel_flux'] = flux_equations(row, 'olabel_group')
         
         return row
 
     metadata = tools.load_metadata(cfg)
-    predictions = pd.read_csv('../results/unlabeled_predictions.csv')
+    if domain is not None:
+        metadata = metadata.loc[metadata['domain']==domain]
+    predictions = pd.read_csv('../results/predictions.csv')
     df = metadata.merge(predictions, how='left', on='filename')
-    
     df = df.loc[df['esd'].notnull()].copy()  # 23 filenames are in the data folder but not in the metadata
     pred_columns = [c for c in df.columns if 'pred' in c]
     tqdm.pandas()
     df = df.progress_apply(row_flux, axis=1)
+    # df = df.apply(row_flux, axis=1)
     
     df.to_csv('../results/fluxes.csv', index=False)
 
 
 def flux_comparison():
     
-    fig, axs = plt.subplots(2, 2, figsize=(8,8))
+    fig, axs = plt.subplots(1, 3, figsize=(12,4))
     fig.subplots_adjust(left=0.1, wspace=0.2)
-    axs = axs.flatten()
     
-    fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
-    axs[2].set_xlabel('Original flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
-    axs[3].set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    fig.supylabel('Predicted flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    axs[0].set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    axs[1].set_xlabel('Annotated flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    axs[2].set_xlabel('Random flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
     
     df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
-
-    all_pred = []
-    all_meas = []
-    rrfk_pred = []
-    rrfk_orig = []
             
     for s in df['sample'].unique():
         
@@ -561,45 +560,34 @@ def flux_comparison():
         sdf = df.loc[(df['sample'] == s)].copy()
         meas_flux = sdf['measured_flux'].unique()[0]
         meas_flux_e = sdf['measured_flux_e'].unique()[0]
-        
-        pred_columns = [c for c in df.columns if 'pred' in c and 'flux' in c]
-        pred_fluxes = [sdf['label_flux'].sum() + sdf[c].sum() for c in pred_columns]
-            
-        pred_flux = np.mean(pred_fluxes)
-        pred_flux_e = np.std(pred_fluxes, ddof=1)
+        annot_flux = sdf['olabel_flux'].sum()
+        pred_flux = sdf['prediction0_flux'].sum()
+        rand_flux = sdf['predictionR_flux'].sum()
         
         color = get_domain_color(sdf['domain'].unique()[0])
-        axs[1].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-        axs[3].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-
-        all_pred.append(pred_flux)
-        all_meas.append(meas_flux)
+        axs[0].errorbar(meas_flux, pred_flux, xerr=meas_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+        axs[1].scatter(annot_flux, pred_flux, c=color, s=4)
+        axs[2].scatter(rand_flux, pred_flux, c=color, s=4)
         
-        if sdf['domain'].unique()[0] in ('RR', 'FK'):
-            orig_flux = sdf['olabel_flux'].sum()
-            rrfk_pred.append(pred_flux)
-            rrfk_orig.append(orig_flux)
-            axs[0].errorbar(orig_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-            axs[2].errorbar(orig_flux, pred_flux, yerr=pred_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
 
-    for i, ax in enumerate(axs):
+
+    for ax in axs:
         add_identity(ax, color=black, ls='--')
-        if i > 1:
-            ax.set_yscale('log')
-            ax.set_xscale('log')
+        # ax.set_yscale('log')
+        # ax.set_xscale('log')
             
 
-    lines = [Line2D([0], [0], color=orange, lw=4),
-             Line2D([0], [0], color=vermillion, lw=4),
-             Line2D([0], [0], color=blue, lw=4),
-             Line2D([0], [0], color=green, lw=4)]
-    labels = ['FK', 'JC', 'RR', 'SR']
-    axs[0].legend(lines, labels, frameon=False, handlelength=1)
+    # lines = [Line2D([0], [0], color=orange, lw=4),
+    #          Line2D([0], [0], color=vermillion, lw=4),
+    #          Line2D([0], [0], color=blue, lw=4),
+    #          Line2D([0], [0], color=green, lw=4)]
+    # labels = ['FK', 'JC', 'RR', 'SR']
+    # axs[0].legend(lines, labels, frameon=False, handlelength=1)
 
-    fig.savefig(f'../results/flux_comparison.pdf', bbox_inches='tight')
+    fig.savefig(f'../results/figs/flux_comparison.png', bbox_inches='tight')
 
-    print(np.sqrt(mean_squared_error(rrfk_orig, rrfk_pred)))
-    print(np.sqrt(mean_squared_error(all_meas, all_pred)))
+    # print(np.sqrt(mean_squared_error(rrfk_orig, rrfk_pred)))
+    # print(np.sqrt(mean_squared_error(all_meas, all_pred)))
 
 
 def flux_comparison_by_class():
@@ -643,7 +631,7 @@ def flux_comparison_by_class():
     fig.savefig(f'../results/flux_comparison_byclass.pdf', bbox_inches='tight')
 
 
-def agreement_rates():
+def agreement_rates_thesis():
     
     def compare_cols(df, col1, col2):
         
@@ -723,6 +711,32 @@ def agreement_rates():
         # ax.axhline(len(flux_classes) - 0.5, color=black)
         # ax.axvline(len(flux_classes) - 0.5, color=black)
     fig.savefig(f'../results/cmatrices.pdf', bbox_inches='tight')
+
+
+def compare_accuracies():
+    
+    def compare_cols(df, col1, col2):
+        
+        n_matches = len(df[df[col1] == df[col2]])
+        accuracy = n_matches / len(df) * 100
+        
+        return accuracy
+            
+    df = pd.read_csv('../results/fluxes.csv', index_col=False)
+    df = df.loc[df['olabel'].notnull()]
+    
+    pred_col = 'prediction0_group'
+    
+    unambig = df.loc[df['label'] != 'none']
+    r = compare_cols(unambig, 'label_group', pred_col)
+    print(f'perfect labels vs. predictions: {r:.2f}')
+    
+    r = compare_cols(df, 'olabel_group', pred_col)
+    print(f'perfect + shady labels vs. predictions: {r:.2f}')
+    
+    relabeled = df.loc[df['relabel_group'].notnull()]
+    r = compare_cols(relabeled, 'olabel_group', 'relabel_group')
+    print(f'Intra-annotator agreement (perfect + shady labels): {r:.2f}')
     
 
 def print_image_counts():
@@ -787,6 +801,79 @@ def esd_by_class(cfg):
 
     plt.savefig('../runs/esd_by_class.png', bbox_inches='tight')
     plt.close()
+
+    fig.savefig(f'../results/figs/pad_exp_metrics.png')
+
+
+def pad_exp_metrics():
+
+    df = pd.read_csv(f'../results/pad_exp_predictions.csv')
+    labels = yaml.safe_load(open('../config.yaml', 'r'))['classes']
+
+    padTrue_cols = [c for c in df.columns if 'padTrue' in c]
+    padFalse_cols = [c for c in df.columns if 'padFalse' in c]
+    pred_cols = padTrue_cols + padFalse_cols
+    metrics = ('precision', 'recall', 'f1-score')
+    reports = {c: classification_report(df['label'], df[c], output_dict=True, zero_division=0, labels=labels) for c in pred_cols}
+    fig, axs = plt.subplots(len(metrics), len(cfg['classes']), tight_layout=True, figsize=(30,10))
+    for j, k in enumerate(cfg['classes']):
+        axs[-1,j].set_xlabel(k)
+        for i, m in enumerate(metrics):
+            mean_padTrue = np.nanmean([reports[c][k][m] for c in padTrue_cols])
+            std_padTrue = np.nanstd([reports[c][k][m] for c in padTrue_cols], ddof=1)
+            mean_padFalse = np.nanmean([reports[c][k][m] for c in padFalse_cols])
+            std_padFalse = np.nanstd([reports[c][k][m] for c in padFalse_cols], ddof=1)
+            axs[i,j].bar(0, mean_padTrue, yerr=std_padTrue, width=1, color='b', label='padTrue')
+            axs[i,j].bar(1, mean_padFalse, yerr=std_padFalse, width=1, color='orange', label='padFalse')
+            axs[i,j].set_ylim(-0.1, 1.2)
+            axs[i,j].set_xlim(-1, 2)
+            axs[i,j].set_xticks([])
+            if j == 0:
+                axs[i,j].set_ylabel(m)
+
+    axs[0,1].legend(frameon=False)
+
+    fig.savefig(f'../results/figs/pad_exp_metrics.png')
+
+
+def metrics():
+
+    df = pd.read_csv(f'../results/fluxes.csv')
+    df = df.loc[df['label'] != 'none']
+    labels = yaml.safe_load(open('../config.yaml', 'r'))['classes']
+
+    report = classification_report(df['label'], df['prediction0'], output_dict=True, zero_division=0, labels=labels)
+    y_vars = ('precision', 'recall', 'f1-score')
+    x_vars = labels + ['macro avg', 'weighted avg']
+
+    _ , axs = plt.subplots(len(y_vars), len(x_vars), tight_layout=True, figsize=(30,10))
+    for j, x in enumerate(x_vars):
+        axs[-1,j].set_xlabel(x)
+        for i, y in enumerate(y_vars):
+            metric = report[x][y]
+            axs[i,j].bar(0, report[x][y], width=1, color=blue)
+            axs[i,j].set_ylim(0, 1.1)
+            axs[i,j].set_xticks([])
+            axs[i,j].text(0.98, 0.98, f'{metric:.2f}', ha='right', va='top', size=10, transform=transforms.blended_transform_factory(axs[i,j].transAxes, axs[i,j].transAxes))
+            if j == 0:
+                axs[i,j].set_ylabel(y)
+
+    plt.savefig(f'../results/figs/metrics.png')
+    plt.close()
+
+    _, ax = plt.subplots(figsize=(8, 8))
+    ConfusionMatrixDisplay.from_predictions(
+        df['label'],
+        df['prediction0'],
+        cmap=plt.cm.Blues,
+        normalize=None,
+        xticks_rotation='vertical',
+        values_format='.0f',
+        ax=ax)
+    ax.set_title('Perfect labels vs. predictions')
+    plt.tight_layout()
+    plt.savefig(f'../results/figs/confusionmatrix.png')
+    plt.close()
     
     
 if __name__ == '__main__':
@@ -800,20 +887,9 @@ if __name__ == '__main__':
     radish = '#CC79A7'
     white = '#FFFFFF'
 
-    cfg = yaml.safe_load(open('../runs/config.yaml', 'r'))
-    
-    ablation_predictions = 'prediction_results_ablations.json'
-    uniform_predictions = 'prediction_results_uniform.json'
+    cfg = yaml.safe_load(open('../config.yaml', 'r'))
 
-    # distribution_barplot(cfg)
-    # prediction_subplots_bar(cfg, ablation_predictions)
-    # prediction_subplots_scatter(cfg, ablation_predictions)
-    # uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions)
-    # calculate_flux_df(cfg)
-    # flux_comparison()
-    # flux_comparison_by_class()
-    # agreement_rates()
-    # draw_map()
-    # esd_by_class(cfg)
-    # print_image_counts()
-    training_plots()
+    # pad_exp_metrics()
+    # calculate_flux_df(cfg, domain='RR')
+    # metrics()
+    compare_accuracies()

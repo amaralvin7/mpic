@@ -1,0 +1,8 @@
+Tested the effect of CustomPad vs. naive resize of images during preprocessing on model performance. Trained 3 replicates with both preprocessing methods on ('SR', 'JC', 'FC', 'FO'), tested on 'RR'. Normalization was omitted during prepreocesseing. Padding seems to provide modest (if any) improvement relative to no padding. Proceeded with padding.
+
+Predicted on RR, calculated fluxes and examined metrics (precision, recall, f1). Model has trouble predicted rare classes (e.g., phytos, salp pellets).
+
+Summary of accuracies (compare_accuracies() in figures.py):
+perfect labels vs. predictions: 84.62
+perfect + shady labels vs. predictions: 70.09
+Intra-annotator agreement (perfect + shady labels): 80.63
