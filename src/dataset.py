@@ -182,13 +182,13 @@ def write_domain_splits(cfg, df):
     tools.write_json(domain_splits, file_path)
 
 
-def compile_trainval_filepaths(cfg, domains):
+def compile_trainval_filepaths(cfg):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     train_fps = []
     val_fps = []
 
-    for domain in domains:
+    for domain in cfg['train_domains']:
         d_train_fps = domain_splits[domain]['train']
         d_val_fps = domain_splits[domain]['val']           
         train_fps.extend(d_train_fps)
@@ -203,7 +203,7 @@ def compile_test_filepaths(cfg, domain):
 
     return test_fps
 
-def compile_domain_filepaths(cfg, domain):
+def compile_trainvaltest_filepaths(cfg, domain):
 
     train_fps, val_fps = compile_trainval_filepaths(cfg, (domain,))
     test_fps = compile_test_filepaths(cfg, domain)

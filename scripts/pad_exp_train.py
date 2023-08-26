@@ -14,7 +14,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 cfg = yaml.safe_load(open(os.path.join('..', 'config.yaml'), 'r'))
 tools.set_seed(cfg, device)
 # experiment = Experiment(api_key=comet_key)
-train_fps, val_fps = dataset.compile_trainval_filepaths(cfg, ('SR', 'JC', 'FC', 'FO'))
+train_fps, val_fps = dataset.compile_trainval_filepaths(cfg)
 mean = None
 std = None
 pads = (True, False)

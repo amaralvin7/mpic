@@ -15,7 +15,7 @@ cfg = yaml.safe_load(open('../config.yaml', 'r'))
 mean = None
 std = None
 
-predict_fps = dataset.compile_domain_filepaths(cfg, 'RR')
+predict_fps = dataset.compile_trainvaltest_filepaths(cfg, 'RR')
 dl_padF = dataset.get_dataloader(cfg, predict_fps, mean, std, pad=False)
 dl_padT = dataset.get_dataloader(cfg, predict_fps, mean, std, pad=True)
 

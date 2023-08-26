@@ -838,9 +838,10 @@ def pad_exp_metrics():
 
 def metrics():
 
-    df = pd.read_csv(f'../results/fluxes.csv')
-    df = df.loc[df['label'] != 'none']
+    df = pd.read_csv(f'../results/predictions_test.csv')
     labels = yaml.safe_load(open('../config.yaml', 'r'))['classes']
+    df['label'] = df['filepath'].apply(lambda x: os.path.basename(os.path.split(x)[0]))
+    df = df.loc[df['label'] != 'none']
 
     report = classification_report(df['label'], df['prediction0'], output_dict=True, zero_division=0, labels=labels)
     y_vars = ('precision', 'recall', 'f1-score')
@@ -872,10 +873,49 @@ def metrics():
         ax=ax)
     ax.set_title('Perfect labels vs. predictions')
     plt.tight_layout()
-    plt.savefig(f'../results/figs/confusionmatrix.png')
+    plt.savefig(f'../results/figs/confusionmatrix_test.png')
     plt.close()
+
+
+def trainval_confusion():
+
+    for split in ('train', 'val'):
+
+        df = pd.read_csv(f'../results/predictions_{split}.csv')
+
+        _, ax = plt.subplots(figsize=(8, 8))
+        ConfusionMatrixDisplay.from_predictions(
+            df['label'],
+            df[f'prediction_{split}'],
+            cmap=plt.cm.Blues,
+            normalize=None,
+            xticks_rotation='vertical',
+            values_format='.0f',
+            ax=ax)
+        plt.tight_layout()
+        plt.savefig(f'../results/figs/confusionmatrix_{split}.png')
+        plt.close()
     
-    
+def softmax_histograms(cfg):
+
+    df = pd.read_csv(f'../results/predictions_test.csv')
+    df['label'] = df['filepath'].apply(lambda x: os.path.basename(os.path.split(x)[0]))
+    df = df.loc[df['label'] != 'none']
+    cols = [c for c in df.columns if c in cfg['classes']]
+
+    fig, axs = plt.subplots(4, 4, tight_layout=True, figsize=(10,10))
+    axs = axs.flatten()
+
+    for i, c in enumerate(cols):
+        c_df = df.loc[df['label'] == c]
+        axs[i].hist(c_df[c].values)
+        axs[i].set_xlabel(c)
+        axs[i].set_xlim(0,1)
+
+
+    plt.savefig(f'../results/figs/softmax_histogram.png')
+    plt.close()
+
 if __name__ == '__main__':
 
     black = '#000000'
@@ -891,5 +931,7 @@ if __name__ == '__main__':
 
     # pad_exp_metrics()
     # calculate_flux_df(cfg, domain='RR')
-    # metrics()
-    compare_accuracies()
+    metrics()
+    # compare_accuracies()
+    # trainval_confusion()
+    softmax_histograms(cfg)
