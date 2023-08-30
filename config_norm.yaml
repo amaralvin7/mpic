@@ -1,5 +1,8 @@
 input_size: 224
 batch_size: 128
+model: 'resnet18'
+mean: [0.053, 0.058, 0.055]
+std: [0.123, 0.133, 0.127]
 seed: 0
 max_epochs: 100
 patience: 10

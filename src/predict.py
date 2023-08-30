@@ -6,17 +6,18 @@ from itertools import product
 import pandas as pd
 import torch
 import sklearn.metrics as metrics
+from tqdm import tqdm
 
 import src.dataset as dataset
 import src.tools as tools
 from src.model import initialize_model
 
 
-def predict_labeled_data(device, dataloader, run_folder, model_fn):
+def predict_labeled_data(device, dataloader, model_fn, model_arc):
 
-    model_output = torch.load(f'../runs/{run_folder}/weights/{model_fn}', map_location=device)
+    model_output = torch.load(f'../results/weights/{model_fn}', map_location=device)
     weights = model_output['weights']
-    model = initialize_model(len(dataloader.dataset.classes), weights=weights)
+    model = initialize_model(model_arc, len(dataloader.dataset.classes), weights=weights)
     model.eval()
 
     print(f'Predicting with {model_fn}...')
@@ -27,7 +28,7 @@ def predict_labeled_data(device, dataloader, run_folder, model_fn):
 
     with torch.no_grad():
 
-        for inputs, filepaths, labels in dataloader:
+        for inputs, filepaths, labels in tqdm(dataloader):
             outputs = model(inputs)
             _, preds = torch.max(outputs, 1)
             y_pred.extend(preds.tolist())

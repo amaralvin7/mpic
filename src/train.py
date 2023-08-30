@@ -1,6 +1,10 @@
+import argparse
 import copy
+import os
 
+import numpy as np
 import torch
+import yaml
 
 import src.dataset as dataset
 import src.tools as tools
@@ -49,12 +53,12 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     return loss_total, acc_total
 
 
-def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicate_id, pad):
+def train_model(cfg, device, model_arc, train_filepaths, val_filepaths, mean, std, exp_id, pad):
 
     classes = set([f.split('/')[0] for f in train_filepaths])
     train_dl = dataset.get_dataloader(cfg, train_filepaths, mean, std, augment=True, pad=pad)
     val_dl = dataset.get_dataloader(cfg, val_filepaths, mean, std, augment=False, pad=pad)
-    model = initialize_model(len(classes))
+    model = initialize_model(model_arc, len(classes))
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg['learning_rate'], weight_decay=cfg['weight_decay'])
     criterion = torch.nn.CrossEntropyLoss()
@@ -97,7 +101,7 @@ def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicat
     train_duration = tools.time_sync() - train_start
     minutes = train_duration // 60
     seconds = train_duration % 60
-    print(f'Rep. {replicate_id}: {epoch - 1} epochs in {minutes:.0f}m {seconds:.0f}s. Best val acc {100*best_acc:.2f}%')
+    print(f'{exp_id}: {epoch - 1} epochs in {minutes:.0f}m {seconds:.0f}s. Best val acc {100*best_acc:.2f}%')
 
     output = {'mean': mean,
               'std': std,
@@ -109,3 +113,27 @@ def train_model(cfg, device, train_filepaths, val_filepaths, mean, std, replicat
 
     return output
 
+
+if __name__ == '__main__':
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', default='config.yaml')
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
+    tools.set_seed(cfg, device)
+    # experiment = Experiment(api_key=comet_key)
+    train_fps, val_fps = dataset.compile_trainval_filepaths(cfg, cfg['train_domains'])
+    mean = cfg['mean']
+    std = cfg['std']
+    model_arc = cfg['model']
+    batch_size = cfg['batch_size']
+    pad = True
+    if mean == 'None' and std == 'None':
+        mean = None
+        std = None
+
+    exp_id = args.config.split('.')[0].split('_')[1]
+    print(f'---------Training Models (exp_id={exp_id})...')
+    output = train_model(cfg, device, model_arc, train_fps, val_fps, mean, std, exp_id, pad)
+    torch.save(output, os.path.join('..', 'results', 'weights', f'savedmodel_{exp_id}.pt'))

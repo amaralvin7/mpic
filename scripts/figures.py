@@ -236,8 +236,7 @@ def training_plots():
     models = [f for f in os.listdir(os.path.join('..', 'results', 'weights')) if f'.pt' in f]
 
     for m in models:
-        # split = m.split('_')
-        # replicate_id = '_'.join(split[2:]).split('.')[0]
+        replicate_id = m.split('_')[1].split('.')[0]
         model_output = torch.load(os.path.join('..', 'results', 'weights', m),
                                   map_location='cpu')
         num_epochs = len(model_output['train_loss_hist'])
@@ -249,7 +248,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_acc_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'results', 'figs', f'accuracy_{m.split(".")[0]}.png'))
+        plt.savefig(os.path.join('..', 'results', 'figs', f'accuracy_{replicate_id}.png'))
         plt.close()
 
         plt.xlabel('Training Epochs')
@@ -259,7 +258,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_loss_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'results', 'figs', f'loss_{m.split(".")[0]}.png'))
+        plt.savefig(os.path.join('..', 'results', 'figs', f'loss_{replicate_id}.png'))
         plt.close()
 
 
@@ -836,9 +835,57 @@ def pad_exp_metrics():
     fig.savefig(f'../results/figs/pad_exp_metrics.png')
 
 
-def metrics():
+def metrics_by_exp():
 
-    df = pd.read_csv(f'../results/predictions_test.csv')
+    for split in ('test', 'val'):
+        
+        df = pd.read_csv(f'../results/predictions_{split}.csv')
+        df = df.loc[df['label'] != 'none']
+
+        color_dict = {'base': black, 'batchsize': orange, 'model': blue, 'norm': green}
+        y_vars = ('precision', 'recall', 'f1-score')
+        x_vars = ['macro avg', 'weighted avg']
+        
+        _ , axs = plt.subplots(len(y_vars), len(x_vars))
+        for k, exp in enumerate(color_dict.keys()):
+            labels = yaml.safe_load(open(f'../config_{exp}.yaml', 'r'))['classes']
+            report = classification_report(df['label'], df[f'prediction_{exp}'], output_dict=True, zero_division=0, labels=labels)
+            for j, x in enumerate(x_vars):
+                axs[-1,j].set_xlabel(x)
+                for i, y in enumerate(y_vars):
+                    metric = report[x][y]
+                    axs[i,j].bar(k, metric, width=1, color=color_dict[exp])
+                    axs[i,j].set_ylim(0, 1.2)
+                    axs[i,j].set_xticks([])
+                    axs[i,j].text(k, metric, f'{metric:.2f}', ha='center', va='bottom', size=10)
+                    if j == 0:
+                        axs[i,j].set_ylabel(y)
+
+        lines = [Line2D([0], [0], color=color_dict[c], lw=6) for c in color_dict.keys()]
+        axs[0][1].legend(lines, color_dict.keys(), ncol=6, bbox_to_anchor=(0, 1.02), loc='lower center',
+                frameon=False, handlelength=1)
+
+        plt.savefig(f'../results/figs/metrics_{split}.png')
+        plt.close()
+
+        for exp in color_dict.keys():
+            _, ax = plt.subplots(figsize=(8, 8))
+            ConfusionMatrixDisplay.from_predictions(
+                df['label'],
+                df[f'prediction_{exp}'],
+                cmap=plt.cm.Blues,
+                normalize=None,
+                xticks_rotation='vertical',
+                values_format='.0f',
+                ax=ax)
+            ax.set_title('Perfect labels vs. predictions')
+            plt.tight_layout()
+            plt.savefig(f'../results/figs/confusionmatrix_{exp}_{split}.png')
+            plt.close()
+
+
+def metrics_by_class():
+
     labels = yaml.safe_load(open('../config.yaml', 'r'))['classes']
     df['label'] = df['filepath'].apply(lambda x: os.path.basename(os.path.split(x)[0]))
     df = df.loc[df['label'] != 'none']
@@ -927,11 +974,12 @@ if __name__ == '__main__':
     radish = '#CC79A7'
     white = '#FFFFFF'
 
-    cfg = yaml.safe_load(open('../config.yaml', 'r'))
+    # cfg = yaml.safe_load(open('../config.yaml', 'r'))
 
     # pad_exp_metrics()
     # calculate_flux_df(cfg, domain='RR')
-    metrics()
+    metrics_by_exp()
     # compare_accuracies()
     # trainval_confusion()
-    softmax_histograms(cfg)
+    # softmax_histograms(cfg)
+    # training_plots()

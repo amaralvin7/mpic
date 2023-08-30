@@ -6,6 +6,7 @@ import yaml
 from itertools import chain, combinations
 from PIL import Image
 from torchvision import transforms
+from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 import src.tools as tools
@@ -128,7 +129,7 @@ def calculate_data_stats(cfg, filepaths, pad):
     sum_square_pixelvals = 0
     n_pixels = len(dataset) * cfg['input_size']**2
 
-    for pixelvals, *_ in loader:
+    for pixelvals, *_ in tqdm(loader):
         sum_pixelvals += pixelvals.sum(dim=[0, 2, 3])
         sum_square_pixelvals += (pixelvals**2).sum(dim=[0, 2, 3])
 
@@ -182,13 +183,13 @@ def write_domain_splits(cfg, df):
     tools.write_json(domain_splits, file_path)
 
 
-def compile_trainval_filepaths(cfg):
+def compile_trainval_filepaths(cfg, domains):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     train_fps = []
     val_fps = []
 
-    for domain in cfg['train_domains']:
+    for domain in domains:
         d_train_fps = domain_splits[domain]['train']
         d_val_fps = domain_splits[domain]['val']           
         train_fps.extend(d_train_fps)
@@ -216,27 +217,11 @@ def powerset(iterable):
     return list(chain.from_iterable(combinations(s, r) for r in range(1, len(s)+1)))
 
 
-def write_train_data_stats(cfg, write_to, for_ablations=False):
+def write_train_data_stats(cfg, write_to, pad):
     
-    def filepaths_to_data_stats(filepaths):
-
-        mean, std = calculate_data_stats(cfg, filepaths, classes)
-        stats_dict = {'mean': mean.tolist(), 'std': std.tolist()}
-        
-        return stats_dict
-        
-    if for_ablations:
-        classes = cfg['ablation_classes']
-        stats = {}
-        train_splits = powerset(cfg['domains'])
-        for domains in train_splits:
-            train_split_id = ('_').join(domains)
-            train_fps, _ = compile_domain_filepaths(cfg, domains, classes)
-            stats[train_split_id] = filepaths_to_data_stats(train_fps)
-    else:
-        classes = cfg['all_classes']
-        train_fps, _ = compile_domain_filepaths(cfg, cfg['domains'])
-        stats = filepaths_to_data_stats(train_fps)
+    train_fps, _ = compile_trainval_filepaths(cfg)
+    mean, std = calculate_data_stats(cfg, train_fps, pad)
+    stats = {'mean': mean.tolist(), 'std': std.tolist()}
 
     tools.write_json(stats, os.path.join('..', 'data', write_to))
 
@@ -264,6 +249,5 @@ if __name__ == '__main__':
     df = tools.load_metadata(cfg)
     df = df.loc[df['label'] != 'none']
 
-    write_domain_splits(cfg, df)
-    # write_train_data_stats(cfg, 'data_stats.json', False)
-    # write_train_data_stats(cfg, 'data_stats_ablations.json', True)
+    # write_domain_splits(cfg, df)
+    write_train_data_stats(cfg, 'data_stats.json', True)
