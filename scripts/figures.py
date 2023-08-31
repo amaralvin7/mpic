@@ -842,13 +842,13 @@ def metrics_by_exp():
         df = pd.read_csv(f'../results/predictions_{split}.csv')
         df = df.loc[df['label'] != 'none']
 
-        color_dict = {'base': black, 'batchsize': orange, 'model': blue, 'norm': green}
+        color_dict = {'base': black, 'batchsize': orange, 'model': blue, 'modelbatchsize': green}
         y_vars = ('precision', 'recall', 'f1-score')
         x_vars = ['macro avg', 'weighted avg']
         
         _ , axs = plt.subplots(len(y_vars), len(x_vars))
         for k, exp in enumerate(color_dict.keys()):
-            labels = yaml.safe_load(open(f'../config_{exp}.yaml', 'r'))['classes']
+            labels = yaml.safe_load(open(f'../configs/config_{exp}.yaml', 'r'))['classes']
             report = classification_report(df['label'], df[f'prediction_{exp}'], output_dict=True, zero_division=0, labels=labels)
             for j, x in enumerate(x_vars):
                 axs[-1,j].set_xlabel(x)

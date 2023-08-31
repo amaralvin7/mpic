@@ -1,1 +1,2 @@
-Compared effects of normalization, model architecture (resnet18 vs. resnet50), and batch size on model performance. For out-of-domain prediction, these hyperparams made little difference. For in-domain (i.e., predicting on the validation set), larger batch and model improved performance, but using normalization degraded it. Maybe try using ImageNet stats in the future.
+Compared larger model and batch size to base model. Unclear if either of these make a difference, might as well keep a smaller model and larger batch size.
+

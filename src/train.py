@@ -120,7 +120,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', default='config.yaml')
     args = parser.parse_args()
-    cfg = yaml.safe_load(open(os.path.join('..', args.config), 'r'))
+    cfg = yaml.safe_load(open(f'../configs/{args.config}', 'r'))
     tools.set_seed(cfg, device)
     # experiment = Experiment(api_key=comet_key)
     train_fps, val_fps = dataset.compile_trainval_filepaths(cfg, cfg['train_domains'])
@@ -129,9 +129,6 @@ if __name__ == '__main__':
     model_arc = cfg['model']
     batch_size = cfg['batch_size']
     pad = True
-    if mean == 'None' and std == 'None':
-        mean = None
-        std = None
 
     exp_id = args.config.split('.')[0].split('_')[1]
     print(f'---------Training Models (exp_id={exp_id})...')

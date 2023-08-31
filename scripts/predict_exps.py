@@ -18,7 +18,7 @@ for split in ('test', 'val'):
     df_list = []
     for m in models:
         exp_id = m.split('.')[0].split('_')[1]
-        cfg = yaml.safe_load(open(f'../config_{exp_id}.yaml', 'r'))
+        cfg = yaml.safe_load(open(f'../configs/config_{exp_id}.yaml', 'r'))
         if split == 'test':
             fps = dataset.compile_trainvaltest_filepaths(cfg, 'RR')
         else:
