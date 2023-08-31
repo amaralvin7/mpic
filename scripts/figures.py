@@ -842,8 +842,7 @@ def metrics_by_exp():
         df = pd.read_csv(f'../results/predictions_{split}.csv')
         df = df.loc[df['label'] != 'none']
 
-        # color_dict = {'base': black, 'batchsize': orange, 'model': blue, 'modelbatchsize': green}
-        color_dict = {'base': green, 'batchsize': orange, 'norm': blue, 'normbatchsize': vermillion}
+        color_dict = {'base': green, 'normdata': orange, 'normimagenet': blue}
         y_vars = ('precision', 'recall', 'f1-score')
         x_vars = ['macro avg', 'weighted avg']
         

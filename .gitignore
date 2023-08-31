@@ -17,8 +17,8 @@ __pycache__/
 *.csv
 *.pdf
 
-*figs
-*weights
+*/figs
+*/weights
 *priv.py
 
 

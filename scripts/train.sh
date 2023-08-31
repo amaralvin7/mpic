@@ -1,3 +1,3 @@
-python ../src/train.py -c config_norm.yaml
+python ../src/train.py -c config_normdata.yaml
 
-python ../src/train.py -c config_normbatchsize.yaml
+python ../src/train.py -c config_normimagenet.yaml

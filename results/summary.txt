@@ -1,2 +1,2 @@
-Redid norm experiments with stats calculated from data (suspected a bug), but doesn't seem to chance performance much.
+Compared normalization from imagenet and data to no normalization. Seems to not make a difference with or without norm.
 

@@ -13,7 +13,7 @@ import src.predict as predict
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-models = ['savedmodel_base.pt', 'savedmodel_batchsize.pt', 'savedmodel_norm.pt', 'savedmodel_normbatchsize.pt']
+models = ['savedmodel_base.pt', 'savedmodel_normdata.pt', 'savedmodel_normimagenet.pt']
 
 for split in ('test', 'val'):
     df_list = []
