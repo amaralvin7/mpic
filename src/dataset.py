@@ -16,7 +16,7 @@ class ParticleImages(torch.utils.data.Dataset):
 
     def __init__(self, cfg, filepaths, transformations, is_labeled=True):
 
-        self.data_dir = os.path.join(cfg['data_dir'], 'imgs')
+        self.data_dir = os.path.join(cfg['data_dir'])
         self.filepaths = filepaths
         self.classes = sorted(cfg['classes'])
         self.class_to_idx = {c: i for i, c in enumerate(self.classes)}

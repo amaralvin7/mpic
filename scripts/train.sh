@@ -1,1 +1,1 @@
-python ../src/train.py -c config_modelbatchsize.yaml
+python ../src/train.py -c config_upsample.yaml

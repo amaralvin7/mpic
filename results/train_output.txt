@@ -1,4 +1,4 @@
 (mpic) vinicius@sara3-0:~/mpic/scripts$ ./train.sh
----------Training Models (exp_id=modelbatchsize)...
-modelbatchsize: 36 epochs in 59m 29s. Best val acc 98.39%
+---------Training Models (exp_id=upsample)...
+upsample: 40 epochs in 26m 39s. Best val acc 98.85%
 (mpic) vinicius@sara3-0:~/mpic/scripts$ 

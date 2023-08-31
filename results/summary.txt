@@ -1,2 +1,2 @@
-Compared larger model and batch size to base model. Unclear if either of these make a difference, might as well keep a smaller model and larger batch size.
+Compared larger batch size and upsampling to base model (upsampling includes larger batch size). Upsampling seems to improve inference on the test set.
 
