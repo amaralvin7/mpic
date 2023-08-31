@@ -843,7 +843,7 @@ def metrics_by_exp():
         df = df.loc[df['label'] != 'none']
 
         # color_dict = {'base': black, 'batchsize': orange, 'model': blue, 'modelbatchsize': green}
-        color_dict = {'base': green, 'batchsize': orange, 'upsample': blue}
+        color_dict = {'base': green, 'batchsize': orange, 'norm': blue, 'normbatchsize': vermillion}
         y_vars = ('precision', 'recall', 'f1-score')
         x_vars = ['macro avg', 'weighted avg']
         
@@ -983,4 +983,4 @@ if __name__ == '__main__':
     # compare_accuracies()
     # trainval_confusion()
     # softmax_histograms(cfg)
-    # training_plots()
+    training_plots()

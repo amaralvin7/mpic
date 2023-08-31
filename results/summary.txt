@@ -1,2 +1,2 @@
-Compared larger batch size and upsampling to base model (upsampling includes larger batch size). Upsampling seems to improve inference on the test set.
+Redid norm experiments with stats calculated from data (suspected a bug), but doesn't seem to chance performance much.
 
