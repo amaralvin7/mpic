@@ -8,11 +8,11 @@ import pandas as pd
 import torch
 
 
-def set_seed(cfg, device):
+def set_seed(seed, device):
 
-    random.seed(cfg['seed'])
-    np.random.seed(cfg['seed'])
-    torch.manual_seed(cfg['seed'])
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     if device != 'cpu':
         torch.backends.cudnn.benchmark = True
         torch.backends.cudnn.deterministic = True
@@ -40,8 +40,9 @@ def load_json(filename):
 
     return data
 
-def load_metadata(cfg):
 
-    df = pd.read_csv(os.path.join(cfg['data_dir'], 'metadata.csv'))
+def load_metadata():
+
+    df = pd.read_csv('../../../../../mnt/ssd-cluster/vinicius/metadata.csv')
     
     return df

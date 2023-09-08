@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import numpy as np
@@ -143,44 +144,47 @@ def calculate_data_stats(cfg, filepaths, pad):
     return mean, std
 
 
-def stratified_split(cfg, df):
+def stratified_split(classes, df, train_size, include_test):
 
-    test_size = cfg['val_size']
+    test_size = (1 - train_size) / 2
     val_size = test_size / (1 - test_size)
     train_fps = []
     val_fps = []
     test_fps = []
 
-    classes = cfg['classes']
-    
     for c in classes:
         c_df = df.loc[df['label'] == c]
         filepaths = [os.path.join(c,f) for f in c_df['filename']]
-        c_trainval_fps, c_test_fps = train_test_split(
-            filepaths, test_size=test_size, random_state=cfg['seed'])
+        c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=0)
         test_fps.extend(c_test_fps)
-        c_train_fps, c_val_fps = train_test_split(
-            c_trainval_fps, test_size=val_size, random_state=cfg['seed'])
+        c_train_fps, c_val_fps = train_test_split(c_trainval_fps, test_size=val_size, random_state=0)
         train_fps.extend(c_train_fps)
         val_fps.extend(c_val_fps)
 
-    return train_fps, val_fps, test_fps
+    if include_test:
+        return train_fps, val_fps, test_fps
+    else:
+        val_fps = val_fps + test_fps
 
 
-def write_domain_splits(cfg, df):
 
-    domain_splits = {}
+def write_splits(df, filename, train_size, include_test):
 
-    for d in cfg['domains']:
-        domain_splits[d] = {}
+    splits = {}
+    domains = ['RR', 'SR', 'JC', 'FC', 'FO']
+
+    for d in domains:
+        splits[d] = {}
         d_df = df.loc[df['domain'] == d]
-        train_fps, val_fps, test_fps = stratified_split(cfg, d_df)
-        domain_splits[d]['train'] = train_fps
-        domain_splits[d]['val'] = val_fps
-        domain_splits[d]['test'] = test_fps
+        classes = d_df['label'].unique()
+        filepaths = stratified_split(classes, d_df, train_size, include_test)
+        splits[d]['train'] = filepaths[0]
+        splits[d]['val'] = filepaths[1]
+        if include_test:
+            splits[d]['test'] = filepaths[2]
 
-    file_path = os.path.join('..', 'data', cfg['domain_splits_fname'])
-    tools.write_json(domain_splits, file_path)
+    file_path = os.path.join('..', 'data', filename)
+    tools.write_json(splits, file_path)
 
 
 def compile_trainval_filepaths(cfg, domains):
@@ -197,12 +201,14 @@ def compile_trainval_filepaths(cfg, domains):
 
     return train_fps, val_fps
 
+
 def compile_test_filepaths(cfg, domain):
 
     domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
     test_fps = domain_splits[domain]['test']        
 
     return test_fps
+
 
 def compile_trainvaltest_filepaths(cfg, domain):
 
@@ -243,11 +249,9 @@ def get_data_stats(train_split_id=None):
 
 if __name__ == '__main__':
 
-    cfg = yaml.safe_load(open('../config.yaml', 'r'))
-    tools.set_seed(cfg, 'cpu')
+    tools.set_seed(0, 'cpu')
 
-    df = tools.load_metadata(cfg)
+    df = tools.load_metadata()
     df = df.loc[df['label'] != 'none']
 
-    # write_domain_splits(cfg, df)
-    write_train_data_stats(cfg, 'data_stats.json', True)
+    write_splits(df, 'domain_splits.json', 0.8, True)

@@ -1,18 +1,18 @@
+device: 'cuda'
 input_size: 224
 batch_size: 128
 model: 'resnet18'
-mean: [0.053, 0.058, 0.055]
-std: [0.123, 0.133, 0.127]
+mean: null
+std: null
 seed: 0
 max_epochs: 100
 patience: 10
-replicates: 3
+replicates: 5
 n_workers: 4
-val_size: 0.1
 learning_rate: 0.001
 weight_decay: 0.01
 data_dir: '../../../../../mnt/ssd-cluster/vinicius/imgs'
-domain_splits_fname: domain_splits.json
+splits_fname: domain_splits.json
 classes: ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp', 'long_pellet', 'mini_pellet', 'noise', 'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer']
 train_domains: ['SR', 'JC', 'FC', 'FO']
 test_domain: 'RR'
