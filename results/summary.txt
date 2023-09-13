@@ -1,2 +1,1 @@
-Compared normalization from imagenet and data to no normalization. Seems to not make a difference with or without norm.
-
+Comparing preprocessing steps (padding vs. resizing, normalization with data and ImageNet (IN) stats). Base model has no padding (does resizing instead) and no normalization. None of the preprocessing transformations seem to make a difference for in- (test) and out-of-domain (target) metrics. Conclusion is to keep the base model. 

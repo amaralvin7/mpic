@@ -77,14 +77,14 @@ class CustomPad:
         return padded_image
 
 
-def get_transforms(cfg, mean=None, std=None, augment=False, pad=True):
+def get_transforms(cfg, augment=False):
 
     if augment:
         p = 0.5
     else:
         p = 0
     
-    if pad:
+    if cfg['pad']:
         resize = CustomPad(cfg['input_size'])
     else:
         resize = transforms.Resize((cfg['input_size'], cfg['input_size']))
@@ -96,17 +96,17 @@ def get_transforms(cfg, mean=None, std=None, augment=False, pad=True):
         transforms.RandomVerticalFlip(p),
         transforms.ToTensor()]
 
-    if mean is not None and std is not None:
-        transform_list.append(transforms.Normalize(mean, std))
+    if cfg['mean'] is not None and cfg['std'] is not None:
+        transform_list.append(transforms.Normalize(cfg['mean'], cfg['std']))
 
     transformations = transforms.Compose(transform_list)
 
     return transformations
 
 
-def get_dataloader(cfg, filepaths, mean=None, std=None, augment=False, pad=True, is_labeled=True, shuffle=True):
+def get_dataloader(cfg, filepaths, augment=False, is_labeled=True, shuffle=True):
 
-    transformations = get_transforms(cfg, mean, std, augment=augment, pad=pad)
+    transformations = get_transforms(cfg, augment=augment)
     dataloader = torch.utils.data.DataLoader(
         dataset=ParticleImages(cfg, filepaths, transformations, is_labeled),
         batch_size=cfg['batch_size'],
@@ -121,10 +121,10 @@ def calculate_data_stats(cfg, filepaths, pad):
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
 
-    print(f'Calculating data stats...')
-    dataset = ParticleImages(cfg, filepaths, get_transforms(cfg, pad=pad))
+    print(f'Calculating data stats (pad={pad}, train_domains={cfg["train_domains"]})')
+    dataset = ParticleImages(cfg, filepaths, get_transforms(cfg))
     loader = torch.utils.data.DataLoader(
-        dataset, batch_size=cfg['batch_size'], num_workers=0)
+        dataset, batch_size=cfg['batch_size'], num_workers=cfg['n_workers'])
 
     sum_pixelvals = 0
     sum_square_pixelvals = 0
@@ -165,7 +165,7 @@ def stratified_split(classes, df, train_size, include_test):
         return train_fps, val_fps, test_fps
     else:
         val_fps = val_fps + test_fps
-
+        return train_fps, val_fps
 
 
 def write_splits(df, filename, train_size, include_test):
@@ -187,35 +187,17 @@ def write_splits(df, filename, train_size, include_test):
     tools.write_json(splits, file_path)
 
 
-def compile_trainval_filepaths(cfg, domains):
+def compile_filepaths(cfg, domains, split):
 
-    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
-    train_fps = []
-    val_fps = []
+    splits = tools.load_json(os.path.join('..', 'data', cfg['splits_fname']))
+    fps = []
 
-    for domain in domains:
-        d_train_fps = domain_splits[domain]['train']
-        d_val_fps = domain_splits[domain]['val']           
-        train_fps.extend(d_train_fps)
-        val_fps.extend(d_val_fps)
+    for d in domains:
+        d_fps = splits[d][split]         
+        fps.extend(d_fps)
+    
+    return fps
 
-    return train_fps, val_fps
-
-
-def compile_test_filepaths(cfg, domain):
-
-    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
-    test_fps = domain_splits[domain]['test']        
-
-    return test_fps
-
-
-def compile_trainvaltest_filepaths(cfg, domain):
-
-    train_fps, val_fps = compile_trainval_filepaths(cfg, (domain,))
-    test_fps = compile_test_filepaths(cfg, domain)
-
-    return train_fps + val_fps + test_fps
 
 def powerset(iterable):
     """https://docs.python.org/3/library/itertools.html#itertools-recipes"""
@@ -223,35 +205,18 @@ def powerset(iterable):
     return list(chain.from_iterable(combinations(s, r) for r in range(1, len(s)+1)))
 
 
-def write_train_data_stats(cfg, write_to, pad):
-    
-    train_fps, _ = compile_trainval_filepaths(cfg)
-    mean, std = calculate_data_stats(cfg, train_fps, pad)
-    stats = {'mean': mean.tolist(), 'std': std.tolist()}
-
-    tools.write_json(stats, os.path.join('..', 'data', write_to))
-
-
-def get_data_stats(train_split_id=None):
-    
-    data_stats_fname = 'data_stats_ablations.json' if train_split_id else 'data_stats.json'
-    train_data_stats = tools.load_json(os.path.join('..', 'data', data_stats_fname))
-
-    if train_split_id:
-        mean = train_data_stats[train_split_id]['mean']
-        std = train_data_stats[train_split_id]['std']
-    else:
-        mean = train_data_stats['mean']
-        std = train_data_stats['std']       
-
-    return mean, std
-
-
 if __name__ == '__main__':
 
-    tools.set_seed(0, 'cpu')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', default='base.yaml')
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(f'../configs/{args.config}', 'r'))
 
     df = tools.load_metadata()
     df = df.loc[df['label'] != 'none']
 
-    write_splits(df, 'domain_splits.json', 0.8, True)
+    write_splits(df, 'splits.json', 0.8, True)
+
+    train_fps = compile_filepaths(cfg, cfg['train_domains'], split='train')
+    for pad in (True, False):
+        calculate_data_stats(cfg, train_fps, pad)

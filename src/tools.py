@@ -8,14 +8,11 @@ import pandas as pd
 import torch
 
 
-def set_seed(seed, device):
+def set_seed(seed):
 
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if device != 'cpu':
-        torch.backends.cudnn.benchmark = True
-        torch.backends.cudnn.deterministic = True
 
 
 def time_sync():

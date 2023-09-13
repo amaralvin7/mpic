@@ -1,9 +1,9 @@
 device: 'cuda'
 input_size: 224
 batch_size: 1024
-mean: null
-std: null
-pad: False
+mean: [0.279, 0.304, 0.294]
+std: [0.097, 0.102, 0.095]
+pad: True
 max_epochs: 100
 patience: 10
 n_workers: 4

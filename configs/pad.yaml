@@ -3,7 +3,7 @@ input_size: 224
 batch_size: 1024
 mean: null
 std: null
-pad: False
+pad: True
 max_epochs: 100
 patience: 10
 n_workers: 4
