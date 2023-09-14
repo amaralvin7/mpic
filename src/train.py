@@ -54,10 +54,11 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     return loss_total, acc_total
 
 
-def train_model(cfg, exp_id):
+def train_model(cfg, exp_id, log=False):
 
-    experiment = Experiment(api_key=comet_key, display_summary_level=0)
-    experiment.set_name(exp_id)
+    if log:
+        experiment = Experiment(api_key=comet_key, display_summary_level=0)
+        experiment.set_name(exp_id)
 
     print(f'----Training {exp_id}...')
 
@@ -103,13 +104,15 @@ def train_model(cfg, exp_id):
             esi = 0
         else:
             esi += 1
-
-        stats = {'train_loss': train_loss,
-                 'val_loss': val_loss,
-                 'train_acc': train_acc,
-                 'val_acc': val_acc}
         
-        experiment.log_metrics(stats, step=epoch)
+        if log:
+
+            stats = {'train_loss': train_loss,
+                    'val_loss': val_loss,
+                    'train_acc': train_acc,
+                    'val_acc': val_acc}
+            
+            experiment.log_metrics(stats, step=epoch)
 
         epoch += 1
 
@@ -132,8 +135,8 @@ if __name__ == '__main__':
     replicates = 5
     cfgs = [c for c in os.listdir('../configs') if '.yaml' in c]
     for cfg_fn, replicate in product(cfgs, range(replicates)):
-        tools.set_seed(replicate)
         cfg = yaml.safe_load(open(f'../configs/{cfg_fn}', 'r'))
+        tools.set_seed(replicate)
         exp_id = f'{cfg_fn.split(".")[0]}-{replicate}'
         train_model(cfg, exp_id)
     

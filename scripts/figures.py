@@ -895,7 +895,7 @@ def metrics_by_class():
     x_vars = labels + ['macro avg', 'weighted avg']
 
     for s in ('target', 'test'):
-        print(f'********{s.upper()}********')
+
         fig , axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
         axs[-1].set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
         prediction_files = [f for f in os.listdir('../results/predictions') if s in f]
@@ -925,7 +925,7 @@ def metrics_by_class():
                 axs[i].set_xticklabels([])
                 axs[i].set_xticks(range(len(x_vars)))
             for j, x in enumerate(x_vars):
-                print(f'----{y}, {x}----')
+                print(f'----{s}, {y}, {x}----')
                 for m, c in enumerate(cfg_names):
                     keys = [k for k in reports.keys() if f'{s}_{c}' in k]
                     y_avg = np.mean([reports[k][x][y] for k in keys])

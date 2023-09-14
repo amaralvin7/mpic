@@ -1,452 +1,451 @@
 (mpic) vinicius@sara3-0:~/mpic/scripts$ python figures.py 
-********TARGET********
-----precision, aggregate----
-base: 86.53 ± 6.17
-normIN: 84.82 ± 4.18
-normdata: 89.42 ± 2.35
-pad: 90.22 ± 3.70
-pad_normIN: 90.25 ± 3.37
-pad_normdata: 90.21 ± 1.54
-----precision, bubble----
-base: 98.67 ± 1.29
-normIN: 97.37 ± 4.32
-normdata: 99.12 ± 1.02
-pad: 97.10 ± 2.86
-pad_normIN: 95.49 ± 3.80
-pad_normdata: 96.90 ± 2.26
-----precision, fiber_blur----
-base: 61.98 ± 17.94
-normIN: 48.25 ± 12.28
-normdata: 73.06 ± 17.72
-pad: 65.94 ± 15.25
-pad_normIN: 66.95 ± 11.24
-pad_normdata: 61.15 ± 15.23
-----precision, fiber_sharp----
-base: 55.60 ± 9.45
-normIN: 56.54 ± 4.21
-normdata: 59.15 ± 10.46
-pad: 61.96 ± 10.51
-pad_normIN: 63.43 ± 12.81
-pad_normdata: 55.04 ± 5.10
-----precision, long_pellet----
-base: 78.48 ± 5.67
-normIN: 78.15 ± 5.66
-normdata: 85.47 ± 4.57
-pad: 85.08 ± 6.87
-pad_normIN: 82.32 ± 8.64
-pad_normdata: 88.77 ± 3.46
-----precision, mini_pellet----
-base: 80.60 ± 10.98
-normIN: 79.83 ± 7.24
-normdata: 80.49 ± 6.35
-pad: 92.10 ± 5.66
-pad_normIN: 95.07 ± 4.19
-pad_normdata: 88.69 ± 7.90
-----precision, noise----
-base: 90.51 ± 4.77
-normIN: 88.07 ± 4.77
-normdata: 88.47 ± 8.56
-pad: 96.19 ± 2.33
-pad_normIN: 96.70 ± 2.28
-pad_normdata: 95.76 ± 2.26
-----precision, phyto_dino----
+----target, precision, aggregate----
+base: 87.59 ± 4.08
+normIN: 87.69 ± 1.44
+normdata: 86.03 ± 2.91
+pad: 90.59 ± 4.15
+pad_normIN: 90.84 ± 5.67
+pad_normdata: 90.58 ± 2.84
+----target, precision, bubble----
+base: 99.11 ± 0.66
+normIN: 99.00 ± 1.29
+normdata: 98.70 ± 1.21
+pad: 97.36 ± 2.35
+pad_normIN: 98.25 ± 1.88
+pad_normdata: 96.63 ± 3.10
+----target, precision, fiber_blur----
+base: 61.64 ± 22.72
+normIN: 55.51 ± 25.12
+normdata: 60.40 ± 17.26
+pad: 64.29 ± 16.80
+pad_normIN: 72.65 ± 14.33
+pad_normdata: 58.13 ± 18.82
+----target, precision, fiber_sharp----
+base: 55.62 ± 12.64
+normIN: 59.39 ± 11.68
+normdata: 69.20 ± 7.58
+pad: 60.87 ± 6.23
+pad_normIN: 61.26 ± 5.65
+pad_normdata: 63.29 ± 6.38
+----target, precision, long_pellet----
+base: 79.84 ± 2.53
+normIN: 78.93 ± 3.75
+normdata: 77.97 ± 8.76
+pad: 84.70 ± 7.70
+pad_normIN: 84.34 ± 8.29
+pad_normdata: 88.83 ± 3.10
+----target, precision, mini_pellet----
+base: 82.26 ± 8.11
+normIN: 79.09 ± 4.41
+normdata: 85.29 ± 2.47
+pad: 93.23 ± 3.67
+pad_normIN: 91.43 ± 5.12
+pad_normdata: 93.93 ± 2.98
+----target, precision, noise----
+base: 87.42 ± 7.56
+normIN: 91.26 ± 5.41
+normdata: 94.43 ± 2.69
+pad: 95.31 ± 3.09
+pad_normIN: 95.58 ± 2.61
+pad_normdata: 95.41 ± 4.69
+----target, precision, phyto_dino----
 base: 0.00 ± 0.00
 normIN: 0.00 ± 0.00
 normdata: 0.00 ± 0.00
 pad: 0.00 ± 0.00
 pad_normIN: 0.00 ± 0.00
 pad_normdata: 0.00 ± 0.00
-----precision, phyto_long----
-base: 18.75 ± 41.93
+----target, precision, phyto_long----
+base: 38.33 ± 42.33
 normIN: 40.00 ± 54.77
-normdata: 35.24 ± 41.05
-pad: 23.35 ± 30.46
-pad_normIN: 26.62 ± 36.74
-pad_normdata: 35.45 ± 32.97
-----precision, phyto_round----
-base: 59.87 ± 16.19
-normIN: 43.30 ± 20.82
-normdata: 59.41 ± 18.85
-pad: 59.29 ± 10.64
-pad_normIN: 57.39 ± 9.27
-pad_normdata: 63.67 ± 10.55
-----precision, rhizaria----
-base: 95.67 ± 7.89
-normIN: 70.16 ± 40.57
-normdata: 90.73 ± 10.22
-pad: 78.00 ± 29.70
-pad_normIN: 75.98 ± 42.78
-pad_normdata: 92.72 ± 5.30
-----precision, salp_pellet----
-base: 20.00 ± 44.72
-normIN: 13.33 ± 29.81
-normdata: 80.00 ± 44.72
-pad: 0.00 ± 0.00
-pad_normIN: 0.00 ± 0.00
+normdata: 48.18 ± 47.85
+pad: 16.06 ± 34.10
+pad_normIN: 28.19 ± 39.31
 pad_normdata: 0.00 ± 0.00
-----precision, short_pellet----
-base: 70.55 ± 20.10
-normIN: 71.48 ± 10.61
-normdata: 70.34 ± 16.10
-pad: 80.37 ± 7.25
-pad_normIN: 80.89 ± 7.76
-pad_normdata: 83.48 ± 7.22
-----precision, swimmer----
-base: 85.92 ± 6.38
-normIN: 88.63 ± 2.36
-normdata: 84.32 ± 5.50
-pad: 84.41 ± 4.78
-pad_normIN: 83.00 ± 2.53
-pad_normdata: 86.70 ± 2.73
-----precision, macro avg----
-base: 64.51 ± 5.86
-normIN: 61.42 ± 9.77
-normdata: 71.09 ± 6.43
-pad: 65.29 ± 3.61
-pad_normIN: 65.29 ± 5.29
-pad_normdata: 67.04 ± 2.15
-----precision, weighted avg----
-base: 82.34 ± 2.87
-normIN: 81.04 ± 2.59
-normdata: 84.43 ± 1.16
-pad: 85.45 ± 2.20
-pad_normIN: 85.01 ± 3.52
-pad_normdata: 86.34 ± 1.00
-----recall, aggregate----
-base: 92.42 ± 5.57
-normIN: 94.47 ± 2.22
-normdata: 91.96 ± 5.76
-pad: 96.10 ± 3.04
-pad_normIN: 96.82 ± 2.22
-pad_normdata: 96.74 ± 1.15
-----recall, bubble----
-base: 85.71 ± 13.40
-normIN: 91.28 ± 4.11
-normdata: 88.35 ± 2.25
-pad: 70.28 ± 16.47
-pad_normIN: 72.75 ± 16.05
-pad_normdata: 76.70 ± 9.70
-----recall, fiber_blur----
-base: 75.00 ± 7.91
-normIN: 80.73 ± 6.70
-normdata: 74.38 ± 17.09
-pad: 85.45 ± 10.87
-pad_normIN: 84.90 ± 14.77
-pad_normdata: 85.52 ± 8.41
-----recall, fiber_sharp----
-base: 98.04 ± 1.02
-normIN: 98.08 ± 0.65
-normdata: 97.81 ± 1.39
-pad: 97.62 ± 1.68
-pad_normIN: 97.58 ± 0.98
-pad_normdata: 98.72 ± 0.41
-----recall, long_pellet----
-base: 89.14 ± 4.72
-normIN: 86.45 ± 2.81
-normdata: 89.20 ± 7.59
-pad: 90.42 ± 4.49
-pad_normIN: 90.53 ± 4.21
-pad_normdata: 88.41 ± 5.82
-----recall, mini_pellet----
-base: 85.18 ± 13.51
-normIN: 91.21 ± 6.75
-normdata: 90.08 ± 7.45
-pad: 84.50 ± 11.23
-pad_normIN: 81.44 ± 9.35
-pad_normdata: 89.49 ± 9.85
-----recall, noise----
-base: 99.68 ± 0.10
-normIN: 99.77 ± 0.08
-normdata: 99.65 ± 0.22
-pad: 99.56 ± 0.20
-pad_normIN: 99.61 ± 0.16
-pad_normdata: 99.61 ± 0.13
-----recall, phyto_dino----
+----target, precision, phyto_round----
+base: 60.66 ± 12.45
+normIN: 55.38 ± 27.65
+normdata: 58.60 ± 19.91
+pad: 60.71 ± 17.16
+pad_normIN: 55.73 ± 15.07
+pad_normdata: 70.66 ± 15.84
+----target, precision, rhizaria----
+base: 96.22 ± 5.71
+normIN: 90.47 ± 10.85
+normdata: 93.23 ± 7.45
+pad: 79.24 ± 33.29
+pad_normIN: 73.16 ± 41.42
+pad_normdata: 70.73 ± 41.00
+----target, precision, salp_pellet----
+base: 33.33 ± 47.14
+normIN: 35.00 ± 48.73
+normdata: 33.33 ± 47.14
+pad: 6.67 ± 25.82
+pad_normIN: 0.00 ± 0.00
+pad_normdata: 20.00 ± 44.72
+----target, precision, short_pellet----
+base: 78.06 ± 4.64
+normIN: 76.98 ± 14.14
+normdata: 77.24 ± 7.83
+pad: 82.71 ± 11.12
+pad_normIN: 79.30 ± 14.55
+pad_normdata: 83.48 ± 12.61
+----target, precision, swimmer----
+base: 85.90 ± 3.11
+normIN: 87.98 ± 1.39
+normdata: 87.91 ± 2.31
+pad: 82.85 ± 6.09
+pad_normIN: 82.46 ± 6.17
+pad_normdata: 85.90 ± 4.75
+----target, precision, macro avg----
+base: 67.57 ± 6.82
+normIN: 66.90 ± 8.78
+normdata: 69.32 ± 7.87
+pad: 65.33 ± 5.51
+pad_normIN: 65.23 ± 6.09
+pad_normdata: 65.54 ± 5.83
+----target, precision, weighted avg----
+base: 83.08 ± 2.59
+normIN: 83.46 ± 1.88
+normdata: 84.25 ± 1.08
+pad: 85.16 ± 2.89
+pad_normIN: 85.03 ± 3.53
+pad_normdata: 86.13 ± 2.45
+----target, recall, aggregate----
+base: 93.01 ± 3.98
+normIN: 95.50 ± 1.76
+normdata: 97.04 ± 1.47
+pad: 94.82 ± 3.59
+pad_normIN: 94.97 ± 2.68
+pad_normdata: 96.32 ± 1.88
+----target, recall, bubble----
+base: 85.42 ± 17.71
+normIN: 89.23 ± 4.51
+normdata: 93.48 ± 2.85
+pad: 73.46 ± 18.25
+pad_normIN: 62.64 ± 19.89
+pad_normdata: 82.27 ± 12.01
+----target, recall, fiber_blur----
+base: 67.81 ± 22.37
+normIN: 77.29 ± 8.44
+normdata: 80.42 ± 9.59
+pad: 85.17 ± 7.41
+pad_normIN: 82.71 ± 11.70
+pad_normdata: 84.48 ± 5.67
+----target, recall, fiber_sharp----
+base: 97.74 ± 1.02
+normIN: 96.83 ± 2.19
+normdata: 94.91 ± 5.96
+pad: 98.06 ± 1.29
+pad_normIN: 98.11 ± 1.53
+pad_normdata: 97.92 ± 1.22
+----target, recall, long_pellet----
+base: 85.20 ± 3.72
+normIN: 87.22 ± 6.67
+normdata: 92.48 ± 5.15
+pad: 89.44 ± 5.67
+pad_normIN: 91.90 ± 4.40
+pad_normdata: 87.16 ± 6.04
+----target, recall, mini_pellet----
+base: 89.84 ± 6.26
+normIN: 94.44 ± 4.30
+normdata: 91.56 ± 8.45
+pad: 83.00 ± 11.15
+pad_normIN: 84.44 ± 17.93
+pad_normdata: 81.75 ± 7.65
+----target, recall, noise----
+base: 99.72 ± 0.06
+normIN: 99.45 ± 0.32
+normdata: 99.49 ± 0.49
+pad: 99.63 ± 0.26
+pad_normIN: 99.68 ± 0.19
+pad_normdata: 99.49 ± 0.37
+----target, recall, phyto_dino----
 base: 0.00 ± 0.00
 normIN: 0.00 ± 0.00
 normdata: 0.00 ± 0.00
 pad: 0.00 ± 0.00
 pad_normIN: 0.00 ± 0.00
 pad_normdata: 0.00 ± 0.00
-----recall, phyto_long----
-base: 4.35 ± 9.72
-normIN: 3.77 ± 5.38
-normdata: 2.03 ± 1.94
-pad: 6.47 ± 11.16
-pad_normIN: 6.38 ± 11.98
-pad_normdata: 11.30 ± 14.83
-----recall, phyto_round----
-base: 76.97 ± 15.54
-normIN: 78.18 ± 18.97
-normdata: 76.97 ± 9.24
-pad: 81.62 ± 9.05
-pad_normIN: 80.00 ± 5.91
-pad_normdata: 78.79 ± 13.03
-----recall, rhizaria----
-base: 7.62 ± 4.31
-normIN: 9.89 ± 7.03
-normdata: 12.95 ± 5.95
-pad: 17.13 ± 16.60
-pad_normIN: 12.10 ± 17.89
-pad_normdata: 11.46 ± 9.38
-----recall, salp_pellet----
-base: 1.18 ± 2.63
-normIN: 2.35 ± 5.26
-normdata: 4.12 ± 3.35
-pad: 0.00 ± 0.00
-pad_normIN: 0.00 ± 0.00
+----target, recall, phyto_long----
+base: 3.48 ± 4.42
+normIN: 8.99 ± 12.40
+normdata: 6.67 ± 12.53
+pad: 2.03 ± 6.36
+pad_normIN: 5.80 ± 10.70
 pad_normdata: 0.00 ± 0.00
-----recall, short_pellet----
-base: 57.04 ± 13.74
-normIN: 54.63 ± 7.27
-normdata: 58.70 ± 11.37
-pad: 71.02 ± 10.02
-pad_normIN: 74.81 ± 14.39
-pad_normdata: 66.11 ± 8.40
-----recall, swimmer----
-base: 54.93 ± 8.28
-normIN: 45.50 ± 8.93
-normdata: 66.04 ± 3.31
-pad: 69.47 ± 12.37
-pad_normIN: 68.95 ± 17.99
-pad_normdata: 69.49 ± 7.05
-----recall, macro avg----
-base: 59.09 ± 3.38
-normIN: 59.74 ± 2.17
-normdata: 60.87 ± 0.80
-pad: 62.12 ± 2.94
-pad_normIN: 61.85 ± 4.73
-pad_normdata: 62.31 ± 1.78
-----recall, weighted avg----
-base: 79.96 ± 3.39
-normIN: 79.00 ± 1.78
-normdata: 82.56 ± 2.33
-pad: 84.57 ± 2.33
-pad_normIN: 84.53 ± 3.65
-pad_normdata: 84.76 ± 1.67
-********TEST********
-----precision, aggregate----
-base: 98.11 ± 0.74
-normIN: 98.27 ± 0.90
-normdata: 98.35 ± 0.71
-pad: 98.27 ± 0.72
-pad_normIN: 98.10 ± 0.76
-pad_normdata: 98.53 ± 0.29
-----precision, bubble----
-base: 96.00 ± 8.94
+----target, recall, phyto_round----
+base: 73.33 ± 27.64
+normIN: 82.42 ± 15.36
+normdata: 83.03 ± 5.50
+pad: 75.76 ± 18.72
+pad_normIN: 78.18 ± 14.60
+pad_normdata: 71.52 ± 27.32
+----target, recall, rhizaria----
+base: 9.68 ± 7.46
+normIN: 8.83 ± 8.42
+normdata: 11.03 ± 4.50
+pad: 16.70 ± 11.75
+pad_normIN: 18.58 ± 13.71
+pad_normdata: 16.51 ± 14.51
+----target, recall, salp_pellet----
+base: 2.35 ± 3.22
+normIN: 2.35 ± 3.83
+normdata: 3.53 ± 5.26
+pad: 0.20 ± 0.76
+pad_normIN: 0.00 ± 0.00
+pad_normdata: 0.59 ± 1.32
+----target, recall, short_pellet----
+base: 55.74 ± 11.07
+normIN: 50.83 ± 14.41
+normdata: 62.96 ± 5.45
+pad: 74.91 ± 9.39
+pad_normIN: 75.83 ± 10.75
+pad_normdata: 74.17 ± 12.27
+----target, recall, swimmer----
+base: 58.34 ± 11.63
+normIN: 52.84 ± 6.64
+normdata: 54.25 ± 11.67
+pad: 70.67 ± 15.72
+pad_normIN: 69.74 ± 21.42
+pad_normdata: 76.94 ± 3.10
+----target, recall, macro avg----
+base: 58.69 ± 6.65
+normIN: 60.44 ± 1.86
+normdata: 62.20 ± 1.73
+pad: 61.70 ± 2.10
+pad_normIN: 61.61 ± 2.41
+pad_normdata: 62.08 ± 1.56
+----target, recall, weighted avg----
+base: 80.35 ± 4.48
+normIN: 80.78 ± 2.50
+normdata: 82.60 ± 1.94
+pad: 84.32 ± 3.35
+pad_normIN: 84.37 ± 3.77
+pad_normdata: 85.82 ± 1.91
+----test, precision, aggregate----
+base: 98.08 ± 0.62
+normIN: 98.38 ± 0.66
+normdata: 98.17 ± 0.55
+pad: 98.33 ± 0.45
+pad_normIN: 98.42 ± 0.24
+pad_normdata: 98.22 ± 0.66
+----test, precision, bubble----
+base: 100.00 ± 0.00
 normIN: 96.00 ± 8.94
 normdata: 100.00 ± 0.00
-pad: 93.56 ± 14.28
-pad_normIN: 88.67 ± 17.58
-pad_normdata: 100.00 ± 0.00
-----precision, fiber_blur----
-base: 94.66 ± 9.28
-normIN: 91.93 ± 11.82
-normdata: 92.81 ± 7.57
-pad: 91.08 ± 8.45
-pad_normIN: 86.24 ± 8.67
-pad_normdata: 94.78 ± 6.13
-----precision, fiber_sharp----
-base: 91.23 ± 3.66
-normIN: 92.24 ± 3.82
-normdata: 93.65 ± 1.38
-pad: 94.18 ± 1.99
-pad_normIN: 94.49 ± 2.62
-pad_normdata: 92.84 ± 0.69
-----precision, long_pellet----
-base: 90.18 ± 2.69
-normIN: 91.84 ± 5.93
-normdata: 93.56 ± 2.12
-pad: 94.13 ± 2.56
-pad_normIN: 94.91 ± 2.96
-pad_normdata: 94.15 ± 3.19
-----precision, mini_pellet----
-base: 82.19 ± 5.66
-normIN: 79.05 ± 8.00
-normdata: 78.21 ± 11.01
-pad: 81.40 ± 6.99
-pad_normIN: 83.88 ± 2.72
-pad_normdata: 79.63 ± 10.70
-----precision, noise----
-base: 99.79 ± 0.13
-normIN: 99.74 ± 0.10
-normdata: 99.80 ± 0.08
-pad: 99.80 ± 0.10
-pad_normIN: 99.81 ± 0.13
-pad_normdata: 99.82 ± 0.08
-----precision, phyto_dino----
-base: 60.00 ± 54.77
-normIN: 80.00 ± 44.72
+pad: 92.00 ± 25.97
+pad_normIN: 80.00 ± 44.72
+pad_normdata: 96.00 ± 8.94
+----test, precision, fiber_blur----
+base: 86.58 ± 14.06
+normIN: 93.42 ± 1.93
+normdata: 90.73 ± 6.79
+pad: 89.30 ± 8.53
+pad_normIN: 87.95 ± 6.92
+pad_normdata: 88.58 ± 12.80
+----test, precision, fiber_sharp----
+base: 91.43 ± 5.90
+normIN: 93.69 ± 2.74
+normdata: 93.68 ± 3.10
+pad: 94.85 ± 2.02
+pad_normIN: 94.34 ± 2.01
+pad_normdata: 94.89 ± 2.85
+----test, precision, long_pellet----
+base: 93.15 ± 2.80
+normIN: 92.19 ± 2.17
+normdata: 93.63 ± 4.81
+pad: 93.48 ± 2.93
+pad_normIN: 94.48 ± 2.13
+pad_normdata: 94.92 ± 1.20
+----test, precision, mini_pellet----
+base: 80.70 ± 4.78
+normIN: 73.88 ± 2.34
+normdata: 80.70 ± 6.68
+pad: 86.15 ± 4.98
+pad_normIN: 84.67 ± 6.83
+pad_normdata: 84.17 ± 3.09
+----test, precision, noise----
+base: 99.77 ± 0.08
+normIN: 99.81 ± 0.07
+normdata: 99.74 ± 0.07
+pad: 99.77 ± 0.10
+pad_normIN: 99.78 ± 0.08
+pad_normdata: 99.83 ± 0.06
+----test, precision, phyto_dino----
+base: 80.00 ± 44.72
+normIN: 73.33 ± 43.46
 normdata: 100.00 ± 0.00
-pad: 33.33 ± 48.80
-pad_normIN: 40.00 ± 54.77
-pad_normdata: 60.00 ± 54.77
-----precision, phyto_long----
-base: 0.00 ± 0.00
-normIN: 20.00 ± 44.72
-normdata: 0.00 ± 0.00
+pad: 46.67 ± 51.64
+pad_normIN: 20.00 ± 44.72
+pad_normdata: 80.00 ± 44.72
+----test, precision, phyto_long----
+base: 20.00 ± 44.72
+normIN: 10.00 ± 22.36
+normdata: 6.67 ± 14.91
 pad: 3.33 ± 12.91
 pad_normIN: 10.00 ± 22.36
 pad_normdata: 0.00 ± 0.00
-----precision, phyto_round----
+----test, precision, phyto_round----
 base: 100.00 ± 0.00
-normIN: 88.29 ± 12.87
-normdata: 94.36 ± 8.24
-pad: 90.80 ± 9.74
-pad_normIN: 84.55 ± 12.74
-pad_normdata: 94.92 ± 7.05
-----precision, rhizaria----
-base: 92.00 ± 17.89
-normIN: 63.33 ± 41.50
-normdata: 95.00 ± 11.18
-pad: 62.81 ± 42.94
-pad_normIN: 60.00 ± 54.77
-pad_normdata: 70.00 ± 44.72
-----precision, salp_pellet----
+normIN: 95.78 ± 5.79
+normdata: 95.78 ± 5.79
+pad: 89.88 ± 10.53
+pad_normIN: 83.36 ± 12.23
+pad_normdata: 95.28 ± 6.48
+----test, precision, rhizaria----
+base: 100.00 ± 0.00
+normIN: 85.33 ± 20.22
+normdata: 93.33 ± 14.91
+pad: 61.44 ± 37.07
+pad_normIN: 57.33 ± 36.09
+pad_normdata: 60.00 ± 41.83
+----test, precision, salp_pellet----
 base: 0.00 ± 0.00
 normIN: 0.00 ± 0.00
-normdata: 5.00 ± 11.18
+normdata: 0.00 ± 0.00
 pad: 0.00 ± 0.00
 pad_normIN: 0.00 ± 0.00
 pad_normdata: 0.00 ± 0.00
-----precision, short_pellet----
-base: 89.63 ± 5.48
-normIN: 85.83 ± 2.99
-normdata: 90.10 ± 3.46
-pad: 92.02 ± 5.56
-pad_normIN: 91.79 ± 6.81
-pad_normdata: 93.02 ± 6.37
-----precision, swimmer----
-base: 91.94 ± 5.89
-normIN: 95.47 ± 3.59
-normdata: 90.58 ± 6.29
-pad: 90.10 ± 5.56
-pad_normIN: 89.69 ± 4.62
-pad_normdata: 92.89 ± 4.85
-----precision, macro avg----
-base: 77.55 ± 6.44
-normIN: 77.28 ± 8.47
-normdata: 80.82 ± 1.77
-pad: 73.20 ± 6.72
-pad_normIN: 73.01 ± 9.57
-pad_normdata: 76.47 ± 5.96
-----precision, weighted avg----
-base: 97.91 ± 0.51
-normIN: 97.96 ± 0.29
-normdata: 98.17 ± 0.21
-pad: 98.14 ± 0.32
-pad_normIN: 98.09 ± 0.41
-pad_normdata: 98.33 ± 0.19
-----recall, aggregate----
-base: 98.90 ± 0.47
-normIN: 98.77 ± 0.83
-normdata: 99.01 ± 0.16
-pad: 99.11 ± 0.34
-pad_normIN: 99.20 ± 0.29
-pad_normdata: 99.20 ± 0.36
-----recall, bubble----
-base: 76.00 ± 8.94
-normIN: 80.00 ± 0.00
-normdata: 68.00 ± 17.89
-pad: 60.00 ± 22.68
-pad_normIN: 52.00 ± 30.33
-pad_normdata: 72.00 ± 17.89
-----recall, fiber_blur----
-base: 84.44 ± 14.91
-normIN: 94.44 ± 5.56
-normdata: 91.11 ± 6.33
-pad: 93.33 ± 4.30
-pad_normIN: 93.33 ± 6.09
-pad_normdata: 94.44 ± 0.00
-----recall, fiber_sharp----
-base: 97.84 ± 2.89
-normIN: 97.84 ± 1.75
-normdata: 97.65 ± 2.56
-pad: 97.12 ± 2.47
-pad_normIN: 96.08 ± 2.59
-pad_normdata: 99.02 ± 0.69
-----recall, long_pellet----
-base: 92.72 ± 1.86
-normIN: 91.56 ± 4.18
-normdata: 91.45 ± 1.80
-pad: 90.83 ± 2.09
-pad_normIN: 90.64 ± 2.22
-pad_normdata: 91.10 ± 2.37
-----recall, mini_pellet----
-base: 83.53 ± 10.10
-normIN: 87.65 ± 7.02
-normdata: 90.59 ± 6.38
-pad: 91.37 ± 7.16
-pad_normIN: 91.18 ± 2.08
-pad_normdata: 91.18 ± 10.40
-----recall, noise----
-base: 99.92 ± 0.12
-normIN: 99.82 ± 0.35
-normdata: 99.88 ± 0.15
-pad: 99.92 ± 0.06
-pad_normIN: 99.90 ± 0.08
-pad_normdata: 99.95 ± 0.04
-----recall, phyto_dino----
-base: 40.00 ± 41.83
-normIN: 60.00 ± 41.83
-normdata: 90.00 ± 22.36
-pad: 23.33 ± 37.16
-pad_normIN: 20.00 ± 27.39
-pad_normdata: 50.00 ± 50.00
-----recall, phyto_long----
-base: 0.00 ± 0.00
+----test, precision, short_pellet----
+base: 91.18 ± 3.77
+normIN: 92.82 ± 4.61
+normdata: 91.68 ± 4.36
+pad: 93.65 ± 3.78
+pad_normIN: 92.53 ± 4.77
+pad_normdata: 93.93 ± 2.81
+----test, precision, swimmer----
+base: 93.35 ± 4.67
+normIN: 93.07 ± 4.50
+normdata: 95.53 ± 3.09
+pad: 90.48 ± 6.09
+pad_normIN: 92.03 ± 5.61
+pad_normdata: 87.16 ± 6.90
+----test, precision, macro avg----
+base: 81.02 ± 4.54
+normIN: 78.41 ± 4.89
+normdata: 81.40 ± 0.76
+pad: 74.24 ± 6.75
+pad_normIN: 71.07 ± 9.87
+pad_normdata: 76.64 ± 5.66
+----test, precision, weighted avg----
+base: 98.05 ± 0.25
+normIN: 98.17 ± 0.19
+normdata: 98.21 ± 0.17
+pad: 98.21 ± 0.18
+pad_normIN: 98.22 ± 0.20
+pad_normdata: 98.22 ± 0.11
+----test, recall, aggregate----
+base: 99.16 ± 0.29
+normIN: 98.93 ± 0.31
+normdata: 99.17 ± 0.37
+pad: 99.16 ± 0.31
+pad_normIN: 99.19 ± 0.22
+pad_normdata: 99.20 ± 0.40
+----test, recall, bubble----
+base: 80.00 ± 24.49
+normIN: 76.00 ± 21.91
+normdata: 84.00 ± 8.94
+pad: 57.33 ± 28.15
+pad_normIN: 48.00 ± 30.33
+pad_normdata: 60.00 ± 24.49
+----test, recall, fiber_blur----
+base: 85.56 ± 23.44
+normIN: 93.33 ± 6.09
+normdata: 90.00 ± 7.24
+pad: 91.85 ± 5.09
+pad_normIN: 91.11 ± 6.33
+pad_normdata: 93.33 ± 4.65
+----test, recall, fiber_sharp----
+base: 97.25 ± 2.72
+normIN: 97.84 ± 1.28
+normdata: 96.67 ± 3.22
+pad: 96.47 ± 1.73
+pad_normIN: 97.25 ± 1.75
+pad_normdata: 96.47 ± 1.78
+----test, recall, long_pellet----
+base: 89.48 ± 2.87
+normIN: 92.83 ± 3.34
+normdata: 91.79 ± 4.81
+pad: 91.87 ± 2.60
+pad_normIN: 91.68 ± 2.54
+pad_normdata: 90.40 ± 2.91
+----test, recall, mini_pellet----
+base: 87.06 ± 2.63
+normIN: 89.41 ± 5.34
+normdata: 90.00 ± 7.38
+pad: 90.00 ± 8.15
+pad_normIN: 90.00 ± 11.50
+pad_normdata: 90.00 ± 7.38
+----test, recall, noise----
+base: 99.90 ± 0.06
+normIN: 99.93 ± 0.07
+normdata: 99.96 ± 0.04
+pad: 99.95 ± 0.06
+pad_normIN: 99.94 ± 0.04
+pad_normdata: 99.93 ± 0.08
+----test, recall, phyto_dino----
+base: 60.00 ± 41.83
+normIN: 70.00 ± 44.72
+normdata: 70.00 ± 27.39
+pad: 26.67 ± 32.00
+pad_normIN: 10.00 ± 22.36
+pad_normdata: 50.00 ± 35.36
+----test, recall, phyto_long----
+base: 20.00 ± 44.72
 normIN: 20.00 ± 44.72
-normdata: 0.00 ± 0.00
+normdata: 20.00 ± 44.72
 pad: 6.67 ± 25.82
 pad_normIN: 20.00 ± 44.72
 pad_normdata: 0.00 ± 0.00
-----recall, phyto_round----
-base: 88.00 ± 4.47
-normIN: 84.00 ± 11.40
-normdata: 82.00 ± 13.04
-pad: 78.67 ± 11.87
-pad_normIN: 82.00 ± 8.37
-pad_normdata: 82.00 ± 13.04
-----recall, rhizaria----
-base: 50.00 ± 17.68
-normIN: 50.00 ± 30.62
-normdata: 70.00 ± 11.18
-pad: 48.33 ± 34.68
-pad_normIN: 35.00 ± 33.54
+----test, recall, phyto_round----
+base: 88.00 ± 16.43
+normIN: 84.00 ± 8.94
+normdata: 82.00 ± 8.37
+pad: 74.00 ± 15.95
+pad_normIN: 80.00 ± 7.07
+pad_normdata: 66.00 ± 15.17
+----test, recall, rhizaria----
+base: 45.00 ± 20.92
+normIN: 55.00 ± 20.92
+normdata: 50.00 ± 0.00
+pad: 50.00 ± 31.34
+pad_normIN: 55.00 ± 32.60
 pad_normdata: 45.00 ± 32.60
-----recall, salp_pellet----
+----test, recall, salp_pellet----
 base: 0.00 ± 0.00
 normIN: 0.00 ± 0.00
-normdata: 10.00 ± 22.36
+normdata: 0.00 ± 0.00
 pad: 0.00 ± 0.00
 pad_normIN: 0.00 ± 0.00
 pad_normdata: 0.00 ± 0.00
-----recall, short_pellet----
-base: 74.86 ± 14.57
-normIN: 82.43 ± 7.82
-normdata: 77.84 ± 8.99
-pad: 85.77 ± 6.17
-pad_normIN: 83.78 ± 9.31
-pad_normdata: 86.22 ± 5.00
-----recall, swimmer----
-base: 82.43 ± 5.81
-normIN: 78.38 ± 9.51
-normdata: 86.22 ± 3.63
-pad: 82.70 ± 8.41
-pad_normIN: 83.51 ± 9.23
-pad_normdata: 83.51 ± 6.07
-----recall, macro avg----
-base: 69.19 ± 5.76
-normIN: 73.21 ± 5.74
-normdata: 75.27 ± 4.06
-pad: 68.37 ± 6.21
-pad_normIN: 67.62 ± 8.58
-pad_normdata: 70.97 ± 5.87
-----recall, weighted avg----
-base: 97.99 ± 0.48
-normIN: 97.99 ± 0.31
-normdata: 98.18 ± 0.20
-pad: 98.22 ± 0.28
-pad_normIN: 98.18 ± 0.32
-pad_normdata: 98.39 ± 0.19
+----test, recall, short_pellet----
+base: 79.73 ± 5.32
+normIN: 78.11 ± 5.00
+normdata: 80.27 ± 3.89
+pad: 86.22 ± 5.60
+pad_normIN: 87.03 ± 3.89
+pad_normdata: 85.95 ± 5.46
+----test, recall, swimmer----
+base: 83.78 ± 6.04
+normIN: 84.32 ± 5.46
+normdata: 82.70 ± 5.27
+pad: 84.14 ± 6.97
+pad_normIN: 84.86 ± 6.51
+pad_normdata: 86.22 ± 5.18
+----test, recall, macro avg----
+base: 72.49 ± 5.30
+normIN: 74.26 ± 6.90
+normdata: 74.04 ± 4.22
+pad: 68.17 ± 5.31
+pad_normIN: 68.15 ± 7.14
+pad_normdata: 68.75 ± 4.43
+----test, recall, weighted avg----
+base: 98.09 ± 0.29
+normIN: 98.20 ± 0.14
+normdata: 98.24 ± 0.16
+pad: 98.29 ± 0.15
+pad_normIN: 98.34 ± 0.12
+pad_normdata: 98.26 ± 0.07
 (mpic) vinicius@sara3-0:~/mpic/scripts$ 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  "sara3-0" 19:56 14-Sep-23
