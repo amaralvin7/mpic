@@ -1,12 +1,12 @@
 import os
 import sys
 
-import cartopy
+# import cartopy
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
-import seaborn as sns
+# import seaborn as sns
 import torch
 import yaml
 from itertools import product
@@ -990,7 +990,7 @@ if __name__ == '__main__':
     radish = '#CC79A7'
     white = '#FFFFFF'
 
-    out_form = 'pdf'
+    out_form = 'png'
 
     # cfg = yaml.safe_load(open('../config.yaml', 'r'))
 
@@ -1000,4 +1000,4 @@ if __name__ == '__main__':
     # compare_accuracies()
     # trainval_confusion()
     # softmax_histograms(cfg)
-    training_plots()
+    # training_plots()

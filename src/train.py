@@ -1,7 +1,7 @@
 import copy
 import os
 
-from comet_ml import Experiment
+# from comet_ml import Experiment
 import torch
 import yaml
 from itertools import product
@@ -9,7 +9,7 @@ from itertools import product
 import src.dataset as dataset
 import src.tools as tools
 from src.model import initialize_model
-from src.priv import comet_key
+# from src.priv import comet_key
 
 
 def training_epoch(device, dataloader, model, optimizer, criterion, update):
