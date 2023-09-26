@@ -217,6 +217,6 @@ if __name__ == '__main__':
 
     write_splits(df, 'splits.json', 0.8, True)
 
-    train_fps = compile_filepaths(cfg, cfg['train_domains'], split='train')
-    for pad in (True, False):
-        calculate_data_stats(cfg, train_fps, pad)
+    # train_fps = compile_filepaths(cfg, cfg['train_domains'], split='train')
+    # for pad in (True, False):
+    #     calculate_data_stats(cfg, train_fps, pad)

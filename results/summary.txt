@@ -1,1 +1,1 @@
-Comparing three orders of magnitude for the learning rate. High LR seems to be worse, Low LR is comparable to base. Keep base (default for AdamW).
+Redoing preprocessing experiments after migrating to deeprip (did not see reproducibility with cv4e machine). Takeaway is still the same, no preprocessing shows clear improvement compared to the base model.

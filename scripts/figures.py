@@ -990,7 +990,7 @@ if __name__ == '__main__':
     radish = '#CC79A7'
     white = '#FFFFFF'
 
-    out_form = 'png'
+    out_form = 'pdf'
 
     # cfg = yaml.safe_load(open('../config.yaml', 'r'))
 
@@ -1000,4 +1000,4 @@ if __name__ == '__main__':
     # compare_accuracies()
     # trainval_confusion()
     # softmax_histograms(cfg)
-    # training_plots()
+    training_plots()

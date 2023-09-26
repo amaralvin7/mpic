@@ -13,7 +13,7 @@ def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
 
@@ -42,6 +42,6 @@ def load_json(filename):
 
 def load_metadata():
 
-    df = pd.read_csv('../../../../../mnt/ssd-cluster/vinicius/metadata.csv')
+    df = pd.read_csv('../../mpic_data/metadata.csv')
     
     return df

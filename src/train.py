@@ -3,6 +3,7 @@ import os
 
 # from comet_ml import Experiment
 import torch
+import numpy as np
 import yaml
 from itertools import product
 
@@ -133,7 +134,7 @@ def train_model(cfg, exp_id, log=False):
 if __name__ == '__main__':
 
     replicates = 5
-    cfgs = [c for c in os.listdir('../configs') if '.yaml' in c]
+    cfgs = sorted([c for c in os.listdir('../configs') if '.yaml' in c])
     for cfg_fn, replicate in product(cfgs, range(replicates)):
         cfg = yaml.safe_load(open(f'../configs/{cfg_fn}', 'r'))
         tools.set_seed(replicate)
