@@ -1,13 +1,13 @@
 device: 'cuda'
 input_size: 224
 batch_size: 1024
-mean: [0.279, 0.304, 0.294]
-std: [0.097, 0.102, 0.095]
+mean: null
+std: null
 pad: False
 max_epochs: 100
 patience: 10
 n_workers: 4
-learning_rate: 0.001
+learning_rate: 0.01
 weight_decay: 0.01
 data_dir: '../../mpic_data/imgs'
 splits_fname: splits.json

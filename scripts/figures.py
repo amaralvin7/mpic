@@ -1,12 +1,12 @@
 import os
 import sys
 
-# import cartopy
+import cartopy
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
-# import seaborn as sns
+import seaborn as sns
 import torch
 import yaml
 from itertools import product
@@ -740,7 +740,7 @@ def compare_accuracies():
 
 def print_image_counts():
 
-    metadata = tools.load_metadata(cfg)
+    metadata = tools.load_metadata()
     for domain in metadata['domain'].unique():
         df = metadata.loc[metadata['domain'] == domain]
         labeled = df.loc[df['label'] != 'none']
@@ -807,15 +807,15 @@ def esd_by_class(cfg):
 def pad_exp_metrics():
 
     df = pd.read_csv(f'../results/pad_exp_predictions.csv')
-    labels = yaml.safe_load(open('../config.yaml', 'r'))['classes']
+    labels = yaml.safe_load(open('../base.yaml', 'r'))['classes']
 
     padTrue_cols = [c for c in df.columns if 'padTrue' in c]
     padFalse_cols = [c for c in df.columns if 'padFalse' in c]
     pred_cols = padTrue_cols + padFalse_cols
     metrics = ('precision', 'recall', 'f1-score')
     reports = {c: classification_report(df['label'], df[c], output_dict=True, zero_division=0, labels=labels) for c in pred_cols}
-    fig, axs = plt.subplots(len(metrics), len(cfg['classes']), tight_layout=True, figsize=(30,10))
-    for j, k in enumerate(cfg['classes']):
+    fig, axs = plt.subplots(len(metrics), len(labels), tight_layout=True, figsize=(30,10))
+    for j, k in enumerate(labels):
         axs[-1,j].set_xlabel(k)
         for i, m in enumerate(metrics):
             mean_padTrue = np.nanmean([reports[c][k][m] for c in padTrue_cols])
