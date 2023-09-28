@@ -1,1 +1,1 @@
-Upsample rare classes to 100, 200, and 400 instances. Seems like upsampling doensn't provide noticeable improvement.
+Ablate weight decay (three orders of magnitude). No noticeable differences, keep base.

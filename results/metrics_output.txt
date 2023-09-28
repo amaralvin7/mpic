@@ -1,322 +1,258 @@
 (mpic) vinicius@deeprip:~/mpic/scripts$ python figures.py 
 ----target, precision, aggregate----
 base: 87.63 ± 2.48
-upsample100: 88.84 ± 4.97
-upsample200: 87.20 ± 3.52
-upsample400: 83.61 ± 6.26
+highWD: 85.64 ± 2.22
+lowWD: 83.32 ± 5.50
 ----target, precision, bubble----
 base: 98.04 ± 2.13
-upsample100: 98.94 ± 0.96
-upsample200: 96.55 ± 5.73
-upsample400: 99.13 ± 0.49
+highWD: 97.14 ± 4.62
+lowWD: 99.65 ± 0.38
 ----target, precision, fiber_blur----
 base: 58.55 ± 18.66
-upsample100: 38.40 ± 18.31
-upsample200: 54.22 ± 18.26
-upsample400: 50.09 ± 11.64
+highWD: 62.20 ± 14.12
+lowWD: 61.38 ± 26.40
 ----target, precision, fiber_sharp----
 base: 66.57 ± 11.86
-upsample100: 67.22 ± 11.92
-upsample200: 56.59 ± 3.41
-upsample400: 68.22 ± 6.74
+highWD: 67.04 ± 9.87
+lowWD: 66.82 ± 11.44
 ----target, precision, long_pellet----
 base: 79.19 ± 6.88
-upsample100: 83.20 ± 4.85
-upsample200: 74.91 ± 6.80
-upsample400: 84.90 ± 5.76
+highWD: 83.17 ± 7.04
+lowWD: 81.26 ± 6.56
 ----target, precision, mini_pellet----
 base: 78.52 ± 10.31
-upsample100: 79.95 ± 5.40
-upsample200: 86.69 ± 3.14
-upsample400: 77.09 ± 7.28
+highWD: 78.97 ± 11.92
+lowWD: 73.87 ± 5.60
 ----target, precision, noise----
 base: 88.52 ± 10.18
-upsample100: 87.08 ± 6.73
-upsample200: 91.43 ± 4.09
-upsample400: 91.29 ± 5.74
+highWD: 86.29 ± 7.99
+lowWD: 82.68 ± 5.33
 ----target, precision, phyto_dino----
 base: 0.00 ± 0.00
-upsample100: 0.00 ± 0.00
-upsample200: 0.00 ± 0.00
-upsample400: 0.00 ± 0.00
+highWD: 0.00 ± 0.00
+lowWD: 0.00 ± 0.00
 ----target, precision, phyto_long----
 base: 84.17 ± 20.92
-upsample100: 58.91 ± 42.97
-upsample200: 86.90 ± 26.13
-upsample400: 90.91 ± 20.33
+highWD: 76.25 ± 43.39
+lowWD: 56.67 ± 51.88
 ----target, precision, phyto_round----
 base: 65.24 ± 22.54
-upsample100: 46.11 ± 16.23
-upsample200: 52.90 ± 24.32
-upsample400: 67.77 ± 11.77
+highWD: 52.52 ± 20.72
+lowWD: 49.79 ± 20.44
 ----target, precision, rhizaria----
 base: 91.44 ± 7.39
-upsample100: 85.09 ± 13.92
-upsample200: 95.47 ± 5.46
-upsample400: 96.22 ± 5.86
+highWD: 97.81 ± 4.89
+lowWD: 93.29 ± 11.82
 ----target, precision, salp_pellet----
 base: 40.00 ± 54.77
-upsample100: 100.00 ± 0.00
-upsample200: 80.00 ± 44.72
-upsample400: 73.33 ± 43.46
+highWD: 20.00 ± 44.72
+lowWD: 12.00 ± 26.83
 ----target, precision, short_pellet----
 base: 77.59 ± 5.26
-upsample100: 71.26 ± 11.35
-upsample200: 59.17 ± 8.93
-upsample400: 77.64 ± 9.21
+highWD: 69.07 ± 20.38
+lowWD: 71.63 ± 11.00
 ----target, precision, swimmer----
 base: 86.60 ± 4.45
-upsample100: 90.29 ± 2.55
-upsample200: 86.63 ± 1.93
-upsample400: 86.46 ± 8.06
+highWD: 88.56 ± 1.51
+lowWD: 86.45 ± 3.55
 ----target, precision, macro avg----
 base: 71.58 ± 6.18
-upsample100: 71.09 ± 3.50
-upsample200: 72.05 ± 3.39
-upsample400: 74.76 ± 5.24
+highWD: 68.91 ± 1.87
+lowWD: 65.63 ± 5.71
 ----target, precision, weighted avg----
 base: 83.80 ± 3.11
-upsample100: 84.72 ± 2.12
-upsample200: 82.87 ± 1.14
-upsample400: 83.80 ± 3.37
+highWD: 83.85 ± 2.55
+lowWD: 81.55 ± 3.27
 ----target, recall, aggregate----
 base: 92.57 ± 7.31
-upsample100: 93.52 ± 2.22
-upsample200: 94.54 ± 1.82
-upsample400: 93.91 ± 4.96
+highWD: 93.99 ± 4.29
+lowWD: 92.44 ± 2.71
 ----target, recall, bubble----
 base: 91.79 ± 2.87
-upsample100: 89.45 ± 4.00
-upsample200: 92.53 ± 3.14
-upsample400: 90.92 ± 3.60
+highWD: 90.18 ± 5.18
+lowWD: 84.03 ± 8.85
 ----target, recall, fiber_blur----
 base: 80.94 ± 10.13
-upsample100: 86.35 ± 6.44
-upsample200: 84.58 ± 10.84
-upsample400: 85.73 ± 9.98
+highWD: 77.29 ± 12.27
+lowWD: 76.56 ± 9.23
 ----target, recall, fiber_sharp----
 base: 95.92 ± 2.72
-upsample100: 94.23 ± 4.87
-upsample200: 95.43 ± 2.95
-upsample400: 94.53 ± 1.60
+highWD: 95.06 ± 2.29
+lowWD: 96.45 ± 1.03
 ----target, recall, long_pellet----
 base: 90.03 ± 5.24
-upsample100: 79.91 ± 9.31
-upsample200: 87.10 ± 4.54
-upsample400: 86.14 ± 4.17
+highWD: 89.39 ± 12.08
+lowWD: 87.64 ± 6.08
 ----target, recall, mini_pellet----
 base: 92.65 ± 6.89
-upsample100: 92.57 ± 5.13
-upsample200: 86.42 ± 4.99
-upsample400: 94.67 ± 4.77
+highWD: 82.84 ± 25.16
+lowWD: 95.56 ± 2.61
 ----target, recall, noise----
 base: 99.75 ± 0.15
-upsample100: 99.54 ± 0.29
-upsample200: 99.61 ± 0.23
-upsample400: 99.54 ± 0.32
+highWD: 99.79 ± 0.13
+lowWD: 99.77 ± 0.14
 ----target, recall, phyto_dino----
 base: 0.00 ± 0.00
-upsample100: 0.00 ± 0.00
-upsample200: 0.00 ± 0.00
-upsample400: 0.00 ± 0.00
+highWD: 0.00 ± 0.00
+lowWD: 0.00 ± 0.00
 ----target, recall, phyto_long----
 base: 16.52 ± 8.85
-upsample100: 9.86 ± 12.10
-upsample200: 17.10 ± 11.48
-upsample400: 12.75 ± 12.27
+highWD: 5.51 ± 7.56
+lowWD: 7.54 ± 10.72
 ----target, recall, phyto_round----
 base: 70.91 ± 15.98
-upsample100: 84.24 ± 15.36
-upsample200: 86.06 ± 21.28
-upsample400: 72.12 ± 24.37
+highWD: 66.06 ± 29.80
+lowWD: 78.18 ± 28.70
 ----target, recall, rhizaria----
 base: 14.95 ± 9.41
-upsample100: 25.12 ± 15.27
-upsample200: 12.38 ± 3.71
-upsample400: 12.17 ± 4.86
+highWD: 9.32 ± 7.76
+lowWD: 16.16 ± 10.65
 ----target, recall, salp_pellet----
 base: 2.35 ± 3.22
-upsample100: 5.29 ± 2.46
-upsample200: 4.71 ± 3.95
-upsample400: 11.76 ± 13.80
+highWD: 0.59 ± 1.32
+lowWD: 1.76 ± 3.95
 ----target, recall, short_pellet----
 base: 52.31 ± 7.27
-upsample100: 55.28 ± 16.01
-upsample200: 67.87 ± 10.43
-upsample400: 54.44 ± 7.38
+highWD: 55.19 ± 24.22
+lowWD: 46.85 ± 18.71
 ----target, recall, swimmer----
 base: 58.22 ± 12.98
-upsample100: 60.13 ± 10.68
-upsample200: 46.67 ± 8.63
-upsample400: 57.29 ± 18.30
+highWD: 59.32 ± 14.11
+lowWD: 50.37 ± 17.95
 ----target, recall, macro avg----
 base: 61.35 ± 1.83
-upsample100: 62.54 ± 3.48
-upsample200: 62.50 ± 2.48
-upsample400: 61.86 ± 4.60
+highWD: 58.89 ± 4.52
+lowWD: 59.52 ± 3.26
 ----target, recall, weighted avg----
 base: 81.60 ± 4.10
-upsample100: 81.10 ± 2.76
-upsample200: 79.56 ± 1.65
-upsample400: 81.33 ± 4.35
+highWD: 81.24 ± 5.32
+lowWD: 79.37 ± 4.55
 ----test, precision, aggregate----
 base: 98.44 ± 0.51
-upsample100: 98.42 ± 0.71
-upsample200: 98.58 ± 0.57
-upsample400: 98.06 ± 0.51
+highWD: 98.24 ± 0.41
+lowWD: 97.66 ± 0.98
 ----test, precision, bubble----
 base: 95.00 ± 11.18
-upsample100: 96.67 ± 7.45
-upsample200: 100.00 ± 0.00
-upsample400: 100.00 ± 0.00
+highWD: 93.33 ± 14.91
+lowWD: 96.00 ± 8.94
 ----test, precision, fiber_blur----
 base: 91.89 ± 7.62
-upsample100: 83.96 ± 6.74
-upsample200: 91.08 ± 7.46
-upsample400: 89.26 ± 8.84
+highWD: 95.56 ± 4.37
+lowWD: 95.61 ± 4.47
 ----test, precision, fiber_sharp----
 base: 93.34 ± 3.60
-upsample100: 93.37 ± 3.12
-upsample200: 94.61 ± 1.72
-upsample400: 92.20 ± 3.78
+highWD: 94.37 ± 3.28
+lowWD: 94.74 ± 2.67
 ----test, precision, long_pellet----
 base: 91.98 ± 4.08
-upsample100: 91.56 ± 5.65
-upsample200: 92.05 ± 4.49
-upsample400: 96.23 ± 1.35
+highWD: 94.32 ± 3.72
+lowWD: 95.75 ± 2.08
 ----test, precision, mini_pellet----
 base: 79.67 ± 5.30
-upsample100: 77.02 ± 7.50
-upsample200: 77.76 ± 6.83
-upsample400: 75.44 ± 6.50
+highWD: 78.60 ± 9.94
+lowWD: 77.95 ± 6.03
 ----test, precision, noise----
 base: 99.76 ± 0.16
-upsample100: 99.68 ± 0.15
-upsample200: 99.80 ± 0.10
-upsample400: 99.79 ± 0.11
+highWD: 99.72 ± 0.18
+lowWD: 99.73 ± 0.10
 ----test, precision, phyto_dino----
 base: 100.00 ± 0.00
-upsample100: 100.00 ± 0.00
-upsample200: 100.00 ± 0.00
-upsample400: 93.33 ± 14.91
+highWD: 93.33 ± 14.91
+lowWD: 80.00 ± 44.72
 ----test, precision, phyto_long----
 base: 0.00 ± 0.00
-upsample100: 22.22 ± 25.76
-upsample200: 42.86 ± 38.80
-upsample400: 33.33 ± 40.82
+highWD: 10.00 ± 22.36
+lowWD: 20.00 ± 44.72
 ----test, precision, phyto_round----
 base: 93.78 ± 5.70
-upsample100: 96.67 ± 7.45
-upsample200: 94.36 ± 8.24
-upsample400: 98.00 ± 4.47
+highWD: 100.00 ± 0.00
+lowWD: 95.78 ± 5.79
 ----test, precision, rhizaria----
 base: 80.00 ± 44.72
-upsample100: 68.67 ± 30.15
-upsample200: 95.00 ± 11.18
-upsample400: 100.00 ± 0.00
+highWD: 80.00 ± 44.72
+lowWD: 100.00 ± 0.00
 ----test, precision, salp_pellet----
 base: 0.00 ± 0.00
-upsample100: 0.00 ± 0.00
-upsample200: 0.00 ± 0.00
-upsample400: 0.00 ± 0.00
+highWD: 0.00 ± 0.00
+lowWD: 0.00 ± 0.00
 ----test, precision, short_pellet----
 base: 92.35 ± 2.71
-upsample100: 90.53 ± 5.43
-upsample200: 76.72 ± 8.22
-upsample400: 88.46 ± 7.24
+highWD: 85.25 ± 10.57
+lowWD: 89.97 ± 5.14
 ----test, precision, swimmer----
 base: 93.86 ± 7.05
-upsample100: 93.97 ± 2.00
-upsample200: 93.76 ± 5.47
-upsample400: 96.04 ± 3.96
+highWD: 94.21 ± 2.61
+lowWD: 94.96 ± 3.79
 ----test, precision, macro avg----
 base: 79.29 ± 4.47
-upsample100: 79.48 ± 2.33
-upsample200: 82.61 ± 2.82
-upsample400: 82.87 ± 4.15
+highWD: 79.78 ± 3.59
+lowWD: 81.30 ± 5.63
 ----test, precision, weighted avg----
 base: 98.20 ± 0.26
-upsample100: 98.05 ± 0.18
-upsample200: 98.04 ± 0.05
-upsample400: 98.18 ± 0.16
+highWD: 98.12 ± 0.25
+lowWD: 98.07 ± 0.28
 ----test, recall, aggregate----
 base: 98.94 ± 0.17
-upsample100: 98.73 ± 0.74
-upsample200: 98.52 ± 0.53
-upsample400: 99.22 ± 0.48
+highWD: 99.22 ± 0.36
+lowWD: 99.44 ± 0.33
 ----test, recall, bubble----
 base: 76.00 ± 8.94
-upsample100: 84.00 ± 8.94
-upsample200: 84.00 ± 8.94
-upsample400: 84.00 ± 8.94
+highWD: 76.00 ± 8.94
+lowWD: 76.00 ± 16.73
 ----test, recall, fiber_blur----
 base: 91.11 ± 4.97
-upsample100: 93.33 ± 7.24
-upsample200: 94.44 ± 3.93
-upsample400: 93.33 ± 6.09
+highWD: 88.89 ± 10.39
+lowWD: 88.89 ± 6.80
 ----test, recall, fiber_sharp----
 base: 96.27 ± 2.54
-upsample100: 94.31 ± 2.89
-upsample200: 95.49 ± 2.46
-upsample400: 97.84 ± 0.82
+highWD: 96.08 ± 2.30
+lowWD: 96.47 ± 3.71
 ----test, recall, long_pellet----
 base: 91.33 ± 2.28
-upsample100: 90.17 ± 3.61
-upsample200: 90.06 ± 2.99
-upsample400: 87.05 ± 4.83
+highWD: 89.60 ± 1.69
+lowWD: 89.60 ± 1.73
 ----test, recall, mini_pellet----
 base: 96.47 ± 4.83
-upsample100: 90.00 ± 5.73
-upsample200: 88.24 ± 8.05
-upsample400: 96.47 ± 2.46
+highWD: 86.47 ± 20.55
+lowWD: 90.00 ± 6.77
 ----test, recall, noise----
 base: 99.89 ± 0.15
-upsample100: 99.87 ± 0.15
-upsample200: 99.91 ± 0.09
-upsample400: 99.95 ± 0.06
+highWD: 99.91 ± 0.10
+lowWD: 99.94 ± 0.06
 ----test, recall, phyto_dino----
 base: 90.00 ± 22.36
-upsample100: 100.00 ± 0.00
-upsample200: 90.00 ± 22.36
-upsample400: 100.00 ± 0.00
+highWD: 90.00 ± 22.36
+lowWD: 70.00 ± 44.72
 ----test, recall, phyto_long----
 base: 0.00 ± 0.00
-upsample100: 60.00 ± 54.77
-upsample200: 80.00 ± 44.72
-upsample400: 60.00 ± 54.77
+highWD: 20.00 ± 44.72
+lowWD: 20.00 ± 44.72
 ----test, recall, phyto_round----
 base: 88.00 ± 4.47
-upsample100: 84.00 ± 13.42
-upsample200: 88.00 ± 4.47
-upsample400: 86.00 ± 8.94
+highWD: 78.00 ± 21.68
+lowWD: 84.00 ± 5.48
 ----test, recall, rhizaria----
 base: 50.00 ± 30.62
-upsample100: 55.00 ± 20.92
-upsample200: 55.00 ± 11.18
-upsample400: 50.00 ± 0.00
+highWD: 45.00 ± 27.39
+lowWD: 40.00 ± 13.69
 ----test, recall, salp_pellet----
 base: 0.00 ± 0.00
-upsample100: 0.00 ± 0.00
-upsample200: 0.00 ± 0.00
-upsample400: 0.00 ± 0.00
+highWD: 0.00 ± 0.00
+lowWD: 0.00 ± 0.00
 ----test, recall, short_pellet----
 base: 82.43 ± 5.49
-upsample100: 81.08 ± 8.76
-upsample200: 85.41 ± 8.62
-upsample400: 79.73 ± 2.70
+highWD: 81.08 ± 8.49
+lowWD: 76.49 ± 10.00
 ----test, recall, swimmer----
 base: 85.14 ± 6.96
-upsample100: 82.97 ± 5.86
-upsample200: 79.19 ± 9.58
-upsample400: 80.54 ± 4.01
+highWD: 84.86 ± 7.11
+lowWD: 80.81 ± 7.96
 ----test, recall, macro avg----
 base: 74.68 ± 4.23
-upsample100: 79.53 ± 5.46
-upsample200: 80.59 ± 4.06
-upsample400: 79.58 ± 4.32
+highWD: 73.94 ± 4.09
+lowWD: 72.26 ± 5.21
 ----test, recall, weighted avg----
 base: 98.23 ± 0.25
-upsample100: 97.96 ± 0.22
-upsample200: 97.93 ± 0.09
-upsample400: 98.14 ± 0.20
+highWD: 98.13 ± 0.27
+lowWD: 98.12 ± 0.27
 (mpic) vinicius@deeprip:~/mpic/scripts$ 
