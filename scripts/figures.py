@@ -20,217 +20,6 @@ import src.predict as predict
 import src.tools as tools
 
 
-def prediction_summary(cfg, prediction_results_fname):
-
-    exp_matrix = predict.get_experiment_matrix(cfg)
-    train_sizes = []
-
-    for i in exp_matrix:  # get training sizes
-        split_id = exp_matrix[i][0]
-        train_fps, _ = dataset.get_train_filepaths(cfg, split_id)
-        train_sizes.append(len(train_fps))
-
-    prediction_results = tools.load_json(os.path.join(
-        '..', 'results', prediction_results_fname))
-
-    ind = np.arange(len(prediction_results['taa']))
-    width = 0.25
-
-    fig, ax = plt.subplots(figsize=(13, 6))
-    fig.subplots_adjust(bottom=0.2, top=0.85)
-    twin1 = ax.twinx()
-
-    ta = ax.bar(ind, prediction_results['taa'],  width,
-                yerr=prediction_results['tas'], color=blue,
-                error_kw={'elinewidth': 1})
-    wf1 = ax.bar(ind + width, prediction_results['wfa'], width,
-        yerr=prediction_results['wfs'], color=green,
-        error_kw={'elinewidth': 1})
-    ts = twin1.bar(ind + width * 2, train_sizes, width, color=orange,
-                   error_kw={'elinewidth': 1})
-
-    ax.set_ylim(0.5, 1)
-    ax.set_xlabel('Experiment #')
-    ax.set_ylabel('Performance metrics')
-    twin1.set_ylabel('Train size')
-    ax.set_xticks(ind + width, exp_matrix)
-    ax.legend((ta, wf1, ts), ('test acc', 'weight f1', 'train size'), ncol=3,
-              bbox_to_anchor=(0.5,1.02), loc='lower center',
-              handletextpad=0.1, frameon=False)
-    ax.margins(x=0.01)
-    plt.savefig(os.path.join('..', 'results', 'prediction_summary.pdf'))
-    plt.close()
-
-
-def get_exp_ids(cfg):
-    
-    exp_matrix = predict.get_experiment_matrix(cfg)
-
-    ax_exp = {0: (('RR', 'RR_SR', 'RR_FK', 'RR_JC', 'RR_SR_FK', 'RR_SR_JC', 'RR_FK_JC', 'RR_SR_FK_JC'), 'RR'),
-              1: (('SR', 'RR_SR', 'SR_FK', 'SR_JC', 'RR_SR_FK', 'RR_SR_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'SR'),
-              2: (('FK', 'RR_FK', 'SR_FK', 'FK_JC', 'RR_SR_FK', 'RR_FK_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'FK'),
-              3: (('JC', 'RR_JC', 'SR_JC', 'FK_JC', 'RR_SR_JC', 'RR_FK_JC', 'SR_FK_JC', 'RR_SR_FK_JC'), 'JC'),
-              4: (('SR', 'FK', 'JC', 'SR_FK', 'SR_JC', 'FK_JC', 'SR_FK_JC'), 'RR'),
-              5: (('RR', 'FK', 'JC', 'RR_FK', 'RR_JC', 'FK_JC', 'RR_FK_JC'), 'SR'),
-              6: (('RR', 'SR', 'JC', 'RR_SR', 'RR_JC', 'SR_JC', 'RR_SR_JC'), 'FK'),
-              7: (('RR', 'SR', 'FK', 'RR_SR', 'RR_FK', 'SR_FK', 'RR_SR_FK'), 'JC')}
-    
-    exp_id_dict = {}
-
-    for i in ax_exp:
-        train_test_list = [[j, ax_exp[i][1]] for j in ax_exp[i][0]]
-        l = []
-        for j, k in product(exp_matrix, train_test_list):
-            if exp_matrix[j] == k:
-                l.append(j)
-        exp_id_dict[i] = l            
-            
-    return exp_id_dict
-
-
-def prediction_subplots_bar(cfg, prediction_results_fname):
-    
-    def get_ticklabels(exp_ids):
-        
-        labels = []
-        for i in exp_ids:
-            train_domains = exp_matrix[i][0].split('_')
-            labels.append('\n'.join(train_domains))
-
-        return labels
-    
-    exp_matrix = predict.get_experiment_matrix(cfg)
-
-    prediction_results = tools.load_json(os.path.join(
-        '..', 'results', prediction_results_fname))
-
-    ind = np.arange(len(prediction_results['taa']))
-    width = 0.4
-
-    fig, axs = plt.subplots(2, 4, figsize=(13, 6))
-    fig.subplots_adjust(left=0.08, hspace=0.5, wspace=0.1)
-    fig.supylabel('Accuracy', fontsize=14)
-    
-    exp_id_dict = get_exp_ids(cfg)
-
-    for i, ax in enumerate(axs.flatten()):
-        exp_ids = exp_id_dict[i]
-        ind = np.arange(len(exp_ids))
-        ax.set_xticks(ind + width, get_ticklabels(exp_ids))
-        ax.grid(visible=True, which='major', axis='y', zorder=1)
-        taa = [prediction_results['taa'][j] for j in exp_ids]
-        tas = [prediction_results['tas'][j] for j in exp_ids]
-        ax.bar(ind + width, taa,  width, yerr=tas, color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        ax.set_ylim((0.2, 1))
-        if i not in (0, 4):
-            ax.set_yticklabels([])
-    axs.flatten()[0].set_title('RR', fontsize=14)
-    axs.flatten()[1].set_title('SR', fontsize=14)
-    axs.flatten()[2].set_title('FK', fontsize=14)
-    axs.flatten()[3].set_title('JC', fontsize=14)
-
-    plt.savefig(os.path.join('..', 'results/prediction_subplots_bar.pdf'), bbox_inches='tight')
-    plt.close()
-    
-
-def prediction_subplots_scatter(cfg, prediction_results_fname):
-    
-    def get_df_domains(exp_ids):
-        
-        test_domain = exp_matrix[exp_ids[0]][1]
-        domains_by_exp = []
-
-        for i in exp_ids:
-            train_domains = exp_matrix[i][0].split('_')
-            domains_by_exp.append('_'.join(train_domains))
-
-        return domains_by_exp, test_domain
-    
-    exp_matrix = predict.get_experiment_matrix(cfg)
-    train_sizes = []
-    classes = cfg['ablation_classes']
-
-    for i in exp_matrix:  # get training sizes
-        split_id = exp_matrix[i][0]
-        domains = split_id.split('_')
-        train_size = 0
-        for d in domains:
-            train_fps, _ = dataset.compile_domain_filepaths(cfg, [d], classes)
-            train_size += len(train_fps)
-        train_sizes.append(train_size)
-
-    prediction_results = tools.load_json(os.path.join(
-        '..', 'results', prediction_results_fname))
-
-    exp_id_dict = get_exp_ids(cfg)
-
-    # train size
-    fig, axs = plt.subplots(2, 4, figsize=(8, 6))
-    fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
-    
-    for i, ax in enumerate(axs.flatten()):
-        exp_ids = exp_id_dict[i]     
-        taa = [prediction_results['taa'][j] for j in exp_ids]
-        tas = [prediction_results['tas'][j] for j in exp_ids]
-        ts = [train_sizes[j] for j in exp_ids]
-        ax.errorbar(ts, taa, tas, c=blue, fmt='o', ecolor=black)
-        ax.set_xlim((0, 17000))
-        if i < 4:
-            ax.set_xticklabels([])
-            ax.set_ylim((0.8, 1))
-        else:
-            ax.set_ylim((0.3, 1))
-        if i not in (0, 4):
-            ax.set_yticklabels([])
-
-    axs.flatten()[0].set_ylabel('Accuracy (in-domain)', labelpad=10)
-    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)', labelpad=10)
-    fig.text(0.5, 0.04, 'Training size', ha='center')      
-                    
-    axs.flatten()[0].set_title('RR', fontsize=14)
-    axs.flatten()[1].set_title('SR', fontsize=14)
-    axs.flatten()[2].set_title('FK', fontsize=14)
-    axs.flatten()[3].set_title('JC', fontsize=14)
-    
-    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_trainsize.pdf'), bbox_inches='tight')
-    plt.close()
-
-    # dissimilarity
-    df = distribution_heatmap(cfg, classes, 'braycurtis', False)
-    fig, axs = plt.subplots(2, 4, figsize=(8, 6))
-    fig.subplots_adjust(bottom=0.15, hspace=0.1, wspace=0.1)
-
-    for i, ax in enumerate(axs.flatten()):
-        exp_ids = exp_id_dict[i]
-        train_domains, test_domain = get_df_domains(exp_ids)
-        distances = df.loc[test_domain][train_domains]
-        taa = [prediction_results['taa'][j] for j in exp_ids]
-        tas = [prediction_results['tas'][j] for j in exp_ids]
-        ts = [train_sizes[j] for j in exp_ids]
-        ax.errorbar(distances, taa, tas, c=blue, fmt='o', ecolor=black)
-        ax.set_xlim((-0.05, 0.6))
-        if i < 4:
-            ax.set_xticklabels([])
-            ax.set_ylim((0.8, 1))
-        else:
-            ax.set_ylim((0.3, 1))
-        if i not in (0, 4):
-            ax.set_yticklabels([])
-
-    
-    axs.flatten()[0].set_ylabel('Accuracy (in-domain)', labelpad=10)
-    axs.flatten()[4].set_ylabel('Accuracy (out-of-domain)', labelpad=10)
-    fig.text(0.5, 0.04, 'Bray-Curtis dissimilarity', ha='center')
-    
-    axs.flatten()[0].set_title('RR', fontsize=14)
-    axs.flatten()[1].set_title('SR', fontsize=14)
-    axs.flatten()[2].set_title('FK', fontsize=14)
-    axs.flatten()[3].set_title('JC', fontsize=14)
-
-    plt.savefig(os.path.join('..', 'results', 'prediction_subplots_scatter_BCdis.pdf'), bbox_inches='tight')
-    plt.close()
-
-
 def training_plots():
 
     models = [f for f in os.listdir(os.path.join('..', 'results', 'weights')) if f'.pt' in f]
@@ -340,54 +129,6 @@ def distribution_barplot(cfg):
               frameon=False, handlelength=1)
         
     plt.savefig(os.path.join('..', 'results', f'distribution_barplot.pdf'), bbox_inches='tight')
-    plt.close()
-
-
-def uniform_comparison_barplots(cfg, ablation_predictions, uniform_predictions):
-
-    exp_matrix = predict.get_experiment_matrix(cfg)
-    test_domains = [exp_matrix[i][1] for i in (0, 1, 2, 3)]
-
-    train_fps, _ = dataset.compile_domain_filepaths(cfg, ('RR',), cfg['ablation_classes'])
-    nonuniform_train_size = len(train_fps)
-    
-    # find the smallest number of observations that a class has
-    train_fps_by_class = [[f for f in train_fps if c in f] for c in cfg['ablation_classes']]
-    uniform_train_size = len(min(train_fps_by_class, key=len)) * len(cfg['ablation_classes'])
-
-    a_predictions = tools.load_json(os.path.join(
-        '..', 'results', ablation_predictions))
-    u_predictions = tools.load_json(os.path.join(
-        '..', 'results', uniform_predictions))
-    
-    fig, axs = plt.subplots(1, 4, figsize=(8, 4))
-    fig.subplots_adjust(bottom=0.15, hspace=0.4, wspace=0.5)
-    width = 0.25
-    
-    ind = (0, 1)
-    for i, (ax, test_domain) in enumerate(zip(axs, test_domains)):
-        twin = ax.twinx()
-        ax.set_xticks(ind, ('NU', 'U'))
-        ax.grid(visible=True, which='major', axis='y', zorder=1)
-        ax.bar(ind[0] - 0.5*width, a_predictions['taa'][i],  width, yerr=a_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        # ax.bar(ind[0], a_predictions['wfa'][i],  width, yerr=a_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
-        twin.bar(ind[0] + 0.5*width, nonuniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
-        ta_bar_u = ax.bar(ind[1] - 0.5*width, u_predictions['taa'][i],  width, yerr=u_predictions['tas'][i], color=blue, error_kw={'elinewidth': 1}, zorder=10)
-        # wf_bar_u = ax.bar(ind[1], u_predictions['wfa'][i],  width, yerr=u_predictions['wfs'][i], color=green, error_kw={'elinewidth': 1}, zorder=10)
-        ts_bar_u = twin.bar(ind[1] + 0.5*width, uniform_train_size,  width, color=orange, error_kw={'elinewidth': 1}, zorder=10)
-        ax.set_ylim((0.4, 1))
-        twin.set_ylim((1000, 7000))
-        if i == 0:
-            twin.set_yticklabels([])
-        elif i < len(axs) - 1:
-            ax.set_yticklabels([])
-            twin.set_yticklabels([])
-        else:
-            ax.set_yticklabels([])
-        ax.set_title(test_domain, fontsize=14)
-    # fig.legend((ta_bar_u[0], wf_bar_u[0], ts_bar_u[0]), ('test acc', 'weight f1', 'train size'), loc='lower center', ncol=3, frameon=False)
-    fig.legend((ta_bar_u[0], ts_bar_u[0]), ('test acc', 'train size'), loc='lower center', ncol=3, frameon=False)
-    plt.savefig(os.path.join('..', 'results', 'uniform_comparison_barplots.pdf'))
     plt.close()
 
 
@@ -630,88 +371,6 @@ def flux_comparison_by_class():
     fig.savefig(f'../results/flux_comparison_byclass.pdf', bbox_inches='tight')
 
 
-def agreement_rates_thesis():
-    
-    def compare_cols(df, col1, col2):
-        
-        n_matches = len(df[df[col1] == df[col2]])
-        relabel_rate = n_matches / len(df) * 100
-        
-        return relabel_rate
-    
-    flux_classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
-    all_classes = flux_classes + ['fiber', 'swimmer', 'unidentifiable']
-        
-    # load df
-    df = pd.read_csv('../results/fluxes.csv', index_col=False, low_memory=False)
-    df = df.loc[df['olabel'].notnull()]
-    
-    # group model labels
-    pred_cols = [c for c in df.columns if 'pred' in c and 'group' in c]
-    
-    # Original vs. relabeled
-    relabeled = df.loc[df['relabel_group'].notnull()]
-    r = compare_cols(relabeled, 'olabel_group', 'relabel_group')
-    print(f'Original, relabeled: {r:.2f}')
-    
-    print('-----------------')
-    
-    # Unambiguous comparisons
-    unambig = df.loc[df['label'] != 'none']
-    r = compare_cols(unambig, 'olabel_group', 'label_group')
-    print(f'Original, labeled unambig: {r:.2f}')
-    
-    unambig_relabeled = unambig.loc[unambig['relabel_group'].notnull()]
-    r = compare_cols(unambig_relabeled, 'relabel_group', 'label_group')
-    print(f'Relabeled, labeled unambig: {r:.2f}')
-    
-    r = compare_cols(unambig_relabeled, 'olabel_group', 'relabel_group')
-    print(f'Original, relabeled (both unambig): {r:.2f}')
-    
-    print('-----------------')
-
-    # Ambiguous comparisons
-    ambig = df.loc[df['label'] == 'none']
-    r = []
-    for c in pred_cols:
-        r.append(compare_cols(ambig, 'olabel_group', c))
-    print(f'Original, predicted ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
-    
-    ambig_relabeled = ambig.loc[ambig['relabel_group'].notnull()]
-    r = []
-    for c in pred_cols:
-        r.append(compare_cols(ambig_relabeled, 'relabel_group', c))
-    print(f'Relabeled, predicted ambig: {np.mean(r):.2f} ± {np.std(r, ddof=1):.2f}')
-    
-    r = compare_cols(ambig_relabeled, 'olabel_group', 'relabel_group')
-    print(f'Original, relabeled (both ambig): {r:.2f}')
-    
-    print('-----------------')
-    
-    fig, axs = plt.subplots(3, 2, figsize=(16, 20))
-    fig.subplots_adjust(hspace=0.5)
-    axs = axs.flatten()
-    axs[-1].set_visible(False)
-
-    for c in pred_cols:
-        i = c.split('_')[0][-1]
-        ax = axs[int(i)]
-        t = ambig[['olabel_group', c]]
-        t = t[t.isin(flux_classes).any(axis=1)]
-        cm = ConfusionMatrixDisplay.from_predictions(t['olabel_group'], t[c], ax=ax, cmap=plt.cm.Greens, xticks_rotation=90, labels=all_classes, colorbar=False)
-        if i in ('0', '2', '4'):
-            ax.set_ylabel('Original')
-        else:
-            ax.set_ylabel('')
-        ax.set_xlabel(f'Model replicate {int(i) + 1}')
-        # https://stackoverflow.com/questions/66483409/adjust-size-of-confusionmatrixdisplay-scikitlearn
-        cax = fig.add_axes([ax.get_position().x1+0.01, ax.get_position().y0, 0.01, ax.get_position().height])
-        plt.colorbar(cm.im_,  cax=cax, ax=ax)
-        # ax.axhline(len(flux_classes) - 0.5, color=black)
-        # ax.axvline(len(flux_classes) - 0.5, color=black)
-    fig.savefig(f'../results/cmatrices.pdf', bbox_inches='tight')
-
-
 def compare_accuracies():
     
     def compare_cols(df, col1, col2):
@@ -772,6 +431,7 @@ def draw_map():
     plt.savefig('../results/map.pdf', bbox_inches='tight')
     plt.close()
 
+
 def esd_by_class(cfg):
 
     df = tools.load_metadata(cfg)[['label', 'esd', 'domain']]
@@ -800,37 +460,6 @@ def esd_by_class(cfg):
 
     plt.savefig('../runs/esd_by_class.png', bbox_inches='tight')
     plt.close()
-
-    fig.savefig(f'../results/figs/pad_exp_metrics.png')
-
-
-def pad_exp_metrics():
-
-    df = pd.read_csv(f'../results/pad_exp_predictions.csv')
-    labels = yaml.safe_load(open('../base.yaml', 'r'))['classes']
-
-    padTrue_cols = [c for c in df.columns if 'padTrue' in c]
-    padFalse_cols = [c for c in df.columns if 'padFalse' in c]
-    pred_cols = padTrue_cols + padFalse_cols
-    metrics = ('precision', 'recall', 'f1-score')
-    reports = {c: classification_report(df['label'], df[c], output_dict=True, zero_division=0, labels=labels) for c in pred_cols}
-    fig, axs = plt.subplots(len(metrics), len(labels), tight_layout=True, figsize=(30,10))
-    for j, k in enumerate(labels):
-        axs[-1,j].set_xlabel(k)
-        for i, m in enumerate(metrics):
-            mean_padTrue = np.nanmean([reports[c][k][m] for c in padTrue_cols])
-            std_padTrue = np.nanstd([reports[c][k][m] for c in padTrue_cols], ddof=1)
-            mean_padFalse = np.nanmean([reports[c][k][m] for c in padFalse_cols])
-            std_padFalse = np.nanstd([reports[c][k][m] for c in padFalse_cols], ddof=1)
-            axs[i,j].bar(0, mean_padTrue, yerr=std_padTrue, width=1, color='b', label='padTrue')
-            axs[i,j].bar(1, mean_padFalse, yerr=std_padFalse, width=1, color='orange', label='padFalse')
-            axs[i,j].set_ylim(-0.1, 1.2)
-            axs[i,j].set_xlim(-1, 2)
-            axs[i,j].set_xticks([])
-            if j == 0:
-                axs[i,j].set_ylabel(m)
-
-    axs[0,1].legend(frameon=False)
 
     fig.savefig(f'../results/figs/pad_exp_metrics.png')
 
@@ -884,21 +513,26 @@ def metrics_by_exp():
             plt.close()
 
 
-def metrics_by_class():
+def metrics():
+
+    exp_dict = {'preprocessing': ['base', 'pad', 'normdata', 'normIN', 'pad_normdata', 'pad_normIN'],
+                'learningrate': ['base', 'highLR', 'lowLR'],
+                'weightdecay': ['base', 'highWD', 'lowWD'],
+                'upsample': ['base', 'upsample100', 'upsample200', 'upsample400']}
 
     labels = yaml.safe_load(open('../configs/base.yaml', 'r'))['classes']
-    cfgs = [c for c in os.listdir('../configs') if '.yaml' in c]
-    colors = [blue, green, orange, vermillion, black, radish, sky]
-    markers = ['o', '^', '+', 's', 'd', 'x', '*']
-    cfg_names = sorted(set([c.split('.')[0] for c in cfgs]))
     y_vars = ('precision', 'recall')
     x_vars = labels + ['macro avg', 'weighted avg']
+    colors = [blue, green, orange, vermillion, black, radish, sky]
+    markers = ['o', '^', '+', 's', 'd', 'x', '*']
 
-    for s in ('target', 'test'):
+    for exp, s in product(exp_dict, ('target', 'test')):
 
-        fig , axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
+        cfg_names = sorted(exp_dict[exp])
+
+        fig, axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
         axs[-1].set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
-        prediction_files = [f for f in os.listdir('../results/predictions') if s in f]
+        prediction_files = [f for f in os.listdir('../results/predictions') if s in f and f.split('-')[0].split(f'{s}_')[1] in cfg_names]
         reports = {}
 
         for f in prediction_files:
@@ -927,7 +561,7 @@ def metrics_by_class():
             for j, x in enumerate(x_vars):
                 print(f'----{s}, {y}, {x}----')
                 for m, c in enumerate(cfg_names):
-                    keys = [k for k in reports.keys() if f'{s}_{c}' in k]
+                    keys = [k for k in reports.keys() if f'{s}_{c}-' in k]
                     y_avg = np.mean([reports[k][x][y] for k in keys])
                     y_std = np.std([reports[k][x][y] for k in keys], ddof=1)
                     axs[i].errorbar(j, y_avg, y_std, color=colors[m], ecolor=colors[m], marker=markers[m], capsize=2)
@@ -935,30 +569,11 @@ def metrics_by_class():
         
         lines = [Line2D([0], [0], color=colors[m], lw=6) for m, _ in enumerate(cfg_names)]
         axs[0].legend(lines, cfg_names, ncol=len(cfg_names), bbox_to_anchor=(0.5, 1.02), loc='lower center',
-                frameon=False, handlelength=1)        
+                frameon=False, handlelength=1)      
 
-        fig.savefig(f'../results/figs/metrics_{s}.{out_form}')
+        fig.savefig(f'../results/figs/metrics_{s}_{exp}.{out_form}')
         plt.close(fig)
 
-
-def trainval_confusion():
-
-    for split in ('train', 'val'):
-
-        df = pd.read_csv(f'../results/predictions_{split}.csv')
-
-        _, ax = plt.subplots(figsize=(8, 8))
-        ConfusionMatrixDisplay.from_predictions(
-            df['label'],
-            df[f'prediction_{split}'],
-            cmap=plt.cm.Blues,
-            normalize=None,
-            xticks_rotation='vertical',
-            values_format='.0f',
-            ax=ax)
-        plt.tight_layout()
-        plt.savefig(f'../results/figs/confusionmatrix_{split}.png')
-        plt.close()
     
 def softmax_histograms(cfg):
 
@@ -992,12 +607,8 @@ if __name__ == '__main__':
 
     out_form = 'pdf'
 
-    # cfg = yaml.safe_load(open('../config.yaml', 'r'))
-
-    # pad_exp_metrics()
-    # calculate_flux_df(cfg, domain='RR')
-    metrics_by_class()
-    # compare_accuracies()
-    # trainval_confusion()
-    # softmax_histograms(cfg)
     training_plots()
+    metrics()
+    # calculate_flux_df(cfg, domain='RR')
+    # compare_accuracies()
+    # softmax_histograms(cfg)

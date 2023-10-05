@@ -4,7 +4,6 @@ import os
 import numpy as np
 import torch
 import yaml
-from itertools import chain, combinations
 from PIL import Image
 from torchvision import transforms
 from tqdm import tqdm
@@ -116,12 +115,12 @@ def get_dataloader(cfg, filepaths, augment=False, is_labeled=True, shuffle=True)
     return dataloader
 
 
-def calculate_data_stats(cfg, filepaths, pad):
+def calculate_data_stats(cfg, filepaths):
     # calculate mean and sd of dataset
     # adapted from
     # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
 
-    print(f'Calculating data stats (pad={pad}, train_domains={cfg["train_domains"]})')
+    print(f'Calculating data stats (pad={cfg["pad"]}, train_domains={cfg["train_domains"]})')
     dataset = ParticleImages(cfg, filepaths, get_transforms(cfg))
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg['batch_size'], num_workers=cfg['n_workers'])
@@ -199,24 +198,15 @@ def compile_filepaths(cfg, domains, split):
     return fps
 
 
-def powerset(iterable):
-    """https://docs.python.org/3/library/itertools.html#itertools-recipes"""
-    s = list(iterable)
-    return list(chain.from_iterable(combinations(s, r) for r in range(1, len(s)+1)))
-
-
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', default='base.yaml')
-    args = parser.parse_args()
-    cfg = yaml.safe_load(open(f'../configs/{args.config}', 'r'))
 
     df = tools.load_metadata()
     df = df.loc[df['label'] != 'none']
 
     write_splits(df, 'splits.json', 0.8, True)
 
-    # train_fps = compile_filepaths(cfg, cfg['train_domains'], split='train')
-    # for pad in (True, False):
-    #     calculate_data_stats(cfg, train_fps, pad)
+    base_cfg = yaml.safe_load(open(f'../configs/base.yaml', 'r'))
+    pad_cfg = yaml.safe_load(open(f'../configs/pad.yaml', 'r'))
+    train_fps = compile_filepaths(base_cfg, base_cfg['train_domains'], split='train')
+    for cfg in (base_cfg, pad_cfg):
+        calculate_data_stats(cfg, train_fps)

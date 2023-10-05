@@ -1,7 +1,6 @@
 import copy
 import os
 
-# from comet_ml import Experiment
 import torch
 import numpy as np
 import yaml
@@ -10,7 +9,6 @@ from itertools import product
 import src.dataset as dataset
 import src.tools as tools
 from src.model import initialize_model
-# from src.priv import comet_key
 
 
 def training_epoch(device, dataloader, model, optimizer, criterion, update):
@@ -55,11 +53,7 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     return loss_total, acc_total
 
 
-def train_model(cfg, exp_id, log=False):
-
-    if log:
-        experiment = Experiment(api_key=comet_key, display_summary_level=0)
-        experiment.set_name(exp_id)
+def train_model(cfg, exp_id):
 
     print(f'----Training {exp_id}...')
 
@@ -105,15 +99,6 @@ def train_model(cfg, exp_id, log=False):
             esi = 0
         else:
             esi += 1
-        
-        if log:
-
-            stats = {'train_loss': train_loss,
-                    'val_loss': val_loss,
-                    'train_acc': train_acc,
-                    'val_acc': val_acc}
-            
-            experiment.log_metrics(stats, step=epoch)
 
         epoch += 1
 
