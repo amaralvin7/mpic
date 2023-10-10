@@ -20,14 +20,13 @@ import src.predict as predict
 import src.tools as tools
 
 
-def training_plots():
+def training_plots(parent_dir):
 
-    models = [f for f in os.listdir(os.path.join('..', 'results', 'weights')) if f'.pt' in f]
+    models = [f for f in os.listdir(f'../results/{parent_dir}/weights') if f'.pt' in f]
 
     for m in models:
         exp_id = m.split('.')[0]
-        model_output = torch.load(os.path.join('..', 'results', 'weights', m),
-                                  map_location='cpu')
+        model_output = torch.load(f'../results/{parent_dir}/weights/{m}', map_location='cpu')
         num_epochs = len(model_output['train_loss_hist'])
 
         plt.xlabel('Training Epochs')
@@ -37,7 +36,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_acc_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'results', 'figs', f'accuracy_{exp_id}.png'))
+        plt.savefig(f'../results/{parent_dir}/figs/accuracy_{exp_id}.png')
         plt.close()
 
         plt.xlabel('Training Epochs')
@@ -47,7 +46,7 @@ def training_plots():
         plt.plot(range(1, num_epochs + 1), model_output['val_loss_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(os.path.join('..', 'results', 'figs', f'loss_{exp_id}.png'))
+        plt.savefig(f'../results/{parent_dir}/figs/loss_{exp_id}.png')
         plt.close()
 
 
@@ -464,56 +463,7 @@ def esd_by_class(cfg):
     fig.savefig(f'../results/figs/pad_exp_metrics.png')
 
 
-def metrics_by_exp():
-
-    for split in ('test', 'val'):
-        
-        df = pd.read_csv(f'../results/predictions_{split}.csv')
-        df = df.loc[df['label'] != 'none']
-
-        color_dict = {'base': green, 'normdata': orange, 'normimagenet': blue}
-        y_vars = ('precision', 'recall', 'f1-score')
-        x_vars = ['macro avg', 'weighted avg']
-        
-        _ , axs = plt.subplots(len(y_vars), len(x_vars))
-        for k, exp in enumerate(color_dict.keys()):
-            labels = yaml.safe_load(open(f'../configs/config_{exp}.yaml', 'r'))['classes']
-            report = classification_report(df['label'], df[f'prediction_{exp}'], output_dict=True, zero_division=0, labels=labels)
-            for j, x in enumerate(x_vars):
-                axs[-1,j].set_xlabel(x)
-                for i, y in enumerate(y_vars):
-                    metric = report[x][y]
-                    axs[i,j].bar(k, metric, width=1, color=color_dict[exp])
-                    axs[i,j].set_ylim(0, 1.2)
-                    axs[i,j].set_xticks([])
-                    axs[i,j].text(k, metric, f'{metric:.2f}', ha='center', va='bottom', size=10)
-                    if j == 0:
-                        axs[i,j].set_ylabel(y)
-
-        lines = [Line2D([0], [0], color=color_dict[c], lw=6) for c in color_dict.keys()]
-        axs[0][1].legend(lines, color_dict.keys(), ncol=6, bbox_to_anchor=(0, 1.02), loc='lower center',
-                frameon=False, handlelength=1)
-
-        plt.savefig(f'../results/figs/metrics_{split}.png')
-        plt.close()
-
-        for exp in color_dict.keys():
-            _, ax = plt.subplots(figsize=(8, 8))
-            ConfusionMatrixDisplay.from_predictions(
-                df['label'],
-                df[f'prediction_{exp}'],
-                cmap=plt.cm.Blues,
-                normalize=None,
-                xticks_rotation='vertical',
-                values_format='.0f',
-                ax=ax)
-            ax.set_title('Perfect labels vs. predictions')
-            plt.tight_layout()
-            plt.savefig(f'../results/figs/confusionmatrix_{exp}_{split}.png')
-            plt.close()
-
-
-def metrics():
+def metrics(parent_dir):
 
     exp_dict = {'preprocessing': ['base', 'pad', 'normdata', 'normIN', 'pad_normdata', 'pad_normIN'],
                 'learningrate': ['base', 'highLR', 'lowLR'],
@@ -532,11 +482,11 @@ def metrics():
 
         fig, axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
         axs[-1].set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
-        prediction_files = [f for f in os.listdir('../results/predictions') if s in f and f.split('-')[0].split(f'{s}_')[1] in cfg_names]
+        prediction_files = [f for f in os.listdir(f'../results/{parent_dir}/predictions') if s in f and f.split('-')[0].split(f'{s}_')[1] in cfg_names]
         reports = {}
 
         for f in prediction_files:
-            df = pd.read_csv(f'../results/predictions/{f}')
+            df = pd.read_csv(f'../results/{parent_dir}/predictions/{f}')
             df['label'] = df['filepath'].apply(lambda x: x.split('/')[0])
             cm, ax = plt.subplots(figsize=(8, 8), tight_layout=True)
             ConfusionMatrixDisplay.from_predictions(
@@ -548,7 +498,7 @@ def metrics():
                 values_format='.0f',
                 ax=ax,
                 labels=labels)
-            cm.savefig(f'../results/figs/cmatrix_{f.split(".")[0]}.png')
+            cm.savefig(f'../results/{parent_dir}/figs/cmatrix_{f.split(".")[0]}.png')
             plt.close(cm)
             reports[f] = classification_report(
                 df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
@@ -571,7 +521,7 @@ def metrics():
         axs[0].legend(lines, cfg_names, ncol=len(cfg_names), bbox_to_anchor=(0.5, 1.02), loc='lower center',
                 frameon=False, handlelength=1)      
 
-        fig.savefig(f'../results/figs/metrics_{s}_{exp}.{out_form}')
+        fig.savefig(f'../results/{parent_dir}/figs/metrics_{s}_{exp}.pdf')
         plt.close(fig)
 
     
@@ -607,8 +557,8 @@ if __name__ == '__main__':
 
     out_form = 'pdf'
 
-    training_plots()
-    metrics()
+    training_plots('hptune')
+    metrics('hptune')
     # calculate_flux_df(cfg, domain='RR')
     # compare_accuracies()
     # softmax_histograms(cfg)

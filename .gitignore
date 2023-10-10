@@ -9,6 +9,7 @@ ehthumbs.db
 Thumbs.db
 __pycache__/
 
-*/figs
-*/weights
-*/predictions
+*.png
+*.pdf
+*.csv
+*.pt

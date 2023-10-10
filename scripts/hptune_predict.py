@@ -7,7 +7,7 @@ from itertools import product
 import src.dataset as dataset
 import src.predict as predict
 
-models = [m for m in os.listdir('../results/weights/') if '.pt' in m]
+models = [m for m in os.listdir('../results/hptune/weights/') if '.pt' in m]
 
 for split, m in product(('test', 'target'), models):
 
@@ -32,13 +32,5 @@ for split, m in product(('test', 'target'), models):
         df[f'{loader.dataset.idx_to_class[i]}'] = y_scores[:,i]
         
     df.set_index('filepath', inplace=True)
-    df.to_csv(f'../results/predictions/{split}_{exp_id}.csv')
-
-    # merged = pd.concat(df_list, axis=1)
-    # merged['filepath'] = merged.index.to_series()
-    # merged['filename'] = merged['filepath'].apply(lambda x: os.path.basename(x))
-    # merged['label'] = merged['filepath'].apply(lambda x: os.path.basename(os.path.split(x)[0]))
-    # merged.set_index('filename', inplace=True)
-    # merged.drop('filepath', axis=1, inplace=True)
+    df.to_csv(f'../results/hptune/predictions/{split}_{exp_id}.csv')
     
-

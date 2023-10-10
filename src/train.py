@@ -2,9 +2,6 @@ import copy
 import os
 
 import torch
-import numpy as np
-import yaml
-from itertools import product
 
 import src.dataset as dataset
 import src.tools as tools
@@ -114,15 +111,4 @@ def train_model(cfg, exp_id):
               'weights': best_weights}
 
     torch.save(output, os.path.join('..', 'results', 'weights', f'{exp_id}.pt'))
-
-
-if __name__ == '__main__':
-
-    replicates = 5
-    cfgs = sorted([c for c in os.listdir('../configs') if '.yaml' in c])
-    for cfg_fn, replicate in product(cfgs, range(replicates)):
-        cfg = yaml.safe_load(open(f'../configs/{cfg_fn}', 'r'))
-        tools.set_seed(replicate)
-        exp_id = f'{cfg_fn.split(".")[0]}-{replicate}'
-        train_model(cfg, exp_id)
     
