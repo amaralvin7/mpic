@@ -19,7 +19,7 @@ pip install -e .
 1. Train model ensembles:
 ```
 cd scripts
-python hptune_train.py
+python train_ensembles -c hptune
 ```
 
 2. Evaluate the trained models:

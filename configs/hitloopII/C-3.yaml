@@ -1,16 +1,15 @@
 device: 'cuda'
 input_size: 224
 batch_size: 1024
-mean: [0.485, 0.456, 0.406]
-std: [0.229, 0.224, 0.225]
+mean: null
+std: null
 pad: False
 max_epochs: 100
 patience: 10
 n_workers: 4
 learning_rate: 0.001
 weight_decay: 0.01
-data_dir: '../../mpic_data/imgs'
-splits_fname: splits.json
+data_dir: '../../mpic_data/imgs_fromB/3'
+splits_fname: splits_hitloopII_C-3.json
 classes: ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp', 'long_pellet', 'mini_pellet', 'noise', 'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer']
-train_domains: ['SR', 'JC', 'FC', 'FO']
-target_domain: 'RR'
+train_domains: ['SR', 'JC', 'FC', 'FO', 'RR']

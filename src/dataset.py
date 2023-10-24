@@ -1,7 +1,10 @@
-import argparse
 import os
+import shutil
+import sys
+from itertools import product
 
 import numpy as np
+import pandas as pd
 import torch
 import yaml
 from PIL import Image
@@ -14,28 +17,28 @@ import src.tools as tools
 
 class ParticleImages(torch.utils.data.Dataset):
 
-    def __init__(self, cfg, filepaths, transformations, is_labeled=True):
+    def __init__(self, cfg, filepaths, transformations, train=True):
 
         self.data_dir = os.path.join(cfg['data_dir'])
-        self.filepaths = filepaths
+        self.filepaths = filepaths  # <label>/<filename>
         self.classes = sorted(cfg['classes'])
         self.class_to_idx = {c: i for i, c in enumerate(self.classes)}
         self.idx_to_class = {i: c for i, c in enumerate(self.classes)}
         self.transformations = transformations
-        self.is_labeled = is_labeled
-        if self.is_labeled:
+        self.train = train
+        if self.train:
             self.labels = [os.path.dirname(f) for f in filepaths]
 
     def __getitem__(self, index):
+        
+        filepath = self.filepaths[index]
 
-        filepath = os.path.join(self.data_dir, self.filepaths[index])
-
-        with Image.open(filepath) as image:
+        with Image.open(f'{self.data_dir}/{filepath}') as image:
             image = image.convert('RGB')
 
         image_tensor = self.transformations(image)
 
-        if self.is_labeled:
+        if self.train:
             label = self.class_to_idx[self.labels[index]]
             return image_tensor, filepath, label
         return image_tensor, filepath
@@ -103,11 +106,11 @@ def get_transforms(cfg, augment=False):
     return transformations
 
 
-def get_dataloader(cfg, filepaths, augment=False, is_labeled=True, shuffle=True):
+def get_dataloader(cfg, filepaths, augment=False, train=True, shuffle=True):
 
     transformations = get_transforms(cfg, augment=augment)
     dataloader = torch.utils.data.DataLoader(
-        dataset=ParticleImages(cfg, filepaths, transformations, is_labeled),
+        dataset=ParticleImages(cfg, filepaths, transformations, train),
         batch_size=cfg['batch_size'],
         shuffle=shuffle,
         num_workers=cfg['n_workers'])
@@ -145,25 +148,35 @@ def calculate_data_stats(cfg, filepaths):
 
 def stratified_split(classes, df, train_size, include_test):
 
-    test_size = (1 - train_size) / 2
-    val_size = test_size / (1 - test_size)
+    def get_class_df(particle_class):
+
+        c_df = df.loc[df['label'] == particle_class]
+        filepaths = [os.path.join(c,f) for f in c_df['filename']]
+
+        return filepaths
+
     train_fps = []
     val_fps = []
-    test_fps = []
-
-    for c in classes:
-        c_df = df.loc[df['label'] == c]
-        filepaths = [os.path.join(c,f) for f in c_df['filename']]
-        c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=0)
-        test_fps.extend(c_test_fps)
-        c_train_fps, c_val_fps = train_test_split(c_trainval_fps, test_size=val_size, random_state=0)
-        train_fps.extend(c_train_fps)
-        val_fps.extend(c_val_fps)
 
     if include_test:
+        test_size = (1 - train_size) / 2
+        val_size = test_size / (1 - test_size)
+        test_fps = []
+        for c in classes:
+            filepaths = get_class_df(c)
+            c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=0)
+            test_fps.extend(c_test_fps)
+            c_train_fps, c_val_fps = train_test_split(c_trainval_fps, test_size=val_size, random_state=0)
+            train_fps.extend(c_train_fps)
+            val_fps.extend(c_val_fps)
         return train_fps, val_fps, test_fps
     else:
-        val_fps = val_fps + test_fps
+        val_size = 1 - train_size
+        for c in classes:
+            filepaths = get_class_df(c)
+            c_train_fps, c_val_fps = train_test_split(filepaths, test_size=val_size, random_state=0)
+            train_fps.extend(c_train_fps)
+            val_fps.extend(c_val_fps)
         return train_fps, val_fps
 
 
@@ -198,15 +211,63 @@ def compile_filepaths(cfg, domains, split):
     return fps
 
 
+def write_splits_hitloopII():
+
+    def get_splits_dict(image_dir):
+
+        splits_dict = tools.load_json('../data/splits_hitloopI.json')
+        classes = os.listdir(image_dir)
+        df_rows = []
+        for c in classes:
+            filenames = [f for f in os.listdir(f'{image_dir}/{c}') if 'RR' in f]
+            for f in filenames:
+                df_rows.append({'filename': f, 'label': c})
+        labeled_df = pd.DataFrame(df_rows)
+        train_fps, val_fps = stratified_split(classes, labeled_df, 0.8, False)  # stratify based on new labels
+        test_df = metadata.merge(labeled_df, on='filename', how='left', indicator=True)  # all RR images not in folder
+        test_df = test_df.loc[test_df['_merge'] == 'left_only']
+        test_df['filepath'] = test_df['label_x'] + '/' + test_df['filename']
+        splits_dict['RR'] = {'train': train_fps, 'val': val_fps, 'test': list(test_df['filepath'])}
+
+        for fp in list(test_df['filepath']):
+            os.makedirs(f'{image_dir}/{fp.split("/")[0]}', exist_ok=True)
+            shutil.copyfile(f'../../mpic_data/imgs/{fp}', f'{image_dir}/{fp}')
+
+        return splits_dict
+
+    metadata = tools.load_metadata()
+    metadata = metadata.loc[metadata['domain'] == 'RR'][['filename', 'label']]
+    replicates = 5
+    img_dirs = {'C': '../../mpic_data/imgs_fromB',
+                'D': '../../mpic_data/imgs_fromB_verified',
+                'E': '../../mpic_data/imgs_fromB_voted200',
+                'F': '../../mpic_data/imgs_fromB_voted400'}
+
+    for model, i in product(('C', 'D'), range(replicates)):
+        splits_dict = get_splits_dict(f'{img_dirs[model]}/{i}')
+        tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}-{i}.json')
+
+    for model in ('E', 'F'):
+        splits_dict = get_splits_dict(img_dirs[model])
+        tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}.json')
+
+
 if __name__ == '__main__':
 
     df = tools.load_metadata()
     df = df.loc[df['label'] != 'none']
 
-    write_splits(df, 'splits.json', 0.8, True)
+    # #hyperparameter tuning (hptune) experiments
+    # write_splits(df, 'splits.json', 0.8, True)
 
-    base_cfg = yaml.safe_load(open(f'../configs/base.yaml', 'r'))
-    pad_cfg = yaml.safe_load(open(f'../configs/pad.yaml', 'r'))
-    train_fps = compile_filepaths(base_cfg, base_cfg['train_domains'], split='train')
-    for cfg in (base_cfg, pad_cfg):
-        calculate_data_stats(cfg, train_fps)
+    # base_cfg = yaml.safe_load(open(f'../configs/hptune/base.yaml', 'r'))
+    # pad_cfg = yaml.safe_load(open(f'../configs/hptune/pad.yaml', 'r'))
+    # train_fps = compile_filepaths(base_cfg, base_cfg['train_domains'], split='train')
+    # for cfg in (base_cfg, pad_cfg):
+    #     calculate_data_stats(cfg, train_fps)
+    
+    # #human-in-the-loop I (hitloopI) experiments
+    # write_splits(df, 'splits_hitloopI.json', 0.8, False)
+
+    #human-in-the-loop II (hitloopII) experiments
+    write_splits_hitloopII()

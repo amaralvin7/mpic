@@ -1,0 +1,11 @@
+Human in-the-loop experiments, with RR as the target domain.
+- A: Human labels for all unambiguous images including in training, predict on only ambiguous images.
+- B: No RR in training, totally out of domain.
+- C: Include top 200 RR predictions for each class from each of the B model replicates in the training set.
+- D: Like C, but with human verification of the top 200 predictions.
+- E: For each class, find all images that had a unanimous prediction from model B. Include the top 200 of such images from each class.
+- F: Like E, but with 400 images rather than 200.
+
+Outcome: D was often the best model, followed by F. Proposition: verify F images before including them in the training set.
+
+A note on hptune: The metrics_output.txt that was committed last was incorrect (note the lack of alphabetical order, which should be guaranteed by metrics() in figures.py). I must have compared the old and new files in the repo at the same time and deleted the new one instead of the old one. I compared the one committed here to the one that was copied locally and they were identical. I also regenerated the metrics figures and compared them to those that were copied locally, which were identical as well.
