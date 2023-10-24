@@ -229,7 +229,7 @@ def write_splits_hitloopII():
         test_df['filepath'] = test_df['label_x'] + '/' + test_df['filename']
         splits_dict['RR'] = {'train': train_fps, 'val': val_fps, 'test': list(test_df['filepath'])}
 
-        for fp in list(test_df['filepath']):
+        for fp in list(test_df['filepath']):  # copy the test images into the folder
             os.makedirs(f'{image_dir}/{fp.split("/")[0]}', exist_ok=True)
             shutil.copyfile(f'../../mpic_data/imgs/{fp}', f'{image_dir}/{fp}')
 
@@ -241,13 +241,14 @@ def write_splits_hitloopII():
     img_dirs = {'C': '../../mpic_data/imgs_fromB',
                 'D': '../../mpic_data/imgs_fromB_verified',
                 'E': '../../mpic_data/imgs_fromB_voted200',
-                'F': '../../mpic_data/imgs_fromB_voted400'}
+                'F': '../../mpic_data/imgs_fromB_voted400',
+                'G': '../../mpic_data/imgs_fromB_voted400_verified'}
 
     for model, i in product(('C', 'D'), range(replicates)):
         splits_dict = get_splits_dict(f'{img_dirs[model]}/{i}')
         tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}-{i}.json')
 
-    for model in ('E', 'F'):
+    for model in ('E', 'F', 'G'):
         splits_dict = get_splits_dict(img_dirs[model])
         tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}.json')
 

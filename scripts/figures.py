@@ -355,7 +355,7 @@ def flux_comparison_by_class():
     classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
     
     df = pd.read_csv('../results/hitloopII/fluxes.csv', index_col=False, low_memory=False)
-    models = ('A', 'B', 'C', 'D', 'E', 'F')
+    models = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
     replicates = 5
     flux_by_sample = {}
 
