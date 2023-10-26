@@ -8,4 +8,3 @@ Human in-the-loop experiments, with RR as the target domain.
 - G: Like F, but with human verification.
 
 Outcome: D was often the best model, followed by F or G (G better in total and measured flux comparisons, likely due to large imrpovement in long_pellet). Surprising that G was not better than D, but this might be due to a single class (short_pellet).
-A note on hptune: The metrics_output.txt that was committed last was incorrect (note the lack of alphabetical order, which should be guaranteed by metrics() in figures.py). I must have compared the old and new files in the repo at the same time and deleted the new one instead of the old one. I compared the one committed here to the one that was copied locally and they were identical. I also regenerated the metrics figures and compared them to those that were copied locally, which were identical as well.
