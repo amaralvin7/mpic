@@ -274,9 +274,7 @@ def calculate_flux_df(domain=None):
         pred_df = pred_df.rename(columns={'prediction': f'prediction{model}'})
         if model[0] in ('A', 'B'):
             splits_file = f'splits_{exp_name}.json'
-        elif model[0] in ('C', 'D'):
-            splits_file = f'splits_{exp_name}_{model}.json'
-        else:  # E or F
+        else:  # C, D, E
             splits_file = f'splits_{exp_name}_{model[0]}.json'
         splits_dict = tools.load_json(f'../data/{splits_file}')
         train_fps = splits_dict[domain]['train'] + splits_dict[domain]['val']
@@ -355,13 +353,13 @@ def flux_comparison_by_class():
     
     df = pd.read_csv('../results/hitloopII/fluxes.csv', index_col=False, low_memory=False)
     samples = df['sample'].unique()
-    models = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+    models = ('A', 'B', 'C', 'D', 'E')
     replicates = 5
     flux_dict = {}
 
     for m in models:
 
-        fig, axs = plt.subplots(3, 3, figsize=(10,10))
+        fig, axs = plt.subplots(3, 3, figsize=(10,10), tight_layout=True)
         fig.subplots_adjust(wspace=0.3)
         axs = axs.flatten()
 
@@ -420,6 +418,8 @@ def flux_comparison_by_class():
             # labels = ['FK', 'RR']
             # axs[0].legend(lines, labels, frameon=False, handlelength=1)
 
+        fig.supxlabel('Human flux (mmol m$^{-2}$ d$^{-1}$)')
+        fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)')
         fig.savefig(f'../results/hitloopII/figs/flux_comparison_byclass_{m}.png', bbox_inches='tight')
         plt.close()
 
@@ -431,14 +431,15 @@ def flux_comparison_by_class():
 
     def plot_mae(i, k, maes):
 
+        offset = (-0.2, -0.1, 0, 0.1, 0.2)
         mae = np.mean(maes)
         mae_e = np.std(maes, ddof=1)
         print(f'{m}: {mae:.2f} ± {mae_e:.2f}')
-        ax.errorbar(i, mae, yerr=mae_e, marker=markers[k], c=colors[k], capsize=2)
+        ax.errorbar(i + offset[k], mae, yerr=mae_e, marker=markers[k], c=colors[k], capsize=2)
 
 
     i = 0
-    with open(f'../results/hitloopII/flux_rmse.txt', 'w') as sys.stdout:
+    with open(f'../results/hitloopII/flux_mae.txt', 'w') as sys.stdout:
         print('******FLUX MAEss******')
         for c in classes:
             print(f'---{c}---')
@@ -464,8 +465,13 @@ def flux_comparison_by_class():
 
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(models)]
     ax.legend(lines, models, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
-            frameon=False, handlelength=1)    
+            frameon=False, handlelength=1)
+
+    human_measured_mae = flux_comparison_human_measured()
+    ax.hlines(human_measured_mae, 7.5, 8.5, colors=black, alpha=0.3)
     
+    fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)')
+
     fig.savefig(f'../results/hitloopII/figs/flux_comparison_mae.png', bbox_inches='tight')
     plt.close()
 
@@ -635,11 +641,15 @@ def metrics_hitloop():
     open('../results/hitloopII/metrics_output.txt', 'w')  # delete metrics file if it exists
     flux_df = pd.read_csv('../results/hitloopII/fluxes.csv', index_col='filename', low_memory=False)
     human_df = tools.load_metadata()
+    relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
+    relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
     human_df = human_df.loc[human_df['domain'] == 'RR'][['filename', 'olabel']]
     human_df = human_df.rename(columns={'olabel': f'label'})
     human_df.set_index('filename', inplace=True)
+    
 
-    models = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
+    models = ('A', 'B', 'C', 'D', 'E')
+    offset = (-0.2, -0.1, 0, 0.1, 0.2)
     replicates = 5
     y_vars = ('precision', 'recall')
     labels = sorted(flux_df['olabel_group'].unique())
@@ -655,7 +665,7 @@ def metrics_hitloop():
 
         cols = [c for c in flux_df.columns if f in c and 'group' in c] + ['olabel_group']
         df = flux_df[cols].copy()
-        df['prediction'] = df.filter(like=f).ffill(axis=1).iloc[:,-1]
+        df['prediction'] = df.filter(like=f).ffill(axis=1).iloc[:,-1]  # prediction = label if image was labeled, otherwise prediction
         df.rename(columns={'olabel_group': 'label'}, inplace=True)
 
         cm, ax = plt.subplots(figsize=(8, 8), tight_layout=True)
@@ -685,8 +695,11 @@ def metrics_hitloop():
                     keys = [k for k in reports.keys() if f'{m}-' in k]
                     y_avg = np.mean([reports[k][x][y] for k in keys])
                     y_std = np.std([reports[k][x][y] for k in keys], ddof=1)
-                    axs[i].errorbar(j, y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
+                    axs[i].errorbar(j + offset[z], y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
                     print(f'{m}: {y_avg*100:.2f} ± {y_std*100:.2f}')
+                axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
+                print(f'relabel: {relabel_report[x][y]:.2f}')
+
     
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(models)]
     axs[0].legend(lines, models, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
@@ -750,6 +763,8 @@ def flux_comparison_human_measured():
 
     fig.savefig(f'../results/hitloopII/figs/flux_comparison_human.{image_format}', bbox_inches='tight')
 
+    return mae
+
 
 if __name__ == '__main__':
 
@@ -772,7 +787,6 @@ if __name__ == '__main__':
 
     # training_plots('hitloopII')
     # calculate_flux_df(domain='RR')
-    flux_comparison_human_measured()
     flux_comparison_by_class()
-    # metrics_hitloop()
+    metrics_hitloop()
 

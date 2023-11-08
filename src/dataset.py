@@ -163,6 +163,7 @@ def stratified_split(classes, df, train_size, include_test):
         val_size = test_size / (1 - test_size)
         test_fps = []
         for c in classes:
+            print(c)
             filepaths = get_class_df(c)
             c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=0)
             test_fps.extend(c_test_fps)
@@ -219,7 +220,7 @@ def write_splits_hitloopII():
         classes = os.listdir(image_dir)
         df_rows = []
         for c in classes:
-            filenames = [f for f in os.listdir(f'{image_dir}/{c}') if 'RR' in f]
+            filenames = [f for f in os.listdir(f'{image_dir}/{c}') if f != '.DS_Store']
             for f in filenames:
                 df_rows.append({'filename': f, 'label': c})
         labeled_df = pd.DataFrame(df_rows)
@@ -237,18 +238,11 @@ def write_splits_hitloopII():
 
     metadata = tools.load_metadata()
     metadata = metadata.loc[metadata['domain'] == 'RR'][['filename', 'label']]
-    replicates = 5
-    img_dirs = {'C': '../../mpic_data/imgs_fromB',
-                'D': '../../mpic_data/imgs_fromB_verified',
-                'E': '../../mpic_data/imgs_fromB_voted200',
-                'F': '../../mpic_data/imgs_fromB_voted400',
-                'G': '../../mpic_data/imgs_fromB_voted400_verified'}
+    img_dirs = {'C': '../../mpic_data/imgs_fromB_maj',
+                'D': '../../mpic_data/imgs_fromB_maj_verified',
+                'E': '../../mpic_data/imgs_fromB_majmin_verified'}
 
-    for model, i in product(('C', 'D'), range(replicates)):
-        splits_dict = get_splits_dict(f'{img_dirs[model]}/{i}')
-        tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}-{i}.json')
-
-    for model in ('E', 'F', 'G'):
+    for model in img_dirs.keys():
         splits_dict = get_splits_dict(img_dirs[model])
         tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}.json')
 

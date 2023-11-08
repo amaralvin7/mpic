@@ -1,10 +1,6 @@
 Human in-the-loop experiments, with RR as the target domain.
 - A: Human labels for all unambiguous images including in training, predict on only ambiguous images.
 - B: No RR in training, totally out of domain.
-- C: Include top 200 RR predictions for each class from each of the B model replicates in the training set.
-- D: Like C, but with human verification of the top 200 predictions.
-- E: For each class, find all images that had a unanimous prediction from model B. Include the top 200 of such images from each class.
-- F: Like E, but with 400 images rather than 200.
-- G: Like F, but with human verification.
-
-Outcome: D was often the best model, followed by F or G (G better in total and measured flux comparisons, likely due to large imrpovement in long_pellet). Surprising that G was not better than D, but this might be due to a single class (short_pellet).
+- C: For each majority class (N >= 100 in train set), find all images that had a unanimous prediction from model B. Include up to the top 1000 of such images from each class.
+- D: C, plus human verification
+- E: D, plus human-verified minority classes as well

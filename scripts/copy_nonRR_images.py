@@ -6,9 +6,7 @@ from itertools import product
 
 replicates = 5
 copy_from = '../../mpic_data/imgs'
-copy_to = ['../../mpic_data/imgs_fromB_voted200', '../../mpic_data/imgs_fromB_voted400',  '../../mpic_data/imgs_fromB_voted400_verified']
-copy_to.extend([f'../../mpic_data/imgs_fromB/{i}' for i in range(replicates)])
-copy_to.extend([f'../../mpic_data/imgs_fromB_verified/{i}' for i in range(replicates)])
+copy_to = ['../../mpic_data/imgs_fromB_maj', '../../mpic_data/imgs_fromB_maj_verified',  '../../mpic_data/imgs_fromB_majmin_verified']
 
 classes = ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp', 'long_pellet', 'mini_pellet', 'noise', 'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer']
 for c in classes:
