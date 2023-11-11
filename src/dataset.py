@@ -146,7 +146,7 @@ def calculate_data_stats(cfg, filepaths):
     return mean, std
 
 
-def stratified_split(classes, df, train_size, include_test):
+def stratified_split(df, train_size, include_test):
 
     def get_class_df(particle_class):
 
@@ -157,13 +157,13 @@ def stratified_split(classes, df, train_size, include_test):
 
     train_fps = []
     val_fps = []
+    classes = df['label'].unique()
 
     if include_test:
         test_size = (1 - train_size) / 2
         val_size = test_size / (1 - test_size)
         test_fps = []
         for c in classes:
-            print(c)
             filepaths = get_class_df(c)
             c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=0)
             test_fps.extend(c_test_fps)
@@ -181,16 +181,14 @@ def stratified_split(classes, df, train_size, include_test):
         return train_fps, val_fps
 
 
-def write_splits(df, filename, train_size, include_test):
+def write_splits(df, filename, train_size, domains, include_test):
 
     splits = {}
-    domains = ['RR', 'SR', 'JC', 'FC', 'FO']
 
     for d in domains:
         splits[d] = {}
         d_df = df.loc[df['domain'] == d]
-        classes = d_df['label'].unique()
-        filepaths = stratified_split(classes, d_df, train_size, include_test)
+        filepaths = stratified_split(d_df, train_size, include_test)
         splits[d]['train'] = filepaths[0]
         splits[d]['val'] = filepaths[1]
         if include_test:
@@ -216,7 +214,7 @@ def write_splits_hitloopII():
 
     def get_splits_dict(image_dir):
 
-        splits_dict = tools.load_json('../data/splits_hitloopI.json')
+        splits_dict = tools.load_json('../data/splits_hitloop_A.json')
         classes = os.listdir(image_dir)
         df_rows = []
         for c in classes:
@@ -224,7 +222,7 @@ def write_splits_hitloopII():
             for f in filenames:
                 df_rows.append({'filename': f, 'label': c})
         labeled_df = pd.DataFrame(df_rows)
-        train_fps, val_fps = stratified_split(classes, labeled_df, 0.8, False)  # stratify based on new labels
+        train_fps, val_fps = stratified_split(labeled_df, 0.8, False)  # stratify based on new labels
         test_df = metadata.merge(labeled_df, on='filename', how='left', indicator=True)  # all RR images not in folder
         test_df = test_df.loc[test_df['_merge'] == 'left_only']
         test_df['filepath'] = test_df['label_x'] + '/' + test_df['filename']
@@ -238,13 +236,16 @@ def write_splits_hitloopII():
 
     metadata = tools.load_metadata()
     metadata = metadata.loc[metadata['domain'] == 'RR'][['filename', 'label']]
-    img_dirs = {'C': '../../mpic_data/imgs_fromB_maj',
-                'D': '../../mpic_data/imgs_fromB_maj_verified',
-                'E': '../../mpic_data/imgs_fromB_majmin_verified'}
+    img_dirs = {}
+    cfgs = sorted([c for c in os.listdir('../configs/hitloopII') if '.yaml' in c])
+
+    for cfg_fn in cfgs:
+        cfg = yaml.safe_load(open(f'../configs/hitloopII/{cfg_fn}', 'r'))
+        img_dirs[f'{cfg_fn.split(".")[0]}'] = cfg['data_dir']
 
     for model in img_dirs.keys():
         splits_dict = get_splits_dict(img_dirs[model])
-        tools.write_json(splits_dict, f'../data/splits_hitloopII_{model}.json')
+        tools.write_json(splits_dict, f'../data/splits_hitloop_{model}.json')
 
 
 if __name__ == '__main__':
@@ -253,7 +254,7 @@ if __name__ == '__main__':
     df = df.loc[df['label'] != 'none']
 
     # #hyperparameter tuning (hptune) experiments
-    # write_splits(df, 'splits.json', 0.8, True)
+    # write_splits(df, 'splits.json', 0.8, ['RR', 'SR', 'JC', 'FC', 'FO'], True)
 
     # base_cfg = yaml.safe_load(open(f'../configs/hptune/base.yaml', 'r'))
     # pad_cfg = yaml.safe_load(open(f'../configs/hptune/pad.yaml', 'r'))
@@ -262,7 +263,7 @@ if __name__ == '__main__':
     #     calculate_data_stats(cfg, train_fps)
     
     # #human-in-the-loop I (hitloopI) experiments
-    # write_splits(df, 'splits_hitloopI.json', 0.8, False)
+    # write_splits(df, 'splits_hitloop_A.json', 0.8, ['SR', 'JC', 'FC', 'FO'], False)
 
-    #human-in-the-loop II (hitloopII) experiments
+    # human-in-the-loop II (hitloopII) experiments
     write_splits_hitloopII()

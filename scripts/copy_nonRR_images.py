@@ -2,11 +2,18 @@ import os
 import shutil
 from itertools import product
 
-# must copy non RR images into the directories with the images predicted from B
+import yaml
+
+# must copy non RR images into the directories with the images predicted from A
 
 replicates = 5
 copy_from = '../../mpic_data/imgs'
-copy_to = ['../../mpic_data/imgs_fromB_maj', '../../mpic_data/imgs_fromB_maj_verified',  '../../mpic_data/imgs_fromB_majmin_verified']
+copy_to = []
+
+cfgs = sorted([c for c in os.listdir('../configs/hitloopII') if '.yaml' in c])
+for cfg_fn in cfgs:
+    cfg = yaml.safe_load(open(f'../configs/hitloopII/{cfg_fn}', 'r'))
+    copy_to.append(cfg['data_dir'])
 
 classes = ['aggregate', 'bubble', 'fiber_blur', 'fiber_sharp', 'long_pellet', 'mini_pellet', 'noise', 'phyto_dino', 'phyto_long', 'phyto_round', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer']
 for c in classes:

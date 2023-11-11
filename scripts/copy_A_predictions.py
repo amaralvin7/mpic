@@ -29,21 +29,19 @@ def copy_class_imgs(c, filepath_list, copy_to):
         shutil.copyfile(old_filepath, new_filepath)
 
 
-
 replicates = 5
 topN = 1000
 copy_from = '../../mpic_data/imgs'
-cfg = yaml.safe_load(open('../configs/hitloopI/B.yaml', 'r'))
+cfg = yaml.safe_load(open('../configs/hitloopI/A.yaml', 'r'))
 classes = cfg['classes']
 train_filepaths = dataset.compile_filepaths(cfg, cfg['train_domains'], 'train')
 
 # COPY IMAGES USING AN ENSEMBLE VOTING APPROACH
-path_maj = create_prediction_dir('imgs_fromB_maj')
-path_min = create_prediction_dir('imgs_fromB_min')
+pred_path = create_prediction_dir('imgs_fromA')
 
 df_list = []
 for i in range(replicates):
-    temp_df = pd.read_csv(f'../results/hitloopI/predictions/B-{i}.csv', index_col='filepath', header=0)
+    temp_df = pd.read_csv(f'../results/hitloopI/predictions/A-{i}.csv', index_col='filepath', header=0)
     temp_df = temp_df.rename(columns={c: f'{c}{i}' for c in temp_df.columns})
     df_list.append(temp_df)
 df = pd.concat(df_list, axis=1)
@@ -61,13 +59,5 @@ df_voted.set_index('filepath', drop=True, inplace=True)
 
 for c in classes:
     class_fps = [f for f in train_filepaths if c in f]
-    if len(class_fps) >= 100:
-        top_predictions = df_voted.loc[df_voted['prediction'] == c].nlargest(topN, 'ensemble_mean', keep='all')
-        copy_class_imgs(c, top_predictions.index.values, path_maj)
-    else:
-        topN_by_replicate = []
-        for i in range(replicates):
-            top_predictions = df.nlargest(topN, f'{c}{i}', keep='all')
-            topN_by_replicate.append(top_predictions.index.values)
-        topN_intersection = list(set.intersection(*map(set, topN_by_replicate)))
-        copy_class_imgs(c, topN_intersection, path_min)
+    top_predictions = df_voted.loc[df_voted['prediction'] == c].nlargest(topN, 'ensemble_mean', keep='all')
+    copy_class_imgs(c, top_predictions.index.values, pred_path)

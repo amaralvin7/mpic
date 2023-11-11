@@ -1,6 +1,6 @@
-Human in-the-loop experiments, with RR as the target domain.
-- A: Human labels for all unambiguous images including in training, predict on only ambiguous images.
-- B: No RR in training, totally out of domain.
-- C: For each majority class (N >= 100 in train set), find all images that had a unanimous prediction from model B. Include up to the top 1000 of such images from each class.
-- D: C, plus human verification
-- E: D, plus human-verified minority classes as well
+A: Out-of-domain (OOD) model
+B: +top1k. Use A to predict on RR images. Find all images that had unanimous votes for all replicates. Calculate the mean score for the voted label. For each class, incorporate up to the top 1k of such images into the training set.
+C: +verify. For all in-domain images from B, verify them. This means correcting labels for unambiguous images that were incorrectly labeled, and deleting ambiguous images that do not clearly belong to the proposed class.
+D: +minboost. After verifying, consider all classes that have fewer than 100 in-domain examples. For each of such class, suggest all images in the intersection of the top1k scores for each replicate for that class. Add correct suggestions into the training set.
+
+Verifying top1k suggestions took 1.5 hrs, minboost suggestions took 20 minutes. With respect to MAE relative to the measured bulk flux, it seems each steps improves inference. The difference between C and D may not be significant, but D does seem to increase recall for minority classes.
