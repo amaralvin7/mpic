@@ -1,6 +1,3 @@
-A: Out-of-domain (OOD) model
-B: +top1k. Use A to predict on RR images. Find all images that had unanimous votes for all replicates. Calculate the mean score for the voted label. For each class, incorporate up to the top 1k of such images into the training set.
-C: +verify. For all in-domain images from B, verify them. This means correcting labels for unambiguous images that were incorrectly labeled, and deleting ambiguous images that do not clearly belong to the proposed class.
-D: +minboost. After verifying, consider all classes that have fewer than 100 in-domain examples. For each of such class, suggest all images in the intersection of the top1k scores for each replicate for that class. Add correct suggestions into the training set.
+Redoing hitloopII, but with different splits. Training sets now include all OOD images. In domain images are added via a 50/50 class stratified split to the train and val sets.
 
-Verifying top1k suggestions took 1.5 hrs, minboost suggestions took 20 minutes. With respect to MAE relative to the measured bulk flux, it seems each steps improves inference. The difference between C and D may not be significant, but D does seem to increase recall for minority classes.
+Results are comparable to before, but MAE for total and measured seem to be a bit worse. Perhaps because fewer in-domain images in the training set?

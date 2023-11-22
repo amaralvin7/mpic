@@ -214,7 +214,13 @@ def write_splits_hitloopII():
 
     def get_splits_dict(image_dir):
 
-        splits_dict = tools.load_json('../data/splits_hitloop_A.json')
+        splits_dict = {}
+        ood_splits = tools.load_json('../data/splits_hitloop_A.json')
+        for domain in ood_splits:  # put all OOD images in the train set, none in val
+            splits_dict[domain] = {}
+            splits_dict[domain]['train'] = ood_splits[domain]['train'] + ood_splits[domain]['val']
+            splits_dict[domain]['val'] = []
+
         classes = os.listdir(image_dir)
         df_rows = []
         for c in classes:
@@ -222,7 +228,7 @@ def write_splits_hitloopII():
             for f in filenames:
                 df_rows.append({'filename': f, 'label': c})
         labeled_df = pd.DataFrame(df_rows)
-        train_fps, val_fps = stratified_split(labeled_df, 0.8, False)  # stratify based on new labels
+        train_fps, val_fps = stratified_split(labeled_df, 0.5, False)  # stratify based on new labels
         test_df = metadata.merge(labeled_df, on='filename', how='left', indicator=True)  # all RR images not in folder
         test_df = test_df.loc[test_df['_merge'] == 'left_only']
         test_df['filepath'] = test_df['label_x'] + '/' + test_df['filename']
