@@ -733,8 +733,8 @@ if __name__ == '__main__':
     # training_plots('hitloopI')
     # metrics_hptune()
 
-    # training_plots('hitloopII')
-    # calculate_flux_df(domain='RR')
+    training_plots('hitloopII')
+    calculate_flux_df(domain='RR')
     flux_comparison_by_class()
     metrics_hitloop()
 

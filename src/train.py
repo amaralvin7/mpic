@@ -61,7 +61,7 @@ def train_model(cfg, model_replicate, exp_name):
     val_filepaths = dataset.compile_filepaths(cfg, cfg['train_domains'], 'val')
     device = cfg['device']
 
-    classes = set([f.split('/')[0] for f in train_filepaths])
+    classes = cfg['classes']
     train_dl = dataset.get_dataloader(cfg, train_filepaths, augment=True)
     val_dl = dataset.get_dataloader(cfg, val_filepaths, augment=False)
     model = initialize_model(len(classes))
