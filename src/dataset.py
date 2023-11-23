@@ -146,7 +146,7 @@ def calculate_data_stats(cfg, filepaths):
     return mean, std
 
 
-def stratified_split(df, train_size, include_test):
+def stratified_split(df, train_size):
 
     def get_class_df(particle_class):
 
@@ -159,53 +159,19 @@ def stratified_split(df, train_size, include_test):
     val_fps = []
     classes = df['label'].unique()
 
-    if include_test:
-        test_size = (1 - train_size) / 2
-        val_size = test_size / (1 - test_size)
-        test_fps = []
-        for c in classes:
-            filepaths = get_class_df(c)
-            c_trainval_fps, c_test_fps = train_test_split(filepaths, test_size=test_size, random_state=0)
-            test_fps.extend(c_test_fps)
-            c_train_fps, c_val_fps = train_test_split(c_trainval_fps, test_size=val_size, random_state=0)
-            train_fps.extend(c_train_fps)
-            val_fps.extend(c_val_fps)
-        return train_fps, val_fps, test_fps
-    else:
-        val_size = 1 - train_size
-        for c in classes:
-            filepaths = get_class_df(c)
-            c_train_fps, c_val_fps = train_test_split(filepaths, test_size=val_size, random_state=0)
-            train_fps.extend(c_train_fps)
-            val_fps.extend(c_val_fps)
-        return train_fps, val_fps
+    val_size = 1 - train_size
+    for c in classes:
+        filepaths = get_class_df(c)
+        c_train_fps, c_val_fps = train_test_split(filepaths, test_size=val_size, random_state=0)
+        train_fps.extend(c_train_fps)
+        val_fps.extend(c_val_fps)
+    return train_fps, val_fps
 
 
-def write_splits(df, filename, train_size, domains, include_test):
-
-    splits = {}
-
-    for d in domains:
-        splits[d] = {}
-        d_df = df.loc[df['domain'] == d]
-        filepaths = stratified_split(d_df, train_size, include_test)
-        splits[d]['train'] = filepaths[0]
-        splits[d]['val'] = filepaths[1]
-        if include_test:
-            splits[d]['test'] = filepaths[2]
-
-    file_path = os.path.join('..', 'data', filename)
-    tools.write_json(splits, file_path)
-
-
-def compile_filepaths(cfg, domains, split):
+def compile_filepaths(cfg, split):
 
     splits = tools.load_json(os.path.join('..', 'data', cfg['splits_fname']))
-    fps = []
-
-    for d in domains:
-        d_fps = splits[d][split]         
-        fps.extend(d_fps)
+    fps = splits[split]
     
     return fps
 

@@ -1,3 +1,0 @@
-HitloopII with OOD images included in the train sets for the models with in-domain images. 80/20 train/val split of in-domain images (previously 50/50 with OOD in train).
-
-Verify and minboost look similar, though verify has smaller MAE and less variance than minboost for total and measured fluxes. Benefit of minboost is adding more rare instances into the training set.

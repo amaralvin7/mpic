@@ -44,3 +44,10 @@ def load_metadata():
     df = pd.read_csv('../../mpic_data/metadata.csv')
     
     return df
+
+
+def get_model_names(list_id):
+    
+    id_dict = {1: ('targetRR_ood',)}
+
+    return id_dict[list_id]

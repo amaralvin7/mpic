@@ -50,15 +50,15 @@ def training_epoch(device, dataloader, model, optimizer, criterion, update):
     return loss_total, acc_total
 
 
-def train_model(cfg, model_replicate, exp_name):
+def train_model(cfg, model_replicate, list_id):
 
-    output_fname = 'train_output.txt'
+    output_fname = f'train_output/{list_id}.txt'
 
-    with open(f'../results/{exp_name}/{output_fname}', 'a') as sys.stdout:
+    with open(f'../results/{output_fname}', 'a') as sys.stdout:
         print(f'----Training {model_replicate}...')
 
-    train_filepaths = dataset.compile_filepaths(cfg, cfg['train_domains'], 'train')
-    val_filepaths = dataset.compile_filepaths(cfg, cfg['train_domains'], 'val')
+    train_filepaths = dataset.compile_filepaths(cfg, 'train')
+    val_filepaths = dataset.compile_filepaths(cfg, 'val')
     device = cfg['device']
 
     classes = cfg['classes']
@@ -105,8 +105,8 @@ def train_model(cfg, model_replicate, exp_name):
     train_duration = tools.time_sync() - train_start
     minutes = train_duration // 60
     seconds = train_duration % 60
-    with open(f'../results/{exp_name}/{output_fname}', 'a') as sys.stdout:
-        print(f'{model_replicate}: {epoch - 1} epochs in {minutes:.0f}m {seconds:.0f}s. Best val acc {100*best_acc:.2f}%')
+    with open(f'../results/{output_fname}', 'a') as sys.stdout:
+        print(f'{epoch - 1} epochs in {minutes:.0f}m {seconds:.0f}s. Best val acc {100*best_acc:.2f}%')
 
     output = {'train_loss_hist': tl_hist,
               'train_acc_hist': ta_hist,
@@ -114,5 +114,5 @@ def train_model(cfg, model_replicate, exp_name):
               'val_acc_hist': va_hist,
               'weights': best_weights}
 
-    torch.save(output, f'../results/{exp_name}/weights/{model_replicate}.pt')
+    torch.save(output, f'../results/weights/{model_replicate}.pt')
     

@@ -7,23 +7,17 @@ import src.tools as tools
 import src.train as train
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--experiment_name', '-e')
+parser.add_argument('--model_name_list_id', '-i')
 args = parser.parse_args()
-exp_name = args.experiment_name
+list_id = int(args.model_name_list_id)
 
-cfgs = sorted([c for c in os.listdir(f'../configs/{exp_name}') if '.yaml' in c])
+model_names = tools.get_model_names(list_id)
 
-for cfg_fn in cfgs:
-    cfg = yaml.safe_load(open(f'../configs/{exp_name}/{cfg_fn}', 'r'))
-    if '-' in cfg_fn:  # if there are replicate cfg files
-        replicate = int(cfg_fn.split('-')[1][0])
-        tools.set_seed(0)
-        model_replicate = cfg_fn.split('.')[0]
-        train.train_model(cfg, model_replicate, exp_name)
-    else:
-        replicates = 5
-        for replicate in range(replicates):
-            tools.set_seed(replicate)
-            model_replicate = f'{cfg_fn.split(".")[0]}-{replicate}'
-            train.train_model(cfg, model_replicate, exp_name)
+for model_name in model_names:
+    cfg = yaml.safe_load(open(f'../configs/{model_name}.yaml', 'r'))
+    replicates = 5
+    for replicate in range(replicates):
+        tools.set_seed(replicate)
+        model_replicate = f'{model_name}-{replicate}'
+        train.train_model(cfg, model_replicate, list_id)
 

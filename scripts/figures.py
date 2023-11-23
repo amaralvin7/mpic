@@ -20,13 +20,13 @@ import src.dataset as dataset
 import src.tools as tools
 
 
-def training_plots(parent_dir):
+def training_plots():
 
-    models = [f for f in os.listdir(f'../results/{parent_dir}/weights') if f'.pt' in f]
+    models = [f for f in os.listdir(f'../results/weights') if f'.pt' in f]
 
     for m in models:
         exp_id = m.split('.')[0]
-        model_output = torch.load(f'../results/{parent_dir}/weights/{m}', map_location='cpu')
+        model_output = torch.load(f'../results/weights/{m}', map_location='cpu')
         num_epochs = len(model_output['train_loss_hist'])
 
         plt.xlabel('Training Epochs')
@@ -36,7 +36,7 @@ def training_plots(parent_dir):
         plt.plot(range(1, num_epochs + 1), model_output['val_acc_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(f'../results/{parent_dir}/figs/accuracy_{exp_id}.png')
+        plt.savefig(f'../results/figs/accuracy_{exp_id}.png')
         plt.close()
 
         plt.xlabel('Training Epochs')
@@ -46,7 +46,7 @@ def training_plots(parent_dir):
         plt.plot(range(1, num_epochs + 1), model_output['val_loss_hist'],
                  label='validation')
         plt.legend()
-        plt.savefig(f'../results/{parent_dir}/figs/loss_{exp_id}.png')
+        plt.savefig(f'../results/figs/loss_{exp_id}.png')
         plt.close()
 
 
@@ -730,11 +730,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
-    # training_plots('hitloopI')
-    # metrics_hptune()
+    training_plots()
+    # # metrics_hptune()
 
-    training_plots('hitloopII')
-    calculate_flux_df(domain='RR')
-    flux_comparison_by_class()
-    metrics_hitloop()
+    # training_plots('hitloopII')
+    # calculate_flux_df(domain='RR')
+    # flux_comparison_by_class()
+    # metrics_hitloop()
 
