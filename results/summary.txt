@@ -1,3 +1,3 @@
-Redo hitloopII, but with only in-domain images in the train and val sets (80/20 split).
+HitloopII with OOD images included in the train sets for the models with in-domain images. 80/20 train/val split of in-domain images (previously 50/50 with OOD in train).
 
-Verify and minboost are still the best, but not much difference between the two. Top1k already shifts the distribution of the training set (e.g., aggregates and long pellets are about equally represented but we know that aggregates should be more abundant). When we minboost, we further skew the training distribution away from the target distribution, which may lead, for example, to underestimating aggregates.
+Verify and minboost look similar, though verify has smaller MAE and less variance than minboost for total and measured fluxes. Benefit of minboost is adding more rare instances into the training set.

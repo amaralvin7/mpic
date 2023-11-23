@@ -215,6 +215,11 @@ def write_splits_hitloopII():
     def get_splits_dict(image_dir):
 
         splits_dict = {}
+        ood_splits = tools.load_json('../data/splits_hitloop_A.json')
+        for domain in ood_splits:  # put all OOD images in the train set, none in val
+            splits_dict[domain] = {}
+            splits_dict[domain]['train'] = ood_splits[domain]['train'] + ood_splits[domain]['val']
+            splits_dict[domain]['val'] = []
 
         classes = os.listdir(image_dir)
         df_rows = []
