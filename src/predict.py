@@ -5,11 +5,11 @@ import torch
 from src.model import initialize_model
 
 
-def predict_labels(device, dataloader, exp_name, model_id, prefix=None):
+def predict_labels(device, dataloader, model_id, prefix=None):
 
     csv_fname = f'{prefix}_{model_id}' if prefix is not None else model_id
 
-    model_output = torch.load(f'../results/{exp_name}/weights/{model_id}.pt', map_location=device)
+    model_output = torch.load(f'../results/weights/{model_id}.pt', map_location=device)
     weights = model_output['weights']
     model = initialize_model(len(dataloader.dataset.classes), weights=weights)
     model.eval()
@@ -38,5 +38,5 @@ def predict_labels(device, dataloader, exp_name, model_id, prefix=None):
         df[f'{dataloader.dataset.idx_to_class[i]}'] = y_scores[:,i]
         
     df.set_index('filepath', inplace=True)
-    df.to_csv(f'../results/{exp_name}/predictions/{csv_fname}.csv')
+    df.to_csv(f'../results/predictions/{csv_fname}.csv')
     
