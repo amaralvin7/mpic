@@ -1,0 +1,120 @@
+----precision, aggregate----
+targetRR_ood: 76.54 ± 1.24
+targetRR_top1k: 86.94 ± 1.89
+targetRR_verify: 86.60 ± 3.70
+targetRR_minboost: 84.43 ± 3.96
+relabel: 0.80
+----precision, fiber----
+targetRR_ood: 52.92 ± 1.72
+targetRR_top1k: 52.53 ± 4.72
+targetRR_verify: 52.09 ± 8.54
+targetRR_minboost: 57.36 ± 8.06
+relabel: 0.88
+----precision, long_pellet----
+targetRR_ood: 71.66 ± 7.52
+targetRR_top1k: 71.09 ± 3.14
+targetRR_verify: 75.77 ± 9.90
+targetRR_minboost: 82.27 ± 2.05
+relabel: 0.84
+----precision, mini_pellet----
+targetRR_ood: 42.09 ± 9.03
+targetRR_top1k: 37.14 ± 8.39
+targetRR_verify: 33.47 ± 2.95
+targetRR_minboost: 38.62 ± 4.97
+relabel: 0.58
+----precision, phytoplankton----
+targetRR_ood: 11.77 ± 5.77
+targetRR_top1k: 11.89 ± 3.09
+targetRR_verify: 23.53 ± 8.83
+targetRR_minboost: 22.93 ± 6.43
+relabel: 0.76
+----precision, rhizaria----
+targetRR_ood: 54.84 ± 22.75
+targetRR_top1k: 58.01 ± 11.66
+targetRR_verify: 67.06 ± 14.37
+targetRR_minboost: 48.31 ± 7.83
+relabel: 0.53
+----precision, salp_pellet----
+targetRR_ood: 36.00 ± 49.80
+targetRR_top1k: 62.00 ± 41.47
+targetRR_verify: 86.25 ± 11.86
+targetRR_minboost: 74.56 ± 16.26
+relabel: 0.83
+----precision, short_pellet----
+targetRR_ood: 23.65 ± 5.07
+targetRR_top1k: 23.04 ± 4.19
+targetRR_verify: 20.04 ± 4.23
+targetRR_minboost: 20.53 ± 2.74
+relabel: 0.45
+----precision, swimmer----
+targetRR_ood: 85.75 ± 2.85
+targetRR_top1k: 79.19 ± 3.20
+targetRR_verify: 81.88 ± 7.55
+targetRR_minboost: 88.81 ± 4.23
+relabel: 0.87
+----precision, unidentifiable----
+targetRR_ood: 73.69 ± 8.02
+targetRR_top1k: 77.99 ± 5.03
+targetRR_verify: 78.13 ± 6.82
+targetRR_minboost: 75.13 ± 4.33
+relabel: 0.87
+----recall, aggregate----
+targetRR_ood: 65.39 ± 11.84
+targetRR_top1k: 61.67 ± 3.25
+targetRR_verify: 59.21 ± 8.43
+targetRR_minboost: 62.40 ± 9.78
+relabel: 0.88
+----recall, fiber----
+targetRR_ood: 80.74 ± 0.88
+targetRR_top1k: 86.25 ± 2.79
+targetRR_verify: 85.65 ± 2.87
+targetRR_minboost: 85.26 ± 4.97
+relabel: 0.75
+----recall, long_pellet----
+targetRR_ood: 66.46 ± 10.77
+targetRR_top1k: 76.23 ± 3.28
+targetRR_verify: 77.57 ± 6.27
+targetRR_minboost: 73.69 ± 3.09
+relabel: 0.85
+----recall, mini_pellet----
+targetRR_ood: 85.65 ± 4.88
+targetRR_top1k: 91.28 ± 2.66
+targetRR_verify: 93.50 ± 0.82
+targetRR_minboost: 91.14 ± 3.07
+relabel: 0.96
+----recall, phytoplankton----
+targetRR_ood: 26.20 ± 6.42
+targetRR_top1k: 28.26 ± 2.86
+targetRR_verify: 41.52 ± 9.99
+targetRR_minboost: 46.96 ± 9.88
+relabel: 0.55
+----recall, rhizaria----
+targetRR_ood: 17.60 ± 7.84
+targetRR_top1k: 28.26 ± 9.80
+targetRR_verify: 50.60 ± 11.52
+targetRR_minboost: 66.56 ± 3.77
+relabel: 0.84
+----recall, salp_pellet----
+targetRR_ood: 1.09 ± 1.63
+targetRR_top1k: 1.27 ± 1.04
+targetRR_verify: 9.27 ± 2.76
+targetRR_minboost: 25.09 ± 4.96
+relabel: 0.56
+----recall, short_pellet----
+targetRR_ood: 40.08 ± 12.64
+targetRR_top1k: 45.26 ± 9.67
+targetRR_verify: 50.83 ± 9.84
+targetRR_minboost: 59.92 ± 6.15
+relabel: 0.45
+----recall, swimmer----
+targetRR_ood: 39.99 ± 8.02
+targetRR_top1k: 59.68 ± 3.56
+targetRR_verify: 63.11 ± 6.56
+targetRR_minboost: 57.94 ± 6.81
+relabel: 0.77
+----recall, unidentifiable----
+targetRR_ood: 81.05 ± 9.47
+targetRR_top1k: 77.19 ± 8.20
+targetRR_verify: 74.53 ± 5.22
+targetRR_minboost: 80.04 ± 3.43
+relabel: 0.73

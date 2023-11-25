@@ -20,7 +20,7 @@ copy_from = '../../mpic_data/imgs'
 cfg = yaml.safe_load(open('../configs/hitloopI/A.yaml', 'r'))
 classes = cfg['classes']
 
-copy_to = '../../mpic_data/imgs_minboost'
+copy_to = '../../mpic_data/imgs_from1_minboost'
 
 df_list = []
 for i in range(replicates):

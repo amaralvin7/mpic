@@ -48,6 +48,7 @@ def load_metadata():
 
 def get_model_names(list_id):
     
-    id_dict = {1: ('targetRR_ood',)}
+    id_dict = {1: ('targetRR_ood',),
+               2: ('targetRR_top1k', 'targetRR_verify', 'targetRR_minboost')}
 
     return id_dict[list_id]

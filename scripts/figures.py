@@ -260,23 +260,19 @@ def calculate_flux_df(domain=None):
         return row
 
     df_list = []
-    csvs = [f for f in os.listdir('../results/hitloopI/predictions') if '.csv' in f]
-    csvs.extend([f for f in os.listdir('../results/hitloopII/predictions') if '.csv' in f])
+    csvs = [f for f in os.listdir('../results/predictions') if f'target{domain}' in f]
     for f in csvs:
         model = f.split(".")[0]
-        if model.split('-')[0] == 'A':
-            exp_name = 'hitloopI'
-        else:
-            exp_name = 'hitloopII'
-        pred_df = pd.read_csv(f'../results/{exp_name}/predictions/{f}', header=0)[['filepath', 'prediction']]
+        pred_df = pd.read_csv(f'../results/predictions/{f}', header=0)[['filepath', 'prediction']]
         pred_df['filename'] = pred_df['filepath'].str.split('/', expand=True)[1]
         pred_df = pred_df.drop('filepath', axis=1).set_index('filename')
         pred_df = pred_df.rename(columns={'prediction': f'prediction{model}'})
-        if model.split('-')[0] != 'A':
-            splits_file = f'splits_hitloop_{model[0]}.json'
+        if 'ood' not in model:
+            splits_file = f'{model.split("-")[0]}.json'
             splits_dict = tools.load_json(f'../data/{splits_file}')
-            train_fps = splits_dict[domain]['train'] + splits_dict[domain]['val']
-            train_df = pd.DataFrame(train_fps, columns=['filepath'])
+            train_fps = [f for f in splits_dict['train'] if domain in f]
+            val_fps = [f for f in splits_dict['val'] if domain in f]
+            train_df = pd.DataFrame(train_fps + val_fps, columns=['filepath'])
             train_df[[f'label{model}','filename']] = train_df['filepath'].str.split('/', expand=True)
             train_df = train_df.drop('filepath', axis=1).set_index('filename')
             df_list.extend([pred_df, train_df])
@@ -294,16 +290,16 @@ def calculate_flux_df(domain=None):
     df = df.progress_apply(row_flux, axis=1)
     # df = df.apply(row_flux, axis=1)
     
-    df.to_csv('../results/hitloopII/fluxes.csv', index=False)
+    df.to_csv(f'../results/fluxes_{domain}.csv', index=False)
 
 
-def flux_comparison_by_class():
+def flux_comparison_by_class(domain):
     
     classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
     
-    df = pd.read_csv('../results/hitloopII/fluxes.csv', index_col=False, low_memory=False)
+    df = pd.read_csv(f'../results/fluxes_{domain}.csv', index_col=False, low_memory=False)
     samples = df['sample'].unique()
-    models = ('A', 'B', 'C', 'D')
+    models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
     replicates = 5
     flux_dict = {}
 
@@ -334,7 +330,7 @@ def flux_comparison_by_class():
                 for j in range(replicates):
 
                     pred_flux = sdf[sdf[f'prediction{m}-{j}_group'] == c][f'prediction{m}-{j}_flux'].sum()
-                    if m != 'A':
+                    if 'ood' not in m:
                         train_flux = sdf[sdf[f'label{m}-{j}_group'] == c][f'label{m}-{j}_flux'].sum()
                         class_flux = train_flux + pred_flux
                     else:
@@ -366,7 +362,7 @@ def flux_comparison_by_class():
 
         fig.supxlabel('Human flux (mmol m$^{-2}$ d$^{-1}$)')
         fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)')
-        fig.savefig(f'../results/hitloopII/figs/flux_comparison_byclass_{m}.{image_format}', bbox_inches='tight')
+        fig.savefig(f'../results/figs/flux_comparison_byclass_{m}.{image_format}', bbox_inches='tight')
         plt.close()
 
     x_vars = classes + ['total', 'measured']
@@ -385,7 +381,7 @@ def flux_comparison_by_class():
 
 
     i = 0
-    with open(f'../results/hitloopII/flux_mae.txt', 'w') as sys.stdout:
+    with open(f'../results/figs/flux_mae_{domain}.txt', 'w') as sys.stdout:
         print('******FLUX MAEss******')
         for c in classes:
             print(f'---{c}---')
@@ -414,12 +410,12 @@ def flux_comparison_by_class():
     ax.legend(lines, legend_text, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
             frameon=False, handlelength=1)
 
-    human_measured_mae = flux_comparison_human_measured()
+    human_measured_mae = flux_comparison_human_measured(domain)
     ax.hlines(human_measured_mae, 7.6, 8.4, colors=black, alpha=0.3)
     
     fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)')
 
-    fig.savefig(f'../results/hitloopII/figs/flux_comparison_mae.{image_format}', bbox_inches='tight')
+    fig.savefig(f'../results/figs/flux_comparison_mae_{domain}.{image_format}', bbox_inches='tight')
     plt.close()
 
 
@@ -583,19 +579,19 @@ def metrics_hptune():
         plt.close(fig)
 
 
-def metrics_hitloop():
+def metrics_hitloop(domain):
 
-    open('../results/hitloopII/metrics_output.txt', 'w')  # delete metrics file if it exists
-    flux_df = pd.read_csv('../results/hitloopII/fluxes.csv', index_col='filename', low_memory=False)
+    open(f'../results/figs/metrics_output_{domain}.txt', 'w')  # delete metrics file if it exists
+    flux_df = pd.read_csv(f'../results/fluxes_{domain}.csv', index_col='filename', low_memory=False)
     human_df = tools.load_metadata()
     relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
     relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
-    human_df = human_df.loc[human_df['domain'] == 'RR'][['filename', 'olabel']]
+    human_df = human_df.loc[human_df['domain'] == domain][['filename', 'olabel']]
     human_df = human_df.rename(columns={'olabel': f'label'})
     human_df.set_index('filename', inplace=True)
     
 
-    models = ('A', 'B', 'C', 'D')
+    models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
     offset = (-0.15, -0.05, 0.05, 0.15)
     replicates = 5
     y_vars = ('precision', 'recall')
@@ -625,7 +621,7 @@ def metrics_hitloop():
             values_format='.0f',
             ax=ax,
             labels=labels)
-        cm.savefig(f'../results/hitloopII/figs/cmatrix_{f}.png')
+        cm.savefig(f'../results/figs/cmatrix_{f}.png')
         plt.close(cm)
         reports[f] = classification_report(
             df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
@@ -636,7 +632,7 @@ def metrics_hitloop():
             axs[i].set_xticklabels([])
             axs[i].set_xticks(range(len(labels)))
         for j, x in enumerate(labels):
-            with open('../results/hitloopII/metrics_output.txt', 'a') as sys.stdout:
+            with open(f'../results/figs/metrics_output_{domain}.txt', 'a') as sys.stdout:
                 print(f'----{y}, {x}----')
                 for z, m in enumerate(models):
                     keys = [k for k in reports.keys() if f'{m}-' in k]
@@ -653,7 +649,7 @@ def metrics_hitloop():
     axs[0].legend(lines, legend_text, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
             frameon=False, handlelength=1)     
 
-    fig.savefig(f'../results/hitloopII/figs/metrics_hitloop.{image_format}')
+    fig.savefig(f'../results/figs/metrics_hitloop_{domain}.{image_format}')
     plt.close(fig)
 
     
@@ -677,14 +673,14 @@ def softmax_histograms(cfg):
     plt.close()
 
 
-def flux_comparison_human_measured():
+def flux_comparison_human_measured(domain):
     
     fig, ax = plt.subplots(1, 1)
     
     ax.set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
     ax.set_ylabel('Human flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
 
-    df = pd.read_csv('../results/hitloopII/fluxes.csv', index_col=False, low_memory=False)
+    df = pd.read_csv(f'../results/fluxes_{domain}.csv', index_col=False, low_memory=False)
 
     meas_flux_allsamples = []
     annot_flux_allsamples = []
@@ -709,7 +705,7 @@ def flux_comparison_human_measured():
     mae = mean_absolute_error(meas_flux_allsamples, annot_flux_allsamples)
     ax.text(0.98, 0.02, f'MAE: {mae:.2f}', ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(ax.transAxes, ax.transAxes))
 
-    fig.savefig(f'../results/hitloopII/figs/flux_comparison_human.{image_format}', bbox_inches='tight')
+    fig.savefig(f'../results/figs/flux_comparison_human_{domain}.{image_format}', bbox_inches='tight')
 
     return mae
 
@@ -731,10 +727,9 @@ if __name__ == '__main__':
     image_format = args.image_format
 
     training_plots()
-    # # metrics_hptune()
+    # metrics_hptune()
 
-    # training_plots('hitloopII')
-    # calculate_flux_df(domain='RR')
-    # flux_comparison_by_class()
-    # metrics_hitloop()
+    # calculate_flux_df('RR')
+    flux_comparison_by_class('RR')
+    metrics_hitloop('RR')
 

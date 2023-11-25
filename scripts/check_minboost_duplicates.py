@@ -1,7 +1,7 @@
 import os
 from collections import Counter
 
-path = '../../mpic_data/imgs_fromA_verified_minboost'
+path = '../../mpic_data/imgs_from1_verified_minboost'
 
 classes = [d for d in os.listdir(path) if d != '.DS_Store']
 

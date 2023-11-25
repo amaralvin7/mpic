@@ -176,50 +176,6 @@ def compile_filepaths(cfg, split):
     return fps
 
 
-def write_splits_hitloopII():
-
-    def get_splits_dict(image_dir):
-
-        splits_dict = {}
-        ood_splits = tools.load_json('../data/splits_hitloop_A.json')
-        for domain in ood_splits:  # put all OOD images in the train set, none in val
-            splits_dict[domain] = {}
-            splits_dict[domain]['train'] = ood_splits[domain]['train'] + ood_splits[domain]['val']
-            splits_dict[domain]['val'] = []
-
-        classes = os.listdir(image_dir)
-        df_rows = []
-        for c in classes:
-            filenames = [f for f in os.listdir(f'{image_dir}/{c}') if f != '.DS_Store']
-            for f in filenames:
-                df_rows.append({'filename': f, 'label': c})
-        labeled_df = pd.DataFrame(df_rows)
-        train_fps, val_fps = stratified_split(labeled_df, 0.8, False)  # stratify based on new labels
-        test_df = metadata.merge(labeled_df, on='filename', how='left', indicator=True)  # all RR images not in folder
-        test_df = test_df.loc[test_df['_merge'] == 'left_only']
-        test_df['filepath'] = test_df['label_x'] + '/' + test_df['filename']
-        splits_dict['RR'] = {'train': train_fps, 'val': val_fps, 'test': list(test_df['filepath'])}
-
-        for fp in list(test_df['filepath']):  # copy the test images into the folder
-            os.makedirs(f'{image_dir}/{fp.split("/")[0]}', exist_ok=True)
-            shutil.copyfile(f'../../mpic_data/imgs/{fp}', f'{image_dir}/{fp}')
-
-        return splits_dict
-
-    metadata = tools.load_metadata()
-    metadata = metadata.loc[metadata['domain'] == 'RR'][['filename', 'label']]
-    img_dirs = {}
-    cfgs = sorted([c for c in os.listdir('../configs/hitloopII') if '.yaml' in c])
-
-    for cfg_fn in cfgs:
-        cfg = yaml.safe_load(open(f'../configs/hitloopII/{cfg_fn}', 'r'))
-        img_dirs[f'{cfg_fn.split(".")[0]}'] = cfg['data_dir']
-
-    for model in img_dirs.keys():
-        splits_dict = get_splits_dict(img_dirs[model])
-        tools.write_json(splits_dict, f'../data/splits_hitloop_{model}.json')
-
-
 if __name__ == '__main__':
 
     df = tools.load_metadata()
@@ -233,9 +189,3 @@ if __name__ == '__main__':
     # train_fps = compile_filepaths(base_cfg, base_cfg['train_domains'], split='train')
     # for cfg in (base_cfg, pad_cfg):
     #     calculate_data_stats(cfg, train_fps)
-    
-    # #human-in-the-loop I (hitloopI) experiments
-    # write_splits(df, 'splits_hitloop_A.json', 0.8, ['SR', 'JC', 'FC', 'FO'], False)
-
-    # human-in-the-loop II (hitloopII) experiments
-    write_splits_hitloopII()
