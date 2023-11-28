@@ -1,15 +1,8 @@
 import os
-import shutil
-import sys
-from itertools import product
 
-import numpy as np
-import pandas as pd
 import torch
-import yaml
 from PIL import Image
 from torchvision import transforms
-from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 import src.tools as tools
@@ -118,34 +111,6 @@ def get_dataloader(cfg, filepaths, augment=False, train=True, shuffle=True):
     return dataloader
 
 
-def calculate_data_stats(cfg, filepaths):
-    # calculate mean and sd of dataset
-    # adapted from
-    # https://kozodoi.me/python/deep%20learning/pytorch/tutorial/2021/03/08/image-mean-std.html
-
-    print(f'Calculating data stats (pad={cfg["pad"]}, train_domains={cfg["train_domains"]})')
-    dataset = ParticleImages(cfg, filepaths, get_transforms(cfg))
-    loader = torch.utils.data.DataLoader(
-        dataset, batch_size=cfg['batch_size'], num_workers=cfg['n_workers'])
-
-    sum_pixelvals = 0
-    sum_square_pixelvals = 0
-    n_pixels = len(dataset) * cfg['input_size']**2
-
-    for pixelvals, *_ in tqdm(loader):
-        sum_pixelvals += pixelvals.sum(dim=[0, 2, 3])
-        sum_square_pixelvals += (pixelvals**2).sum(dim=[0, 2, 3])
-
-    mean = sum_pixelvals / n_pixels
-    var = (sum_square_pixelvals / n_pixels) - (mean**2)
-    std = np.sqrt(var)
-
-    print(f'mean = {np.around(mean.numpy(), decimals=3)}')
-    print(f'std = {np.around(std.numpy(), decimals=3)}')
-
-    return mean, std
-
-
 def stratified_split(df, train_size):
 
     def get_class_df(particle_class):
@@ -174,18 +139,3 @@ def compile_filepaths(cfg, split):
     fps = splits[split]
     
     return fps
-
-
-if __name__ == '__main__':
-
-    df = tools.load_metadata()
-    df = df.loc[df['label'] != 'none']
-
-    # #hyperparameter tuning (hptune) experiments
-    # write_splits(df, 'splits.json', 0.8, ['RR', 'SR', 'JC', 'FC', 'FO'], True)
-
-    # base_cfg = yaml.safe_load(open(f'../configs/hptune/base.yaml', 'r'))
-    # pad_cfg = yaml.safe_load(open(f'../configs/hptune/pad.yaml', 'r'))
-    # train_fps = compile_filepaths(base_cfg, base_cfg['train_domains'], split='train')
-    # for cfg in (base_cfg, pad_cfg):
-    #     calculate_data_stats(cfg, train_fps)

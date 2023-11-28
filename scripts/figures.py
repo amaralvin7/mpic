@@ -514,33 +514,31 @@ def esd_by_class(cfg):
 
 def metrics_hptune():
 
-    parent_dir = 'hptune'
+    open(f'../results/figs/metrics_hptune.txt', 'w')  # delete metrics file if it exists
 
-    open(f'../results/{parent_dir}/metrics_output.txt', 'w')  # delete metrics file if it exists
+    exp_dict = {'preprocessing': ['targetRR_ood', 'pad', 'normdata', 'normIN', 'padnormdata', 'padnormIN'],
+                'learningrate': ['targetRR_ood', 'highLR', 'lowLR'],
+                'weightdecay': ['targetRR_ood', 'highWD', 'lowWD']}
 
-    exp_dict = {'preprocessing': ['base', 'pad', 'normdata', 'normIN', 'pad_normdata', 'pad_normIN'],
-                'learningrate': ['base', 'highLR', 'lowLR'],
-                'weightdecay': ['base', 'highWD', 'lowWD'],
-                'upsample': ['base', 'upsample100', 'upsample200', 'upsample400']}
-
-    labels = yaml.safe_load(open('../configs/hptune/base.yaml', 'r'))['classes']
+    labels = yaml.safe_load(open('../configs/targetRR_ood.yaml', 'r'))['classes']
     y_vars = ('precision', 'recall')
     x_vars = labels + ['macro avg', 'weighted avg']
     colors = [blue, green, orange, vermillion, black, radish, sky]
     markers = ['o', '^', '+', 's', 'd', 'x', '*']
 
-    for exp, s in product(exp_dict, ('target', 'test')):
+    for exp in exp_dict:
 
         cfg_names = sorted(exp_dict[exp])
 
         fig, axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
         axs[-1].set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
-        prediction_files = [f for f in os.listdir(f'../results/{parent_dir}/predictions') if s in f and f.split('-')[0].split(f'{s}_')[1] in cfg_names]
+        prediction_files = [f for f in os.listdir(f'../results/predictions') if f.split('-')[0] in cfg_names]
         reports = {}
 
         for f in prediction_files:
-            df = pd.read_csv(f'../results/{parent_dir}/predictions/{f}')
+            df = pd.read_csv(f'../results/predictions/{f}')
             df['label'] = df['filepath'].apply(lambda x: x.split('/')[0])
+            df = df.loc[df['label'] != 'none']
             cm, ax = plt.subplots(figsize=(8, 8), tight_layout=True)
             ConfusionMatrixDisplay.from_predictions(
                 df['label'],
@@ -551,7 +549,7 @@ def metrics_hptune():
                 values_format='.0f',
                 ax=ax,
                 labels=labels)
-            cm.savefig(f'../results/{parent_dir}/figs/cmatrix_{f.split(".")[0]}.png')
+            cm.savefig(f'../results/figs/cmatrix_{f.split(".")[0]}.png')
             plt.close(cm)
             reports[f] = classification_report(
                 df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
@@ -562,10 +560,10 @@ def metrics_hptune():
                 axs[i].set_xticklabels([])
                 axs[i].set_xticks(range(len(x_vars)))
             for j, x in enumerate(x_vars):
-                with open(f'../results/{parent_dir}/metrics_output.txt', 'a') as sys.stdout:
-                    print(f'----{s}, {y}, {x}----')
+                with open(f'../results/figs/metrics_hptune.txt', 'a') as sys.stdout:
+                    print(f'----{y}, {x}----')
                     for m, c in enumerate(cfg_names):
-                        keys = [k for k in reports.keys() if f'{s}_{c}-' in k]
+                        keys = [k for k in reports.keys() if f'{c}-' in k]
                         y_avg = np.mean([reports[k][x][y] for k in keys])
                         y_std = np.std([reports[k][x][y] for k in keys], ddof=1)
                         axs[i].errorbar(j, y_avg, y_std, color=colors[m], ecolor=colors[m], marker=markers[m], capsize=2)
@@ -575,7 +573,7 @@ def metrics_hptune():
         axs[0].legend(lines, cfg_names, ncol=len(cfg_names), bbox_to_anchor=(0.5, 1.02), loc='lower center',
                 frameon=False, handlelength=1)      
 
-        fig.savefig(f'../results/{parent_dir}/figs/metrics_{s}_{exp}.{image_format}')
+        fig.savefig(f'../results/figs/metrics_{exp}.{image_format}')
         plt.close(fig)
 
 
@@ -632,7 +630,7 @@ def metrics_hitloop(domain):
             axs[i].set_xticklabels([])
             axs[i].set_xticks(range(len(labels)))
         for j, x in enumerate(labels):
-            with open(f'../results/figs/metrics_output_{domain}.txt', 'a') as sys.stdout:
+            with open(f'../results/figs/metrics_hitloop_{domain}.txt', 'a') as sys.stdout:
                 print(f'----{y}, {x}----')
                 for z, m in enumerate(models):
                     keys = [k for k in reports.keys() if f'{m}-' in k]
@@ -727,9 +725,9 @@ if __name__ == '__main__':
     image_format = args.image_format
 
     training_plots()
-    # metrics_hptune()
+    metrics_hptune()
 
     # calculate_flux_df('RR')
-    flux_comparison_by_class('RR')
-    metrics_hitloop('RR')
+    # flux_comparison_by_class('RR')
+    # metrics_hitloop('RR')
 
