@@ -1,7 +1,13 @@
+import argparse
 import os
 from collections import Counter
 
-path = '../../mpic_data/imgs_from1_verified_minboost'
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_name_list_id', '-i')
+args = parser.parse_args()
+list_id = int(args.model_name_list_id)
+
+path = f'../../mpic_data/imgs_from{list_id}_verified_minboost'
 
 classes = [d for d in os.listdir(path) if d != '.DS_Store']
 

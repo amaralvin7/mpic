@@ -1,1 +1,1 @@
-Redo hptune with new repo structure. Metrics are calculated on non-ambiguous images, and with the OOD target domain (RR) as the test set only. Results are same as before: preprocessing (pad and normalization) and weight decay doesn't make a difference, high LR worsens metrics but low does not improve.
+Do hitloop experiments with JC as the target domain. Comparisons to measured look pretty good with respect to MAE, but flux_comparison_by_class figs indicate more confusion between classes than for RR.

@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 import torch
@@ -39,4 +41,17 @@ def predict_labels(device, dataloader, model_id, prefix=None):
         
     df.set_index('filepath', inplace=True)
     df.to_csv(f'../results/predictions/{csv_fname}.csv')
+
+
+def get_prediction_df(model_name):
     
+    df_list = []
+    csvs = [f for f in os.listdir('../results/predictions/') if f'{model_name}-' in f]
+    for csv in csvs:
+        temp_df = pd.read_csv(f'../results/predictions/{csv}', index_col='filepath', header=0)
+        replicate = csv.split('-')[1].split('.')[0]
+        temp_df = temp_df.rename(columns={c: f'{c}{replicate}' for c in temp_df.columns})
+        df_list.append(temp_df)
+    df = pd.concat(df_list, axis=1)
+    
+    return df

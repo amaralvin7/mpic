@@ -254,7 +254,7 @@ def calculate_flux_df(domain=None):
                     row[f'{c}_group'] = row[c]
                 row[f'{c}_flux'] = flux_equations(row, f'{c}_group')
 
-        if row['domain'] in ('RR', 'FK'):
+        if row['domain'] in ('RR', 'JC'):
             row['olabel_flux'] = flux_equations(row, 'olabel_group')
         
         return row
@@ -290,15 +290,17 @@ def calculate_flux_df(domain=None):
     df = df.progress_apply(row_flux, axis=1)
     # df = df.apply(row_flux, axis=1)
     
-    df.to_csv(f'../results/fluxes_{domain}.csv', index=False)
+    df.to_csv(f'../results/fluxes/{domain}.csv', index=False)
 
 
 def flux_comparison_by_class(domain):
     
     classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
     
-    df = pd.read_csv(f'../results/fluxes_{domain}.csv', index_col=False, low_memory=False)
+    df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
     samples = df['sample'].unique()
+    if domain == 'JC':
+        samples = [s for s in samples if int(s[2:]) < 49]  # samples above 49 were problematic for flux estimation
     models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
     replicates = 5
     flux_dict = {}
@@ -419,7 +421,7 @@ def flux_comparison_by_class(domain):
     plt.close()
 
 
-def compare_accuracies():
+def compare_accuracies(domain):
     
     def compare_cols(df, col1, col2):
         
@@ -428,7 +430,7 @@ def compare_accuracies():
         
         return accuracy
             
-    df = pd.read_csv('../results/fluxes.csv', index_col=False)
+    df = pd.read_csv('../results/fluxes/{domain}.csv', index_col=False)
     df = df.loc[df['olabel'].notnull()]
     
     pred_col = 'prediction0_group'
@@ -579,11 +581,12 @@ def metrics_hptune():
 
 def metrics_hitloop(domain):
 
-    open(f'../results/figs/metrics_output_{domain}.txt', 'w')  # delete metrics file if it exists
-    flux_df = pd.read_csv(f'../results/fluxes_{domain}.csv', index_col='filename', low_memory=False)
+    open(f'../results/figs/metrics_hitloop_{domain}.txt', 'w')  # delete metrics file if it exists
+    flux_df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col='filename', low_memory=False)
     human_df = tools.load_metadata()
-    relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
-    relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
+    if domain == 'RR':
+        relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
+        relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
     human_df = human_df.loc[human_df['domain'] == domain][['filename', 'olabel']]
     human_df = human_df.rename(columns={'olabel': f'label'})
     human_df.set_index('filename', inplace=True)
@@ -638,8 +641,9 @@ def metrics_hitloop(domain):
                     y_std = np.std([reports[k][x][y] for k in keys], ddof=1)
                     axs[i].errorbar(j + offset[z], y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
                     print(f'{m}: {y_avg*100:.2f} ± {y_std*100:.2f}')
-                axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
-                print(f'relabel: {relabel_report[x][y]:.2f}')
+                if domain == 'RR':
+                    axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
+                    print(f'relabel: {relabel_report[x][y]:.2f}')
 
 
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
@@ -678,15 +682,15 @@ def flux_comparison_human_measured(domain):
     ax.set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
     ax.set_ylabel('Human flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
 
-    df = pd.read_csv(f'../results/fluxes_{domain}.csv', index_col=False, low_memory=False)
+    df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
 
     meas_flux_allsamples = []
     annot_flux_allsamples = []
             
     for s in df['sample'].unique():
         
-        # if s[0] == 'J' and int(s[2:]) >= 49:
-        #     continue
+        if domain == 'JC' and int(s[2:]) >= 49:
+            continue
 
         sdf = df.loc[(df['sample'] == s)].copy()
         meas_flux = sdf['measured_flux'].unique()[0]
@@ -725,9 +729,15 @@ if __name__ == '__main__':
     image_format = args.image_format
 
     training_plots()
-    metrics_hptune()
-
+    # metrics_hptune()
+    
     # calculate_flux_df('RR')
+    # flux_comparison_human_measured('RR')
     # flux_comparison_by_class('RR')
     # metrics_hitloop('RR')
+
+    calculate_flux_df('JC')
+    flux_comparison_human_measured('JC')
+    flux_comparison_by_class('JC')
+    metrics_hitloop('JC')
 
