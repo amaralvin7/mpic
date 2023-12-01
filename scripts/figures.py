@@ -729,12 +729,12 @@ if __name__ == '__main__':
     image_format = args.image_format
 
     training_plots()
-    # metrics_hptune()
+    metrics_hptune()
     
-    # calculate_flux_df('RR')
-    # flux_comparison_human_measured('RR')
-    # flux_comparison_by_class('RR')
-    # metrics_hitloop('RR')
+    calculate_flux_df('RR')
+    flux_comparison_human_measured('RR')
+    flux_comparison_by_class('RR')
+    metrics_hitloop('RR')
 
     calculate_flux_df('JC')
     flux_comparison_human_measured('JC')

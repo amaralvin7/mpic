@@ -1,6 +1,6 @@
 # mpic
 
-Marine particle image classification. Training data not yet included.
+Marine particle image classification. Images were collected during five different sampling campaigns (i.e., domains), which are referred to as *FC*, *FO*, *JC*, *RR*, and *SR*. Our goal is to show how images collected from a set of domains can be used to predict labels for images from another domain (i.e., out-of-domain or OOD inference). Note that the usage instructions below remain to be elaborated in the future. Training data not yet included.
 
 ## Installation (command line)
 Conda must be installed ([Miniconda](https://docs.conda.io/projects/conda/en/latest/glossary.html#miniconda-glossary) recommended). After cloning the repository, create a new virtual environment and download all required dependencies:
@@ -16,18 +16,42 @@ pip install -e .
 
 ### Hyperparameter tuning experiments
 
-1. Train model ensembles:
+Tune hyperparameters by using images from *FC*, *FO*, *JC*, and *SR* to train and validate, with RR as the test/target domain.
+
+#### Write train/val/test splits 
 ```
-cd scripts
-python train_ensembles -c hptune
+python ood_splits.py -d RR  # RR is the target domain
+python ood_splits.py -d JC  # JC is the target domain (for later use)
 ```
 
-2. Evaluate the trained models:
+#### Train model ensembles and use them to predict on the test/target set
 ```
-python hptune_predict.py
+# 0 is an identifier for models used for hyperparameter tuning
+python train_ensembles.py -i 0; python predict_ensembles.py -i 0  
 ```
 
-3. Generate figures and a text file with evaluation metrics:
+### Domain adaptation experiments
+Consider a single target domain. Train an out-of-domain model ensemble using images from all other domains. Use this ensemble to predict images from the target domain. Integrate a subset of in-domain predictions into the training set using several different approaches (to be elaborated). Retrain the model ensemble with both in- and out-of-domain images, and predict on any in-domain images not integrated into the testing set.
+
+#### Train OOD model ensemble and use it to predict on the test/target set
+```
+python train_ensembles.py -i 1
+python predict_ensembles.py -i 1  
+```
+The first line can be omitted if the hyperparameters tuning ensembles were already trained, as this line trains an ensemble already trained during the hyperparameter tuning experiment. "1" is an identifier for considering *RR* as the target domain; use "3" for *JC*.
+
+#### Copy the target domain predictions into a folder
+```
+python copy_predictions.py -i 1
+```
+This will create a folder in your data directory called `imgs_from<id>`. "1" is an identifier (id) for considering *RR* as the target domain; use "3" for *JC*.
+
+#### Manually verify the predictions
+First, create a copy of `imgs_from<id>` and rename it `imgs_from<id>_verified`. In `imgs_from<id>_verified`, manually verify the predictions by deleting or moving incorrect predictions as appropriate (`imgs_from<id>` will be used as is for testing how much human verification improves inference).
+
+#### Incoporate more instances of minority classes
+
+### Generate summary figures and text files
 ```
 python figures.py
 ```
