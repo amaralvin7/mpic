@@ -1,0 +1,220 @@
+----RR, precision, aggregate----
+targetRR_ood: 76.54 ± 1.24
+targetRR_top1k: 86.94 ± 1.89
+targetRR_verify: 86.60 ± 3.70
+targetRR_minboost: 84.43 ± 3.96
+relabel: 0.80
+----RR, precision, fiber----
+targetRR_ood: 52.92 ± 1.72
+targetRR_top1k: 52.53 ± 4.72
+targetRR_verify: 52.09 ± 8.54
+targetRR_minboost: 57.36 ± 8.06
+relabel: 0.88
+----RR, precision, long_pellet----
+targetRR_ood: 71.66 ± 7.52
+targetRR_top1k: 71.09 ± 3.14
+targetRR_verify: 75.77 ± 9.90
+targetRR_minboost: 82.27 ± 2.05
+relabel: 0.84
+----RR, precision, mini_pellet----
+targetRR_ood: 42.09 ± 9.03
+targetRR_top1k: 37.14 ± 8.39
+targetRR_verify: 33.47 ± 2.95
+targetRR_minboost: 38.62 ± 4.97
+relabel: 0.58
+----RR, precision, phytoplankton----
+targetRR_ood: 11.77 ± 5.77
+targetRR_top1k: 11.89 ± 3.09
+targetRR_verify: 23.53 ± 8.83
+targetRR_minboost: 22.93 ± 6.43
+relabel: 0.76
+----RR, precision, rhizaria----
+targetRR_ood: 54.84 ± 22.75
+targetRR_top1k: 58.01 ± 11.66
+targetRR_verify: 67.06 ± 14.37
+targetRR_minboost: 48.31 ± 7.83
+relabel: 0.53
+----RR, precision, salp_pellet----
+targetRR_ood: 36.00 ± 49.80
+targetRR_top1k: 62.00 ± 41.47
+targetRR_verify: 86.25 ± 11.86
+targetRR_minboost: 74.56 ± 16.26
+relabel: 0.83
+----RR, precision, short_pellet----
+targetRR_ood: 23.65 ± 5.07
+targetRR_top1k: 23.04 ± 4.19
+targetRR_verify: 20.04 ± 4.23
+targetRR_minboost: 20.53 ± 2.74
+relabel: 0.45
+----RR, precision, swimmer----
+targetRR_ood: 85.75 ± 2.85
+targetRR_top1k: 79.19 ± 3.20
+targetRR_verify: 81.88 ± 7.55
+targetRR_minboost: 88.81 ± 4.23
+relabel: 0.87
+----RR, precision, unidentifiable----
+targetRR_ood: 73.69 ± 8.02
+targetRR_top1k: 77.99 ± 5.03
+targetRR_verify: 78.13 ± 6.82
+targetRR_minboost: 75.13 ± 4.33
+relabel: 0.87
+----RR, recall, aggregate----
+targetRR_ood: 65.39 ± 11.84
+targetRR_top1k: 61.67 ± 3.25
+targetRR_verify: 59.21 ± 8.43
+targetRR_minboost: 62.40 ± 9.78
+relabel: 0.88
+----RR, recall, fiber----
+targetRR_ood: 80.74 ± 0.88
+targetRR_top1k: 86.25 ± 2.79
+targetRR_verify: 85.65 ± 2.87
+targetRR_minboost: 85.26 ± 4.97
+relabel: 0.75
+----RR, recall, long_pellet----
+targetRR_ood: 66.46 ± 10.77
+targetRR_top1k: 76.23 ± 3.28
+targetRR_verify: 77.57 ± 6.27
+targetRR_minboost: 73.69 ± 3.09
+relabel: 0.85
+----RR, recall, mini_pellet----
+targetRR_ood: 85.65 ± 4.88
+targetRR_top1k: 91.28 ± 2.66
+targetRR_verify: 93.50 ± 0.82
+targetRR_minboost: 91.14 ± 3.07
+relabel: 0.96
+----RR, recall, phytoplankton----
+targetRR_ood: 26.20 ± 6.42
+targetRR_top1k: 28.26 ± 2.86
+targetRR_verify: 41.52 ± 9.99
+targetRR_minboost: 46.96 ± 9.88
+relabel: 0.55
+----RR, recall, rhizaria----
+targetRR_ood: 17.60 ± 7.84
+targetRR_top1k: 28.26 ± 9.80
+targetRR_verify: 50.60 ± 11.52
+targetRR_minboost: 66.56 ± 3.77
+relabel: 0.84
+----RR, recall, salp_pellet----
+targetRR_ood: 1.09 ± 1.63
+targetRR_top1k: 1.27 ± 1.04
+targetRR_verify: 9.27 ± 2.76
+targetRR_minboost: 25.09 ± 4.96
+relabel: 0.56
+----RR, recall, short_pellet----
+targetRR_ood: 40.08 ± 12.64
+targetRR_top1k: 45.26 ± 9.67
+targetRR_verify: 50.83 ± 9.84
+targetRR_minboost: 59.92 ± 6.15
+relabel: 0.45
+----RR, recall, swimmer----
+targetRR_ood: 39.99 ± 8.02
+targetRR_top1k: 59.68 ± 3.56
+targetRR_verify: 63.11 ± 6.56
+targetRR_minboost: 57.94 ± 6.81
+relabel: 0.77
+----RR, recall, unidentifiable----
+targetRR_ood: 81.05 ± 9.47
+targetRR_top1k: 77.19 ± 8.20
+targetRR_verify: 74.53 ± 5.22
+targetRR_minboost: 80.04 ± 3.43
+relabel: 0.73
+----JC, precision, aggregate----
+targetJC_ood: 94.12 ± 2.66
+targetJC_top1k: 96.28 ± 1.06
+targetJC_verify: 96.06 ± 1.12
+targetJC_minboost: 96.58 ± 0.94
+----JC, precision, fiber----
+targetJC_ood: 50.83 ± 15.14
+targetJC_top1k: 35.88 ± 13.59
+targetJC_verify: 44.44 ± 11.06
+targetJC_minboost: 29.46 ± 13.51
+----JC, precision, long_pellet----
+targetJC_ood: 80.63 ± 10.98
+targetJC_top1k: 76.30 ± 9.90
+targetJC_verify: 81.48 ± 6.72
+targetJC_minboost: 80.20 ± 4.59
+----JC, precision, mini_pellet----
+targetJC_ood: 13.20 ± 9.22
+targetJC_top1k: 11.09 ± 3.32
+targetJC_verify: 15.66 ± 6.25
+targetJC_minboost: 18.73 ± 9.13
+----JC, precision, phytoplankton----
+targetJC_ood: 21.66 ± 11.84
+targetJC_top1k: 17.54 ± 7.65
+targetJC_verify: 35.10 ± 9.81
+targetJC_minboost: 28.11 ± 2.58
+----JC, precision, rhizaria----
+targetJC_ood: 21.01 ± 22.29
+targetJC_top1k: 20.03 ± 6.71
+targetJC_verify: 22.80 ± 15.22
+targetJC_minboost: 12.91 ± 12.32
+----JC, precision, salp_pellet----
+targetJC_ood: 6.81 ± 8.66
+targetJC_top1k: 15.05 ± 15.60
+targetJC_verify: 36.38 ± 13.32
+targetJC_minboost: 14.46 ± 6.25
+----JC, precision, short_pellet----
+targetJC_ood: 22.46 ± 13.16
+targetJC_top1k: 14.09 ± 4.33
+targetJC_verify: 26.75 ± 14.39
+targetJC_minboost: 21.55 ± 3.99
+----JC, precision, swimmer----
+targetJC_ood: 68.51 ± 12.15
+targetJC_top1k: 79.09 ± 15.24
+targetJC_verify: 56.45 ± 21.34
+targetJC_minboost: 39.21 ± 12.00
+----JC, precision, unidentifiable----
+targetJC_ood: 45.26 ± 7.03
+targetJC_top1k: 50.48 ± 4.97
+targetJC_verify: 53.97 ± 9.98
+targetJC_minboost: 52.12 ± 10.16
+----JC, recall, aggregate----
+targetJC_ood: 10.70 ± 7.71
+targetJC_top1k: 13.16 ± 4.21
+targetJC_verify: 27.69 ± 16.13
+targetJC_minboost: 22.61 ± 9.02
+----JC, recall, fiber----
+targetJC_ood: 68.62 ± 10.01
+targetJC_top1k: 84.75 ± 5.71
+targetJC_verify: 84.17 ± 5.52
+targetJC_minboost: 86.58 ± 6.45
+----JC, recall, long_pellet----
+targetJC_ood: 30.71 ± 12.17
+targetJC_top1k: 41.58 ± 9.49
+targetJC_verify: 44.84 ± 2.97
+targetJC_minboost: 41.42 ± 6.26
+----JC, recall, mini_pellet----
+targetJC_ood: 41.52 ± 26.49
+targetJC_top1k: 44.30 ± 13.09
+targetJC_verify: 57.99 ± 16.24
+targetJC_minboost: 43.22 ± 11.06
+----JC, recall, phytoplankton----
+targetJC_ood: 37.76 ± 15.65
+targetJC_top1k: 51.35 ± 8.33
+targetJC_verify: 55.93 ± 7.86
+targetJC_minboost: 57.63 ± 6.74
+----JC, recall, rhizaria----
+targetJC_ood: 45.83 ± 16.93
+targetJC_top1k: 49.72 ± 7.44
+targetJC_verify: 52.50 ± 8.75
+targetJC_minboost: 61.67 ± 4.46
+----JC, recall, salp_pellet----
+targetJC_ood: 6.67 ± 7.97
+targetJC_top1k: 5.71 ± 5.22
+targetJC_verify: 7.62 ± 2.61
+targetJC_minboost: 17.14 ± 2.61
+----JC, recall, short_pellet----
+targetJC_ood: 45.84 ± 8.01
+targetJC_top1k: 56.46 ± 7.45
+targetJC_verify: 60.84 ± 10.37
+targetJC_minboost: 64.39 ± 6.74
+----JC, recall, swimmer----
+targetJC_ood: 9.06 ± 4.98
+targetJC_top1k: 8.67 ± 3.47
+targetJC_verify: 23.27 ± 9.64
+targetJC_minboost: 24.39 ± 3.65
+----JC, recall, unidentifiable----
+targetJC_ood: 91.62 ± 9.42
+targetJC_top1k: 91.44 ± 7.38
+targetJC_verify: 88.16 ± 13.08
+targetJC_minboost: 88.88 ± 9.31

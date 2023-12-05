@@ -1,4 +1,4 @@
-******FLUX MAEss******
+******FLUX MAEs (RR)******
 ---aggregate---
 targetRR_ood: 0.44 ± 0.21
 targetRR_top1k: 0.15 ± 0.07

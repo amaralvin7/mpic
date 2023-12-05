@@ -12,7 +12,7 @@ import torch
 import yaml
 from itertools import product
 from matplotlib.lines import Line2D
-from sklearn.metrics import ConfusionMatrixDisplay, mean_squared_error, mean_absolute_error, classification_report
+from sklearn.metrics import ConfusionMatrixDisplay, mean_absolute_error, classification_report
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 
@@ -50,23 +50,20 @@ def training_plots():
         plt.close()
 
 
-def get_class_count_df(cfg, classes, normalize=False):
+def get_class_count_df(classes, normalize=False):
 
-    split_ids = dataset.powerset(cfg['domains'])
-    domain_splits = tools.load_json(os.path.join('..', 'data', cfg['domain_splits_fname']))
+    meta = tools.load_metadata()
     
     df_list = []
-    for d in cfg['domains']:  # first, get all of the counts in the individual domains
+    for d in ('FC', 'FO', 'JC', 'RR', 'SR'):  # first, get all of the counts in the individual domains
         counts_by_label = []
+        d_df = meta.loc[meta['domain'] == d]
         for c in classes:
-            split_filepaths = domain_splits[d]['train'] + domain_splits[d]['val'] + domain_splits[d]['test']
-            counts_by_label.append(sum(c in f for f in split_filepaths))
+            c_df = d_df.loc[d_df['label'] == c]
+            counts_by_label.append(len(c_df))
         df_list.append(pd.DataFrame(counts_by_label, index=classes, columns=[d]))
     df = pd.concat(df_list, axis=1)
 
-    for i in split_ids:  # for splits that have more than one domain
-        if len(i) > 1:
-            df[('_').join(i)] = df[list(i)].sum(axis=1)
     if normalize:
         for c in df.columns:
             df[c] = df[c] / df[c].sum()
@@ -88,10 +85,10 @@ def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
         return df
 
 
-def distribution_barplot(cfg):
+def distribution_barplot():
     
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'short_pellet',  'phyto_dino', 'phyto_long',
-               'phyto_round', 'rhizaria', 'salp_pellet', 'noise', 'swimmer', 'bubble', 'fiber_blur', 'fiber_sharp',]
+               'phyto_round', 'rhizaria', 'salp_pellet', 'noise', 'swimmer', 'bubble', 'fiber_blur', 'fiber_sharp']
     
     ind = np.arange(len(classes)) 
     width = 0.15
@@ -101,7 +98,7 @@ def distribution_barplot(cfg):
     
     for i, normalize in enumerate((False, True)):
         
-        df = get_class_count_df(cfg, classes, normalize=normalize)
+        df = get_class_count_df(classes, normalize=normalize)
 
         axs[i].bar(ind-width*2, df['FC'], width, color=orange)
         axs[i].bar(ind-width*1, df['FO'], width, color=sky)
@@ -127,7 +124,7 @@ def distribution_barplot(cfg):
     axs[0].legend(lines, labels, ncol=6, bbox_to_anchor=(0.5, 1.02), loc='lower center',
               frameon=False, handlelength=1)
         
-    plt.savefig(os.path.join('..', 'results', f'distribution_barplot.pdf'), bbox_inches='tight')
+    plt.savefig(os.path.join('..', 'results', 'figs', f'distribution_barplot.{image_format}'), bbox_inches='tight')
     plt.close()
 
 
@@ -293,132 +290,140 @@ def calculate_flux_df(domain=None):
     df.to_csv(f'../results/fluxes/{domain}.csv', index=False)
 
 
-def flux_comparison_by_class(domain):
+def flux_comparison_by_class():
     
-    classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
-    
-    df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
-    samples = df['sample'].unique()
-    if domain == 'JC':
-        samples = [s for s in samples if int(s[2:]) < 49]  # samples above 49 were problematic for flux estimation
-    models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
-    replicates = 5
-    flux_dict = {}
-
-    for m in models:
-
-        fig, axs = plt.subplots(3, 3, figsize=(10,10), tight_layout=True)
-        fig.subplots_adjust(wspace=0.3)
-        axs = axs.flatten()
-
-        flux_dict[m] = {}
-            
-        for s in samples:
-
-            sdf = df.loc[(df['sample'] == s)].copy()
-            color = get_domain_color(sdf['domain'].unique()[0])
-            flux_dict[m][s] = {c: {} for c in classes}
-            flux_dict[m][s]['human_total'] = sdf['olabel_flux'].sum()
-            flux_dict[m][s]['model_total'] = np.zeros(replicates)
-            flux_dict[m][s]['measured'] = sdf['measured_flux'].unique()[0]
-            flux_dict[m][s]['measured_e'] = sdf['measured_flux_e'].unique()[0]
-            
-            for i, c in enumerate(classes):
-                
-                class_flux_human = sdf[sdf['olabel_group'] == c]['olabel_flux'].sum()
-                flux_dict[m][s][c]['human'] = class_flux_human
-                flux_dict[m][s][c]['model'] = np.zeros(replicates)
-
-                for j in range(replicates):
-
-                    pred_flux = sdf[sdf[f'prediction{m}-{j}_group'] == c][f'prediction{m}-{j}_flux'].sum()
-                    if 'ood' not in m:
-                        train_flux = sdf[sdf[f'label{m}-{j}_group'] == c][f'label{m}-{j}_flux'].sum()
-                        class_flux = train_flux + pred_flux
-                    else:
-                        class_flux = pred_flux
-                    flux_dict[m][s][c]['model'][j] = class_flux
-                    flux_dict[m][s]['model_total'][j] += class_flux
-
-                class_flux_mean = np.mean(flux_dict[m][s][c]['model'])
-                class_flux_e = np.std(flux_dict[m][s][c]['model'], ddof=1)
-                
-                axs[i].errorbar(class_flux_human, class_flux_mean, yerr=class_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-
-            total_flux_mean = np.mean([flux_dict[m][s]['model_total'][j] for j in range(replicates)])
-            total_flux_e = np.std([flux_dict[m][s]['model_total'][j] for j in range(replicates)], ddof=1)
-            axs[7].errorbar(flux_dict[m][s]['human_total'], total_flux_mean, yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-            axs[8].errorbar(flux_dict[m][s]['measured'], total_flux_mean, xerr=flux_dict[m][s]['measured_e'], yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-
-
-        for i, a in enumerate(axs):
-            add_identity(a, color=black, ls='--')
-            if i < 7:
-                text_str = classes[i]        
-            elif i == 7:
-                text_str = 'total'
-            else:
-                text_str = 'measured'
-            a.text(0.98, 0.02, text_str, ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
-
-
-        fig.supxlabel('Human flux (mmol m$^{-2}$ d$^{-1}$)')
-        fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)')
-        fig.savefig(f'../results/figs/flux_comparison_byclass_{m}.{image_format}', bbox_inches='tight')
-        plt.close()
-
-    x_vars = classes + ['total', 'measured']
-    fig, ax = plt.subplots(1, 1, tight_layout=True, figsize=(10,5))
-    ax.set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
-    colors = [black, blue, green, orange, vermillion, radish, sky]
-    markers = ['o', '^', '+', 's', 'd', 'x', '*']
-
-    def plot_mae(i, k, maes):
+    def plot_mae(i, k, axs, maes):
 
         offset = (-0.15, -0.05, 0.05, 0.15)
         mae = np.mean(maes)
         mae_e = np.std(maes, ddof=1)
         print(f'{m}: {mae:.2f} ± {mae_e:.2f}')
-        ax.errorbar(i + offset[k], mae, yerr=mae_e, marker=markers[k], c=colors[k], capsize=2)
+        axs[i].errorbar(offset[k], mae, yerr=mae_e, marker=markers[k], c=colors[k], capsize=2)
+        axs[i].set_xticks([])
+        axs[i].set_xlim(-0.2, 0.2)
+        if ii == 1:
+            axs[i].set_xlabel(x_vars[i], rotation=45)
+
+    classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
+    x_vars = classes + ['total', 'measured']
+    domains = ('RR', 'JC')
+    human_measured_mae = flux_comparison_human_measured()
+    flux_dict = {}
+    mae_fig, mae_axs = plt.subplots(2, len(x_vars), figsize=(10,5), layout='constrained')
+    # mae_fig.subplots_adjust(wspace=0.7)
 
 
-    i = 0
-    with open(f'../results/figs/flux_mae_{domain}.txt', 'w') as sys.stdout:
-        print('******FLUX MAEss******')
-        for c in classes:
-            print(f'---{c}---')
+    for ii, d in enumerate(domains):
+
+        mae_axs[ii][0].set_ylabel(d)
+        df = pd.read_csv(f'../results/fluxes/{d}.csv', index_col=False, low_memory=False)
+        samples = df['sample'].unique()
+        if d == 'JC':
+            samples = [s for s in samples if int(s[2:]) < 49]  # samples above 49 were problematic for flux estimation
+        models = (f'target{d}_ood', f'target{d}_top1k', f'target{d}_verify', f'target{d}_minboost')
+        replicates = 5
+        flux_dict[d] = {}
+
+        for m in models:
+
+            fig, axs = plt.subplots(3, 3, figsize=(10,10), tight_layout=True)
+            fig.subplots_adjust(wspace=0.3)
+            axs = axs.flatten()
+
+            flux_dict[d][m] = {}
+                
+            for s in samples:
+
+                sdf = df.loc[(df['sample'] == s)].copy()
+                color = get_domain_color(sdf['domain'].unique()[0])
+                flux_dict[d][m][s] = {c: {} for c in classes}
+                flux_dict[d][m][s]['human_total'] = sdf['olabel_flux'].sum()
+                flux_dict[d][m][s]['model_total'] = np.zeros(replicates)
+                flux_dict[d][m][s]['measured'] = sdf['measured_flux'].unique()[0]
+                flux_dict[d][m][s]['measured_e'] = sdf['measured_flux_e'].unique()[0]
+                
+                for i, c in enumerate(classes):
+                    
+                    class_flux_human = sdf[sdf['olabel_group'] == c]['olabel_flux'].sum()
+                    flux_dict[d][m][s][c]['human'] = class_flux_human
+                    flux_dict[d][m][s][c]['model'] = np.zeros(replicates)
+
+                    for j in range(replicates):
+
+                        pred_flux = sdf[sdf[f'prediction{m}-{j}_group'] == c][f'prediction{m}-{j}_flux'].sum()
+                        if 'ood' not in m:
+                            train_flux = sdf[sdf[f'label{m}-{j}_group'] == c][f'label{m}-{j}_flux'].sum()
+                            class_flux = train_flux + pred_flux
+                        else:
+                            class_flux = pred_flux
+                        flux_dict[d][m][s][c]['model'][j] = class_flux
+                        flux_dict[d][m][s]['model_total'][j] += class_flux
+
+                    class_flux_mean = np.mean(flux_dict[d][m][s][c]['model'])
+                    class_flux_e = np.std(flux_dict[d][m][s][c]['model'], ddof=1)
+                    
+                    axs[i].errorbar(class_flux_human, class_flux_mean, yerr=class_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+
+                total_flux_mean = np.mean([flux_dict[d][m][s]['model_total'][j] for j in range(replicates)])
+                total_flux_e = np.std([flux_dict[d][m][s]['model_total'][j] for j in range(replicates)], ddof=1)
+                axs[7].errorbar(flux_dict[d][m][s]['human_total'], total_flux_mean, yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+                axs[8].errorbar(flux_dict[d][m][s]['measured'], total_flux_mean, xerr=flux_dict[d][m][s]['measured_e'], yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+
+
+            for i, a in enumerate(axs):
+                add_identity(a, color=black, ls='--')
+                if i < 7:
+                    text_str = classes[i]        
+                elif i == 7:
+                    text_str = 'total'
+                else:
+                    text_str = 'measured'
+                a.text(0.98, 0.02, text_str, ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+
+
+            fig.supxlabel('Human flux (mmol m$^{-2}$ d$^{-1}$)')
+            fig.supylabel('Model flux (mmol m$^{-2}$ d$^{-1}$)')
+            fig.savefig(f'../results/figs/flux_comparison_byclass_{m}.{image_format}', bbox_inches='tight')
+            plt.close(fig)
+
+        domain_axs = mae_axs[ii]
+        colors = [black, blue, green, orange, vermillion, radish, sky]
+        markers = ['o', '^', '+', 's', 'd', 'x', '*']
+
+        i = 0
+        with open(f'../results/figs/flux_mae_{d}.txt', 'w') as sys.stdout:
+            print(f'******FLUX MAEs ({d})******')
+            for c in classes:
+                print(f'---{c}---')
+                for k, m in enumerate(models):
+                    human_class_fluxes = [flux_dict[d][m][s][c]['human'] for s in samples]
+                    model_class_fluxes = [[flux_dict[d][m][s][c]['model'][j] for s in samples] for j in range(replicates)]
+                    maes = [mean_absolute_error(human_class_fluxes, model_class_fluxes[j]) for j in range(replicates)]
+                    plot_mae(i, k, domain_axs, maes)
+                i += 1
+            print(f'---total---')
             for k, m in enumerate(models):
-                human_class_fluxes = [flux_dict[m][s][c]['human'] for s in samples]
-                model_class_fluxes = [[flux_dict[m][s][c]['model'][j] for s in samples] for j in range(replicates)]
-                maes = [mean_absolute_error(human_class_fluxes, model_class_fluxes[j]) for j in range(replicates)]
-                plot_mae(i, k, maes)
+                human_total_fluxes = [flux_dict[d][m][s]['human_total'] for s in samples]
+                model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
+                maes = [mean_absolute_error(human_total_fluxes, model_total_fluxes[j]) for j in range(replicates)]
+                plot_mae(i, k, domain_axs, maes)
             i += 1
-        print(f'---total---')
-        for k, m in enumerate(models):
-            human_total_fluxes = [flux_dict[m][s]['human_total'] for s in samples]
-            model_total_fluxes = [[flux_dict[m][s]['model_total'][j] for s in samples] for j in range(replicates)]
-            maes = [mean_absolute_error(human_total_fluxes, model_total_fluxes[j]) for j in range(replicates)]
-            plot_mae(i, k, maes)
-        i += 1
-        print(f'---measured---')
-        for k, m in enumerate(models):
-            measured_fluxes = [flux_dict[m][s]['measured'] for s in samples]
-            model_total_fluxes = [[flux_dict[m][s]['model_total'][j] for s in samples] for j in range(replicates)]
-            maes = [mean_absolute_error(measured_fluxes, model_total_fluxes[j]) for j in range(replicates)]
-            plot_mae(i, k, maes)
+            print(f'---measured---')
+            for k, m in enumerate(models):
+                measured_fluxes = [flux_dict[d][m][s]['measured'] for s in samples]
+                model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
+                maes = [mean_absolute_error(measured_fluxes, model_total_fluxes[j]) for j in range(replicates)]
+                plot_mae(i, k, domain_axs, maes)
 
-    legend_text = ('OOD', '+top1k', '+verify', '+minboost')
-    lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(models)]
-    ax.legend(lines, legend_text, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
-            frameon=False, handlelength=1)
-
-    human_measured_mae = flux_comparison_human_measured(domain)
-    ax.hlines(human_measured_mae, 7.6, 8.4, colors=black, alpha=0.3)
+        domain_axs[-1].axhline(human_measured_mae[d], color=black, alpha=0.3)
     
-    fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)')
+    legend_text = ('OOD', '+top1k', '+verify', '+minboost')
+    lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(legend_text)]
+    mae_fig.legend(lines, legend_text, ncol=len(legend_text), loc='outside upper center', frameon=False, handlelength=1)
+    mae_fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)')   
 
-    fig.savefig(f'../results/figs/flux_comparison_mae_{domain}.{image_format}', bbox_inches='tight')
-    plt.close()
+    mae_fig.savefig(f'../results/figs/flux_comparison_mae.{image_format}', bbox_inches='tight')
+    plt.close(mae_fig)
 
 
 def compare_accuracies(domain):
@@ -478,7 +483,7 @@ def draw_map():
     for i, d in enumerate(domains[1:]):
         ax.text(text_lons[i], text_lats[i], d, va='center', ha='center')
         
-    plt.savefig('../results/map.pdf', bbox_inches='tight')
+    plt.savefig('../results/figs/map.pdf', bbox_inches='tight')
     plt.close()
 
 
@@ -579,79 +584,88 @@ def metrics_hptune():
         plt.close(fig)
 
 
-def metrics_hitloop(domain):
+def metrics_hitloop():
 
-    open(f'../results/figs/metrics_hitloop_{domain}.txt', 'w')  # delete metrics file if it exists
-    flux_df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col='filename', low_memory=False)
-    human_df = tools.load_metadata()
-    if domain == 'RR':
-        relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
-        relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
-    human_df = human_df.loc[human_df['domain'] == domain][['filename', 'olabel']]
-    human_df = human_df.rename(columns={'olabel': f'label'})
-    human_df.set_index('filename', inplace=True)
-    
+    open(f'../results/figs/metrics_hitloop.txt', 'w')  # delete metrics file if it exists
 
-    models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
     offset = (-0.15, -0.05, 0.05, 0.15)
     replicates = 5
     y_vars = ('precision', 'recall')
-    labels = sorted(flux_df['olabel_group'].unique())
     colors = [black, blue, green, orange, vermillion, radish, sky]
     markers = ['o', '^', '+', 's', 'd', 'x', '*']
 
-    fig, axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
-    axs[-1].set_xticks(range(len(labels)), labels=labels, rotation=45)
-    prediction_files = [f'{m}-{i}' for (m, i) in product(models, range(replicates))]
+    domains = ('RR', 'JC')
+    labels = ('aggregate', 'fiber', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer', 'unidentifiable')
+    fig, axs = plt.subplots(len(y_vars) * len(domains), 1, layout='constrained', figsize=(10,10))
+    axs_dict = {'RR': axs[:2], 'JC': axs[2:]}
     reports = {}
 
-    for f in prediction_files:
+    for domain in domains:
 
-        cols = [c for c in flux_df.columns if f in c and 'group' in c] + ['olabel_group']
-        df = flux_df[cols].copy()
-        df['prediction'] = df.filter(like=f).ffill(axis=1).iloc[:,-1]  # prediction = label if image was labeled, otherwise prediction
-        df.rename(columns={'olabel_group': 'label'}, inplace=True)
+        reports[domain] = {}
+        d_axs = axs_dict[domain]
 
-        cm, ax = plt.subplots(figsize=(8, 8), tight_layout=True)
-        ConfusionMatrixDisplay.from_predictions(
-            df['label'],
-            df['prediction'],
-            cmap=plt.cm.Blues,
-            normalize=None,
-            xticks_rotation='vertical',
-            values_format='.0f',
-            ax=ax,
-            labels=labels)
-        cm.savefig(f'../results/figs/cmatrix_{f}.png')
-        plt.close(cm)
-        reports[f] = classification_report(
-            df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
-    
-    for i, y in enumerate(y_vars):
-        axs[i].set_ylabel(y)
-        if i != len(axs) - 1:
-            axs[i].set_xticklabels([])
-            axs[i].set_xticks(range(len(labels)))
-        for j, x in enumerate(labels):
-            with open(f'../results/figs/metrics_hitloop_{domain}.txt', 'a') as sys.stdout:
-                print(f'----{y}, {x}----')
-                for z, m in enumerate(models):
-                    keys = [k for k in reports.keys() if f'{m}-' in k]
-                    y_avg = np.mean([reports[k][x][y] for k in keys])
-                    y_std = np.std([reports[k][x][y] for k in keys], ddof=1)
-                    axs[i].errorbar(j + offset[z], y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
-                    print(f'{m}: {y_avg*100:.2f} ± {y_std*100:.2f}')
-                if domain == 'RR':
-                    axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
-                    print(f'relabel: {relabel_report[x][y]:.2f}')
+        flux_df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col='filename', low_memory=False)
+        human_df = tools.load_metadata()
+        if domain == 'RR':
+            relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
+            relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
+        human_df = human_df.loc[human_df['domain'] == domain][['filename', 'olabel']]
+        human_df = human_df.rename(columns={'olabel': f'label'})
+        human_df.set_index('filename', inplace=True)
+        
+
+        models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
+        prediction_files = [f'{m}-{i}' for (m, i) in product(models, range(replicates))]
+
+        for f in prediction_files:
+
+            cols = [c for c in flux_df.columns if f in c and 'group' in c] + ['olabel_group']
+            df = flux_df[cols].copy()
+            df['prediction'] = df.filter(like=f).ffill(axis=1).iloc[:,-1]  # prediction = label if image was labeled, otherwise prediction
+            df.rename(columns={'olabel_group': 'label'}, inplace=True)
+
+            cm, ax = plt.subplots(figsize=(8, 8), tight_layout=True)
+            ConfusionMatrixDisplay.from_predictions(
+                df['label'],
+                df['prediction'],
+                cmap=plt.cm.Blues,
+                normalize=None,
+                xticks_rotation='vertical',
+                values_format='.0f',
+                ax=ax,
+                labels=labels)
+            cm.savefig(f'../results/figs/cmatrix_{f}.png')
+            plt.close(cm)
+            reports[domain][f] = classification_report(
+                df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
+        
+        for i, y in enumerate(y_vars):
+            d_axs[i].set_ylabel(f'{y} ({domain})')
+            if i != len(axs) - 1:
+                d_axs[i].set_xticklabels([])
+                d_axs[i].set_xticks(range(len(labels)))
+            for j, x in enumerate(labels):
+                with open(f'../results/figs/metrics_hitloop.txt', 'a') as sys.stdout:
+                    print(f'----{domain}, {y}, {x}----')
+                    for z, m in enumerate(models):
+                        keys = [k for k in reports[domain].keys() if f'{m}-' in k]
+                        y_avg = np.mean([reports[domain][k][x][y] for k in keys])
+                        y_std = np.std([reports[domain][k][x][y] for k in keys], ddof=1)
+                        d_axs[i].errorbar(j + offset[z], y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
+                        print(f'{m}: {y_avg*100:.2f} ± {y_std*100:.2f}')
+                    if domain == 'RR':
+                        d_axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
+                        print(f'relabel: {relabel_report[x][y]:.2f}')
 
 
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(models)]
+    axs[-1].set_xticks(range(len(labels)), labels=labels, rotation=45)
     axs[0].legend(lines, legend_text, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
             frameon=False, handlelength=1)     
 
-    fig.savefig(f'../results/figs/metrics_hitloop_{domain}.{image_format}')
+    fig.savefig(f'../results/figs/metrics_hitloop.{image_format}')
     plt.close(fig)
 
     
@@ -675,41 +689,47 @@ def softmax_histograms(cfg):
     plt.close()
 
 
-def flux_comparison_human_measured(domain):
+def flux_comparison_human_measured():
     
-    fig, ax = plt.subplots(1, 1)
+    fig, axs = plt.subplots(1, 2, tight_layout=True)
     
-    ax.set_xlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
-    ax.set_ylabel('Human flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    fig.supxlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    fig.supylabel('Human flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
 
-    df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
+    maes = {}
 
-    meas_flux_allsamples = []
-    annot_flux_allsamples = []
+    for i, domain in enumerate(('RR', 'JC')):
+
+        df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
+
+        meas_flux_allsamples = []
+        annot_flux_allsamples = []
+                
+        for s in df['sample'].unique():
             
-    for s in df['sample'].unique():
-        
-        if domain == 'JC' and int(s[2:]) >= 49:
-            continue
+            if domain == 'JC' and int(s[2:]) >= 49:
+                continue
 
-        sdf = df.loc[(df['sample'] == s)].copy()
-        meas_flux = sdf['measured_flux'].unique()[0]
-        meas_flux_e = sdf['measured_flux_e'].unique()[0]
-        annot_flux = sdf['olabel_flux'].sum()
+            sdf = df.loc[(df['sample'] == s)].copy()
+            meas_flux = sdf['measured_flux'].unique()[0]
+            meas_flux_e = sdf['measured_flux_e'].unique()[0]
+            annot_flux = sdf['olabel_flux'].sum()
 
-        meas_flux_allsamples.append(meas_flux)
-        annot_flux_allsamples.append(annot_flux)
-        
-        color = get_domain_color(sdf['domain'].unique()[0])
-        ax.errorbar(meas_flux, annot_flux, xerr=meas_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
-        
-    add_identity(ax, color=black, ls='--')
-    mae = mean_absolute_error(meas_flux_allsamples, annot_flux_allsamples)
-    ax.text(0.98, 0.02, f'MAE: {mae:.2f}', ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(ax.transAxes, ax.transAxes))
+            meas_flux_allsamples.append(meas_flux)
+            annot_flux_allsamples.append(annot_flux)
+            
+            color = get_domain_color(sdf['domain'].unique()[0])
+            axs[i].errorbar(meas_flux, annot_flux, xerr=meas_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            
+        add_identity(axs[i], color=black, ls='--')
+        mae = mean_absolute_error(meas_flux_allsamples, annot_flux_allsamples)
+        maes[domain] = mae
+        axs[i].text(0.98, 0.02, f'MAE: {mae:.2f}', ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+        axs[i].text(0.02, 0.98, domain, ha='left', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
 
-    fig.savefig(f'../results/figs/flux_comparison_human_{domain}.{image_format}', bbox_inches='tight')
+    fig.savefig(f'../results/figs/flux_comparison_human.{image_format}', bbox_inches='tight')
 
-    return mae
+    return maes
 
 
 if __name__ == '__main__':
@@ -728,16 +748,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
+    distribution_barplot()
+    draw_map()
+    
     training_plots()
     metrics_hptune()
     
     calculate_flux_df('RR')
-    flux_comparison_human_measured('RR')
-    flux_comparison_by_class('RR')
-    metrics_hitloop('RR')
-
     calculate_flux_df('JC')
-    flux_comparison_human_measured('JC')
-    flux_comparison_by_class('JC')
-    metrics_hitloop('JC')
+
+    flux_comparison_human_measured()
+    flux_comparison_by_class()
+    metrics_hitloop()
 

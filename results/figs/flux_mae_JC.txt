@@ -1,4 +1,4 @@
-******FLUX MAEss******
+******FLUX MAEs (JC)******
 ---aggregate---
 targetJC_ood: 0.60 ± 0.20
 targetJC_top1k: 0.51 ± 0.06
