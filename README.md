@@ -44,7 +44,7 @@ The first line can be omitted if the hyperparameters tuning ensembles were alrea
 ```
 python copy_predictions.py -i 1
 ```
-This will create a folder in your data directory called `imgs_from<id>`. "1" is an identifier (id) for considering *RR* as the target domain; use "3" for *JC*.
+This will create a folder in your data directory called `imgs_from<id>`. "1" is an identifier (`<id>`) for considering *RR* as the target domain; use "3" for *JC*.
 
 #### Manually verify the predictions
 Create a copy of `imgs_from<id>` and rename it `imgs_from<id>_verified`. In `imgs_from<id>_verified`, manually verify the predictions by deleting or moving incorrect predictions as appropriate (`imgs_from<id>` will be used as is for testing how much human verification improves inference).
@@ -54,12 +54,12 @@ Create a copy of `imgs_from<id>_verified` and rename it `imgs_from<id>_verified_
 ```
 python minboost.py -i 1
 ```
-This will create a folder in your data directory called `imgs_from<id>_minboost`. "1" is an identifier (id) for considering *RR* as the target domain; use "3" for *JC*.`imgs_from<id>_minboost` contains additional suggested images that may belong to the minority classes, i.e., all classes that have less than 100 examples in `imgs_from<id>_verified`. Verify all of the images in `imgs_from<id>_minboost` by deleting those that do not belong in each class folder. Copy the correctly suggested images into `imgs_from<id>_verified_minboost`, then check that no image in that folder has more than one label (again, using `-i 1` for considering *RR* as the target domain and `-i 3` for *JC*):
+where "1" is an identifier (`<id>`) for considering *RR* as the target domain; use "3" for *JC*. This will create a folder in your data directory called `imgs_from<id>_minboost` that contains additional suggested images that may belong to the minority classes, i.e., all classes that have less than 100 examples in `imgs_from<id>_verified`. Verify all of the images in `imgs_from<id>_minboost` by deleting those that do not belong in each class folder. Copy the correctly suggested images into `imgs_from<id>_verified_minboost`, then check that no image in that folder has more than one label (again, using `-i 1` for considering *RR* as the target domain and `-i 3` for *JC*):
 ```
 python check_minboost_duplicates.py -i 1
 ```
 #### Write train/val/test splits that include in-domain images
-In all code blocks that follow, "2" is an identifier (id) for considering *RR* as the target domain; use "4" for *JC*.
+In all code blocks that follow, "2" is an identifier for considering *RR* as the target domain; use "4" for *JC*.
 ```
 python indomain_splits.py -i 2
 ```
