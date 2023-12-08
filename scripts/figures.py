@@ -186,10 +186,10 @@ def flux_equations(row, label_col):
     if p_class in ('aggregate', 'mini_pellet', 'rhizaria', 'phytoplankton'):
         v = particle_volume('sphere', esd)
         if p_class == 'aggregate':
-            a = 0.07 * 10**-9
-            b = 0.83
+            a = 0.113 * 10**-9
+            b = 0.81
         elif p_class == 'mini_pellet':
-            a = 0.07 * 10**-9
+            a = 0.113 * 10**-9
             b = 1
         elif p_class == 'rhizaria':
             a = 0.004 * 10**-9
@@ -199,11 +199,11 @@ def flux_equations(row, label_col):
             b = 0.811
     elif p_class == 'long_pellet':
         v = particle_volume('cylinder', esd, (264, 584))
-        a = 0.07 * 10**-9
+        a = 0.113 * 10**-9
         b = 1
     elif p_class == 'short_pellet':
         v = particle_volume('ellipsoid', esd)
-        a = 0.07 * 10**-9
+        a = 0.113 * 10**-9
         b = 1
     elif p_class == 'salp_pellet':
         v = particle_volume('cuboid', esd)
@@ -300,7 +300,7 @@ def flux_comparison_by_class():
         print(f'{m}: {mae:.2f} ± {mae_e:.2f}')
         axs[i].errorbar(offset[k], mae, yerr=mae_e, marker=markers[k], c=colors[k], capsize=2)
         axs[i].set_xticks([])
-        axs[i].set_xlim(-0.2, 0.2)
+        axs[i].set_xlim(-0.225, 0.225)
         if ii == 1:
             axs[i].set_xlabel(x_vars[i], rotation=45)
 
@@ -309,7 +309,7 @@ def flux_comparison_by_class():
     domains = ('RR', 'JC')
     human_measured_mae = flux_comparison_human_measured()
     flux_dict = {}
-    mae_fig, mae_axs = plt.subplots(2, len(x_vars), figsize=(10,5), layout='constrained')
+    mae_fig, mae_axs = plt.subplots(2, len(x_vars), figsize=(12,5), layout='constrained')
     # mae_fig.subplots_adjust(wspace=0.7)
 
 
@@ -748,14 +748,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
-    distribution_barplot()
-    draw_map()
+    # distribution_barplot()
+    # draw_map()
     
-    training_plots()
-    metrics_hptune()
+    # training_plots()
+    # metrics_hptune()
     
-    calculate_flux_df('RR')
-    calculate_flux_df('JC')
+    # calculate_flux_df('RR')
+    # calculate_flux_df('JC')
 
     flux_comparison_human_measured()
     flux_comparison_by_class()

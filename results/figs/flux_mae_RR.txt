@@ -1,24 +1,24 @@
 ******FLUX MAEs (RR)******
 ---aggregate---
 targetRR_ood: 0.44 ± 0.21
-targetRR_top1k: 0.15 ± 0.07
-targetRR_verify: 0.15 ± 0.14
+targetRR_top1k: 0.15 ± 0.06
+targetRR_verify: 0.15 ± 0.13
 targetRR_minboost: 0.10 ± 0.05
 ---long_pellet---
-targetRR_ood: 1.46 ± 0.36
-targetRR_top1k: 1.16 ± 0.53
-targetRR_verify: 0.21 ± 0.12
-targetRR_minboost: 0.18 ± 0.16
+targetRR_ood: 2.36 ± 0.57
+targetRR_top1k: 1.87 ± 0.86
+targetRR_verify: 0.33 ± 0.19
+targetRR_minboost: 0.29 ± 0.26
 ---short_pellet---
-targetRR_ood: 0.19 ± 0.26
-targetRR_top1k: 0.21 ± 0.30
-targetRR_verify: 0.25 ± 0.37
-targetRR_minboost: 0.15 ± 0.20
+targetRR_ood: 0.31 ± 0.42
+targetRR_top1k: 0.34 ± 0.49
+targetRR_verify: 0.41 ± 0.59
+targetRR_minboost: 0.23 ± 0.32
 ---mini_pellet---
-targetRR_ood: 0.20 ± 0.18
-targetRR_top1k: 0.16 ± 0.07
-targetRR_verify: 0.20 ± 0.16
-targetRR_minboost: 0.10 ± 0.04
+targetRR_ood: 0.32 ± 0.29
+targetRR_top1k: 0.25 ± 0.12
+targetRR_verify: 0.32 ± 0.25
+targetRR_minboost: 0.16 ± 0.06
 ---salp_pellet---
 targetRR_ood: 0.37 ± 0.03
 targetRR_top1k: 0.37 ± 0.01
@@ -35,12 +35,12 @@ targetRR_top1k: 0.02 ± 0.01
 targetRR_verify: 0.01 ± 0.01
 targetRR_minboost: 0.01 ± 0.01
 ---total---
-targetRR_ood: 2.00 ± 0.68
-targetRR_top1k: 1.38 ± 0.55
-targetRR_verify: 0.62 ± 0.38
-targetRR_minboost: 0.45 ± 0.22
+targetRR_ood: 3.07 ± 1.06
+targetRR_top1k: 2.26 ± 0.96
+targetRR_verify: 0.97 ± 0.62
+targetRR_minboost: 0.66 ± 0.37
 ---measured---
-targetRR_ood: 2.10 ± 0.67
-targetRR_top1k: 1.52 ± 0.59
-targetRR_verify: 0.83 ± 0.41
-targetRR_minboost: 0.67 ± 0.24
+targetRR_ood: 3.40 ± 1.08
+targetRR_top1k: 2.60 ± 1.00
+targetRR_verify: 1.34 ± 0.66
+targetRR_minboost: 1.04 ± 0.40

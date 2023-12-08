@@ -1,24 +1,24 @@
 ******FLUX MAEs (JC)******
 ---aggregate---
-targetJC_ood: 0.60 ± 0.20
-targetJC_top1k: 0.51 ± 0.06
-targetJC_verify: 0.38 ± 0.12
-targetJC_minboost: 0.43 ± 0.08
+targetJC_ood: 0.70 ± 0.23
+targetJC_top1k: 0.61 ± 0.07
+targetJC_verify: 0.44 ± 0.15
+targetJC_minboost: 0.51 ± 0.10
 ---long_pellet---
-targetJC_ood: 0.41 ± 0.14
-targetJC_top1k: 0.28 ± 0.03
-targetJC_verify: 0.26 ± 0.09
-targetJC_minboost: 0.20 ± 0.05
+targetJC_ood: 0.66 ± 0.23
+targetJC_top1k: 0.46 ± 0.05
+targetJC_verify: 0.43 ± 0.14
+targetJC_minboost: 0.32 ± 0.09
 ---short_pellet---
-targetJC_ood: 1.60 ± 1.69
-targetJC_top1k: 1.48 ± 0.37
-targetJC_verify: 0.82 ± 0.54
-targetJC_minboost: 0.90 ± 0.26
+targetJC_ood: 2.58 ± 2.73
+targetJC_top1k: 2.38 ± 0.59
+targetJC_verify: 1.32 ± 0.88
+targetJC_minboost: 1.45 ± 0.42
 ---mini_pellet---
-targetJC_ood: 5.65 ± 5.86
-targetJC_top1k: 4.07 ± 1.81
-targetJC_verify: 3.45 ± 2.87
-targetJC_minboost: 1.80 ± 0.88
+targetJC_ood: 9.12 ± 9.46
+targetJC_top1k: 6.56 ± 2.93
+targetJC_verify: 5.57 ± 4.64
+targetJC_minboost: 2.91 ± 1.42
 ---salp_pellet---
 targetJC_ood: 0.04 ± 0.01
 targetJC_top1k: 0.03 ± 0.00
@@ -35,12 +35,12 @@ targetJC_top1k: 0.24 ± 0.15
 targetJC_verify: 0.06 ± 0.04
 targetJC_minboost: 0.09 ± 0.03
 ---total---
-targetJC_ood: 6.70 ± 6.68
-targetJC_top1k: 5.34 ± 1.91
-targetJC_verify: 3.92 ± 3.30
-targetJC_minboost: 2.27 ± 0.83
+targetJC_ood: 10.90 ± 10.83
+targetJC_top1k: 8.69 ± 3.11
+targetJC_verify: 6.43 ± 5.37
+targetJC_minboost: 3.74 ± 1.30
 ---measured---
-targetJC_ood: 6.01 ± 5.69
-targetJC_top1k: 4.12 ± 1.65
-targetJC_verify: 3.47 ± 2.41
-targetJC_minboost: 2.11 ± 0.32
+targetJC_ood: 10.61 ± 10.30
+targetJC_top1k: 8.21 ± 3.04
+targetJC_verify: 6.40 ± 4.83
+targetJC_minboost: 3.72 ± 0.97
