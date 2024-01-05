@@ -9,31 +9,31 @@ targetRR_ood: 2.36 ± 0.57
 targetRR_top1k: 1.87 ± 0.86
 targetRR_verify: 0.33 ± 0.19
 targetRR_minboost: 0.29 ± 0.26
----short_pellet---
-targetRR_ood: 0.31 ± 0.42
-targetRR_top1k: 0.34 ± 0.49
-targetRR_verify: 0.41 ± 0.59
-targetRR_minboost: 0.23 ± 0.32
 ---mini_pellet---
 targetRR_ood: 0.32 ± 0.29
 targetRR_top1k: 0.25 ± 0.12
 targetRR_verify: 0.32 ± 0.25
 targetRR_minboost: 0.16 ± 0.06
----salp_pellet---
-targetRR_ood: 0.37 ± 0.03
-targetRR_top1k: 0.37 ± 0.01
-targetRR_verify: 0.24 ± 0.04
-targetRR_minboost: 0.17 ± 0.06
----rhizaria---
-targetRR_ood: 0.05 ± 0.03
-targetRR_top1k: 0.03 ± 0.02
-targetRR_verify: 0.02 ± 0.01
-targetRR_minboost: 0.01 ± 0.01
 ---phytoplankton---
 targetRR_ood: 0.02 ± 0.02
 targetRR_top1k: 0.02 ± 0.01
 targetRR_verify: 0.01 ± 0.01
 targetRR_minboost: 0.01 ± 0.01
+---rhizaria---
+targetRR_ood: 0.05 ± 0.03
+targetRR_top1k: 0.03 ± 0.02
+targetRR_verify: 0.02 ± 0.01
+targetRR_minboost: 0.01 ± 0.01
+---salp_pellet---
+targetRR_ood: 0.37 ± 0.03
+targetRR_top1k: 0.37 ± 0.01
+targetRR_verify: 0.24 ± 0.04
+targetRR_minboost: 0.17 ± 0.06
+---short_pellet---
+targetRR_ood: 0.31 ± 0.42
+targetRR_top1k: 0.34 ± 0.49
+targetRR_verify: 0.41 ± 0.59
+targetRR_minboost: 0.23 ± 0.32
 ---total---
 targetRR_ood: 3.07 ± 1.06
 targetRR_top1k: 2.26 ± 0.96

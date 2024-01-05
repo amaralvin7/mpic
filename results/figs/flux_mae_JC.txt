@@ -9,31 +9,31 @@ targetJC_ood: 0.66 ± 0.23
 targetJC_top1k: 0.46 ± 0.05
 targetJC_verify: 0.43 ± 0.14
 targetJC_minboost: 0.32 ± 0.09
----short_pellet---
-targetJC_ood: 2.58 ± 2.73
-targetJC_top1k: 2.38 ± 0.59
-targetJC_verify: 1.32 ± 0.88
-targetJC_minboost: 1.45 ± 0.42
 ---mini_pellet---
 targetJC_ood: 9.12 ± 9.46
 targetJC_top1k: 6.56 ± 2.93
 targetJC_verify: 5.57 ± 4.64
 targetJC_minboost: 2.91 ± 1.42
----salp_pellet---
-targetJC_ood: 0.04 ± 0.01
-targetJC_top1k: 0.03 ± 0.00
-targetJC_verify: 0.03 ± 0.01
-targetJC_minboost: 0.05 ± 0.02
----rhizaria---
-targetJC_ood: 0.04 ± 0.03
-targetJC_top1k: 0.02 ± 0.01
-targetJC_verify: 0.02 ± 0.00
-targetJC_minboost: 0.03 ± 0.02
 ---phytoplankton---
 targetJC_ood: 0.19 ± 0.20
 targetJC_top1k: 0.24 ± 0.15
 targetJC_verify: 0.06 ± 0.04
 targetJC_minboost: 0.09 ± 0.03
+---rhizaria---
+targetJC_ood: 0.04 ± 0.03
+targetJC_top1k: 0.02 ± 0.01
+targetJC_verify: 0.02 ± 0.00
+targetJC_minboost: 0.03 ± 0.02
+---salp_pellet---
+targetJC_ood: 0.04 ± 0.01
+targetJC_top1k: 0.03 ± 0.00
+targetJC_verify: 0.03 ± 0.01
+targetJC_minboost: 0.05 ± 0.02
+---short_pellet---
+targetJC_ood: 2.58 ± 2.73
+targetJC_top1k: 2.38 ± 0.59
+targetJC_verify: 1.32 ± 0.88
+targetJC_minboost: 1.45 ± 0.42
 ---total---
 targetJC_ood: 10.90 ± 10.83
 targetJC_top1k: 8.69 ± 3.11

@@ -87,8 +87,9 @@ def distribution_heatmap(cfg, classses, metric='braycurtis', make_fig=False):
 
 def distribution_barplot():
     
-    classes = ['aggregate', 'long_pellet', 'mini_pellet', 'short_pellet',  'phyto_dino', 'phyto_long',
-               'phyto_round', 'rhizaria', 'salp_pellet', 'noise', 'swimmer', 'bubble', 'fiber_blur', 'fiber_sharp']
+    classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phyto_dino', 'phyto_long',
+               'phyto_round', 'rhizaria', 'salp_pellet', 'short_pellet', 'bubble',
+               'fiber_blur', 'fiber_sharp', 'noise', 'swimmer']
     
     ind = np.arange(len(classes)) 
     width = 0.15
@@ -304,7 +305,7 @@ def flux_comparison_by_class():
         if ii == 1:
             axs[i].set_xlabel(x_vars[i], rotation=45)
 
-    classes = ['aggregate', 'long_pellet', 'short_pellet', 'mini_pellet', 'salp_pellet', 'rhizaria', 'phytoplankton']
+    classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
     x_vars = classes + ['total', 'measured']
     domains = ('RR', 'JC')
     human_measured_mae = flux_comparison_human_measured()
@@ -527,7 +528,7 @@ def metrics_hptune():
                 'learningrate': ['targetRR_ood', 'highLR', 'lowLR'],
                 'weightdecay': ['targetRR_ood', 'highWD', 'lowWD']}
 
-    labels = yaml.safe_load(open('../configs/targetRR_ood.yaml', 'r'))['classes']
+    labels = sorted(yaml.safe_load(open('../configs/targetRR_ood.yaml', 'r'))['classes'])
     y_vars = ('precision', 'recall')
     x_vars = labels + ['macro avg', 'weighted avg']
     colors = [blue, green, orange, vermillion, black, radish, sky]
@@ -748,7 +749,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
-    # distribution_barplot()
+    distribution_barplot()
     # draw_map()
     
     # training_plots()
@@ -757,7 +758,7 @@ if __name__ == '__main__':
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
 
-    flux_comparison_human_measured()
+    # flux_comparison_human_measured()
     flux_comparison_by_class()
     metrics_hitloop()
 
