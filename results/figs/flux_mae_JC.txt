@@ -1,4 +1,14 @@
 ******FLUX MAEs (JC)******
+---measured---
+targetJC_ood: 10.61 ± 10.30
+targetJC_top1k: 8.21 ± 3.04
+targetJC_verify: 6.40 ± 4.83
+targetJC_minboost: 3.72 ± 0.97
+---total---
+targetJC_ood: 10.90 ± 10.83
+targetJC_top1k: 8.69 ± 3.11
+targetJC_verify: 6.43 ± 5.37
+targetJC_minboost: 3.74 ± 1.30
 ---aggregate---
 targetJC_ood: 0.70 ± 0.23
 targetJC_top1k: 0.61 ± 0.07
@@ -34,13 +44,3 @@ targetJC_ood: 2.58 ± 2.73
 targetJC_top1k: 2.38 ± 0.59
 targetJC_verify: 1.32 ± 0.88
 targetJC_minboost: 1.45 ± 0.42
----total---
-targetJC_ood: 10.90 ± 10.83
-targetJC_top1k: 8.69 ± 3.11
-targetJC_verify: 6.43 ± 5.37
-targetJC_minboost: 3.74 ± 1.30
----measured---
-targetJC_ood: 10.61 ± 10.30
-targetJC_top1k: 8.21 ± 3.04
-targetJC_verify: 6.40 ± 4.83
-targetJC_minboost: 3.72 ± 0.97

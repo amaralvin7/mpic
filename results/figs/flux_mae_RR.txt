@@ -1,4 +1,14 @@
 ******FLUX MAEs (RR)******
+---measured---
+targetRR_ood: 3.40 ± 1.08
+targetRR_top1k: 2.60 ± 1.00
+targetRR_verify: 1.34 ± 0.66
+targetRR_minboost: 1.04 ± 0.40
+---total---
+targetRR_ood: 3.07 ± 1.06
+targetRR_top1k: 2.26 ± 0.96
+targetRR_verify: 0.97 ± 0.62
+targetRR_minboost: 0.66 ± 0.37
 ---aggregate---
 targetRR_ood: 0.44 ± 0.21
 targetRR_top1k: 0.15 ± 0.06
@@ -34,13 +44,3 @@ targetRR_ood: 0.31 ± 0.42
 targetRR_top1k: 0.34 ± 0.49
 targetRR_verify: 0.41 ± 0.59
 targetRR_minboost: 0.23 ± 0.32
----total---
-targetRR_ood: 3.07 ± 1.06
-targetRR_top1k: 2.26 ± 0.96
-targetRR_verify: 0.97 ± 0.62
-targetRR_minboost: 0.66 ± 0.37
----measured---
-targetRR_ood: 3.40 ± 1.08
-targetRR_top1k: 2.60 ± 1.00
-targetRR_verify: 1.34 ± 0.66
-targetRR_minboost: 1.04 ± 0.40

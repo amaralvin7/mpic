@@ -16,7 +16,6 @@ from sklearn.metrics import ConfusionMatrixDisplay, mean_absolute_error, classif
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 
-import src.dataset as dataset
 import src.tools as tools
 
 
@@ -303,16 +302,14 @@ def flux_comparison_by_class():
         axs[i].set_xticks([])
         axs[i].set_xlim(-0.225, 0.225)
         if ii == 1:
-            axs[i].set_xlabel(x_vars[i], rotation=45)
+            axs[i].set_xlabel(mae_x_vars[i], rotation=45)
 
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
-    x_vars = classes + ['total', 'measured']
+    mae_x_vars = ['measured', 'total'] + classes
     domains = ('RR', 'JC')
     human_measured_mae = flux_comparison_human_measured()
     flux_dict = {}
-    mae_fig, mae_axs = plt.subplots(2, len(x_vars), figsize=(12,5), layout='constrained')
-    # mae_fig.subplots_adjust(wspace=0.7)
-
+    mae_fig, mae_axs = plt.subplots(2, len(mae_x_vars), figsize=(12,5), layout='constrained')
 
     for ii, d in enumerate(domains):
 
@@ -394,6 +391,20 @@ def flux_comparison_by_class():
         i = 0
         with open(f'../results/figs/flux_mae_{d}.txt', 'w') as sys.stdout:
             print(f'******FLUX MAEs ({d})******')
+            print(f'---measured---')
+            for k, m in enumerate(models):
+                measured_fluxes = [flux_dict[d][m][s]['measured'] for s in samples]
+                model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
+                maes = [mean_absolute_error(measured_fluxes, model_total_fluxes[j]) for j in range(replicates)]
+                plot_mae(i, k, domain_axs, maes)
+            i += 1
+            print(f'---total---')
+            for k, m in enumerate(models):
+                human_total_fluxes = [flux_dict[d][m][s]['human_total'] for s in samples]
+                model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
+                maes = [mean_absolute_error(human_total_fluxes, model_total_fluxes[j]) for j in range(replicates)]
+                plot_mae(i, k, domain_axs, maes)
+            i += 1
             for c in classes:
                 print(f'---{c}---')
                 for k, m in enumerate(models):
@@ -402,21 +413,8 @@ def flux_comparison_by_class():
                     maes = [mean_absolute_error(human_class_fluxes, model_class_fluxes[j]) for j in range(replicates)]
                     plot_mae(i, k, domain_axs, maes)
                 i += 1
-            print(f'---total---')
-            for k, m in enumerate(models):
-                human_total_fluxes = [flux_dict[d][m][s]['human_total'] for s in samples]
-                model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
-                maes = [mean_absolute_error(human_total_fluxes, model_total_fluxes[j]) for j in range(replicates)]
-                plot_mae(i, k, domain_axs, maes)
-            i += 1
-            print(f'---measured---')
-            for k, m in enumerate(models):
-                measured_fluxes = [flux_dict[d][m][s]['measured'] for s in samples]
-                model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
-                maes = [mean_absolute_error(measured_fluxes, model_total_fluxes[j]) for j in range(replicates)]
-                plot_mae(i, k, domain_axs, maes)
 
-        domain_axs[-1].axhline(human_measured_mae[d], color=black, alpha=0.3)
+        domain_axs[0].axhline(human_measured_mae[d], color=black, alpha=0.3)
     
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(legend_text)]
@@ -760,5 +758,5 @@ if __name__ == '__main__':
 
     # flux_comparison_human_measured()
     flux_comparison_by_class()
-    metrics_hitloop()
+    # metrics_hitloop()
 
