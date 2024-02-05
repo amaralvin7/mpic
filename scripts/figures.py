@@ -523,8 +523,12 @@ def metrics_hptune():
     open(f'../results/figs/metrics_hptune.txt', 'w')  # delete metrics file if it exists
 
     exp_dict = {'preprocessing': ['targetRR_ood', 'pad', 'normdata', 'normIN', 'padnormdata', 'padnormIN'],
-                'learningrate': ['targetRR_ood', 'highLR', 'lowLR'],
-                'weightdecay': ['targetRR_ood', 'highWD', 'lowWD']}
+                'learningrate': ['targetRR_ood', 'lowLR', 'highLR'],
+                'weightdecay': ['targetRR_ood', 'lowWD', 'highWD']}
+    
+    offset = {'preprocessing': (-0.3, -0.18, -0.06, 0.06, 0.18, 0.3),
+              'learningrate': (-0.2, 0, 0.2),
+              'weightdecay': (-0.2, 0, 0.2)}
 
     labels = sorted(yaml.safe_load(open('../configs/targetRR_ood.yaml', 'r'))['classes'])
     y_vars = ('precision', 'recall')
@@ -534,7 +538,7 @@ def metrics_hptune():
 
     for exp in exp_dict:
 
-        cfg_names = sorted(exp_dict[exp])
+        cfg_names = exp_dict[exp]
 
         fig, axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
         axs[-1].set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
@@ -572,12 +576,13 @@ def metrics_hptune():
                         keys = [k for k in reports.keys() if f'{c}-' in k]
                         y_avg = np.mean([reports[k][x][y] for k in keys])
                         y_std = np.std([reports[k][x][y] for k in keys], ddof=1)
-                        axs[i].errorbar(j, y_avg, y_std, color=colors[m], ecolor=colors[m], marker=markers[m], capsize=2)
+                        axs[i].errorbar(j + offset[exp][m], y_avg, y_std, color=colors[m], ecolor=colors[m], marker=markers[m], capsize=2)
                         print(f'{c}: {y_avg*100:.2f} ± {y_std*100:.2f}')
         
         lines = [Line2D([0], [0], color=colors[m], lw=6) for m, _ in enumerate(cfg_names)]
-        axs[0].legend(lines, cfg_names, ncol=len(cfg_names), bbox_to_anchor=(0.5, 1.02), loc='lower center',
-                frameon=False, handlelength=1)      
+        leg_text = ['base' if x == 'targetRR_ood' else x for x in cfg_names]
+        axs[0].legend(lines, leg_text, ncol=len(cfg_names), bbox_to_anchor=(0.5, 1.02), loc='lower center',
+                      frameon=False, handlelength=1)      
 
         fig.savefig(f'../results/figs/metrics_{exp}.{image_format}')
         plt.close(fig)
@@ -747,16 +752,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
-    distribution_barplot()
+    # distribution_barplot()
     # draw_map()
     
     # training_plots()
-    # metrics_hptune()
+    metrics_hptune()
     
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
 
     # flux_comparison_human_measured()
-    flux_comparison_by_class()
+    # flux_comparison_by_class()
     # metrics_hitloop()
 

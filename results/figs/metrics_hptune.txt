@@ -1,480 +1,480 @@
 ----precision, aggregate----
-normIN: 89.86 ± 3.10
-normdata: 89.57 ± 4.17
+targetRR_ood: 86.87 ± 1.91
 pad: 91.25 ± 2.90
-padnormIN: 91.78 ± 1.52
+normdata: 89.57 ± 4.17
+normIN: 89.86 ± 3.10
 padnormdata: 90.07 ± 4.14
-targetRR_ood: 86.87 ± 1.91
+padnormIN: 91.78 ± 1.52
 ----precision, bubble----
-normIN: 98.67 ± 1.11
-normdata: 97.90 ± 1.84
+targetRR_ood: 99.36 ± 0.58
 pad: 95.77 ± 5.13
-padnormIN: 97.74 ± 0.60
+normdata: 97.90 ± 1.84
+normIN: 98.67 ± 1.11
 padnormdata: 96.62 ± 1.57
-targetRR_ood: 99.36 ± 0.58
+padnormIN: 97.74 ± 0.60
 ----precision, fiber_blur----
-normIN: 48.44 ± 21.89
-normdata: 59.21 ± 17.69
+targetRR_ood: 57.62 ± 22.84
 pad: 62.95 ± 12.54
-padnormIN: 59.53 ± 25.40
+normdata: 59.21 ± 17.69
+normIN: 48.44 ± 21.89
 padnormdata: 67.76 ± 18.04
-targetRR_ood: 57.62 ± 22.84
+padnormIN: 59.53 ± 25.40
 ----precision, fiber_sharp----
-normIN: 66.81 ± 9.34
-normdata: 61.29 ± 6.82
+targetRR_ood: 69.18 ± 9.79
 pad: 57.10 ± 8.89
-padnormIN: 70.28 ± 9.44
+normdata: 61.29 ± 6.82
+normIN: 66.81 ± 9.34
 padnormdata: 61.29 ± 7.01
-targetRR_ood: 69.18 ± 9.79
+padnormIN: 70.28 ± 9.44
 ----precision, long_pellet----
-normIN: 84.95 ± 4.95
-normdata: 85.44 ± 8.54
+targetRR_ood: 83.71 ± 2.70
 pad: 87.87 ± 3.71
-padnormIN: 84.78 ± 3.69
+normdata: 85.44 ± 8.54
+normIN: 84.95 ± 4.95
 padnormdata: 86.24 ± 11.43
-targetRR_ood: 83.71 ± 2.70
+padnormIN: 84.78 ± 3.69
 ----precision, mini_pellet----
-normIN: 85.14 ± 8.04
-normdata: 87.17 ± 7.57
+targetRR_ood: 75.90 ± 11.13
 pad: 92.37 ± 3.55
-padnormIN: 92.27 ± 3.01
+normdata: 87.17 ± 7.57
+normIN: 85.14 ± 8.04
 padnormdata: 93.96 ± 1.71
-targetRR_ood: 75.90 ± 11.13
+padnormIN: 92.27 ± 3.01
 ----precision, noise----
-normIN: 92.29 ± 6.15
-normdata: 91.22 ± 5.07
+targetRR_ood: 89.05 ± 8.67
 pad: 96.11 ± 1.08
-padnormIN: 96.00 ± 2.72
+normdata: 91.22 ± 5.07
+normIN: 92.29 ± 6.15
 padnormdata: 95.70 ± 2.26
-targetRR_ood: 89.05 ± 8.67
+padnormIN: 96.00 ± 2.72
 ----precision, phyto_dino----
-normIN: 0.00 ± 0.00
-normdata: 0.00 ± 0.00
-pad: 0.00 ± 0.00
-padnormIN: 0.00 ± 0.00
-padnormdata: 0.00 ± 0.00
 targetRR_ood: 0.00 ± 0.00
+pad: 0.00 ± 0.00
+normdata: 0.00 ± 0.00
+normIN: 0.00 ± 0.00
+padnormdata: 0.00 ± 0.00
+padnormIN: 0.00 ± 0.00
 ----precision, phyto_long----
-normIN: 45.43 ± 38.05
-normdata: 46.53 ± 44.73
+targetRR_ood: 72.19 ± 41.52
 pad: 51.23 ± 35.08
-padnormIN: 55.41 ± 24.24
+normdata: 46.53 ± 44.73
+normIN: 45.43 ± 38.05
 padnormdata: 39.73 ± 42.77
-targetRR_ood: 72.19 ± 41.52
+padnormIN: 55.41 ± 24.24
 ----precision, phyto_round----
-normIN: 56.48 ± 12.57
-normdata: 60.80 ± 11.10
+targetRR_ood: 48.60 ± 22.39
 pad: 56.34 ± 15.14
-padnormIN: 55.98 ± 13.65
+normdata: 60.80 ± 11.10
+normIN: 56.48 ± 12.57
 padnormdata: 60.14 ± 14.55
-targetRR_ood: 48.60 ± 22.39
+padnormIN: 55.98 ± 13.65
 ----precision, rhizaria----
-normIN: 94.46 ± 12.11
-normdata: 86.65 ± 19.26
+targetRR_ood: 87.17 ± 11.16
 pad: 93.32 ± 8.53
-padnormIN: 91.76 ± 16.95
+normdata: 86.65 ± 19.26
+normIN: 94.46 ± 12.11
 padnormdata: 84.37 ± 24.51
-targetRR_ood: 87.17 ± 11.16
+padnormIN: 91.76 ± 16.95
 ----precision, salp_pellet----
-normIN: 20.00 ± 42.16
+targetRR_ood: 40.00 ± 54.77
+pad: 0.00 ± 0.00
 normdata: 20.00 ± 42.16
-pad: 0.00 ± 0.00
-padnormIN: 0.00 ± 0.00
+normIN: 20.00 ± 42.16
 padnormdata: 0.00 ± 0.00
-targetRR_ood: 40.00 ± 54.77
+padnormIN: 0.00 ± 0.00
 ----precision, short_pellet----
-normIN: 78.87 ± 9.81
-normdata: 79.61 ± 7.02
+targetRR_ood: 78.93 ± 3.15
 pad: 84.42 ± 8.44
-padnormIN: 81.43 ± 8.41
+normdata: 79.61 ± 7.02
+normIN: 78.87 ± 9.81
 padnormdata: 82.69 ± 8.90
-targetRR_ood: 78.93 ± 3.15
+padnormIN: 81.43 ± 8.41
 ----precision, swimmer----
-normIN: 85.98 ± 3.74
-normdata: 86.01 ± 4.35
+targetRR_ood: 90.06 ± 3.28
 pad: 83.54 ± 4.78
-padnormIN: 83.37 ± 3.21
+normdata: 86.01 ± 4.35
+normIN: 85.98 ± 3.74
 padnormdata: 86.44 ± 4.47
-targetRR_ood: 90.06 ± 3.28
+padnormIN: 83.37 ± 3.21
 ----precision, macro avg----
-normIN: 67.67 ± 5.33
-normdata: 67.96 ± 4.48
+targetRR_ood: 69.90 ± 3.98
 pad: 68.02 ± 4.09
-padnormIN: 68.60 ± 2.97
+normdata: 67.96 ± 4.48
+normIN: 67.67 ± 5.33
 padnormdata: 67.50 ± 3.65
-targetRR_ood: 69.90 ± 3.98
+padnormIN: 68.60 ± 2.97
 ----precision, weighted avg----
-normIN: 85.53 ± 2.33
-normdata: 85.21 ± 2.12
+targetRR_ood: 84.74 ± 1.40
 pad: 86.41 ± 1.21
-padnormIN: 86.74 ± 1.38
+normdata: 85.21 ± 2.12
+normIN: 85.53 ± 2.33
 padnormdata: 86.40 ± 2.20
-targetRR_ood: 84.74 ± 1.40
+padnormIN: 86.74 ± 1.38
 ----recall, aggregate----
-normIN: 95.82 ± 2.80
-normdata: 95.19 ± 2.67
+targetRR_ood: 93.89 ± 4.06
 pad: 96.24 ± 1.89
-padnormIN: 96.58 ± 2.87
+normdata: 95.19 ± 2.67
+normIN: 95.82 ± 2.80
 padnormdata: 97.33 ± 0.98
-targetRR_ood: 93.89 ± 4.06
+padnormIN: 96.58 ± 2.87
 ----recall, bubble----
-normIN: 75.46 ± 15.67
-normdata: 81.98 ± 6.74
+targetRR_ood: 87.69 ± 4.65
 pad: 72.31 ± 18.21
-padnormIN: 64.03 ± 12.11
+normdata: 81.98 ± 6.74
+normIN: 75.46 ± 15.67
 padnormdata: 79.05 ± 8.18
-targetRR_ood: 87.69 ± 4.65
+padnormIN: 64.03 ± 12.11
 ----recall, fiber_blur----
-normIN: 89.74 ± 8.20
-normdata: 88.44 ± 5.09
+targetRR_ood: 80.62 ± 16.74
 pad: 91.35 ± 3.31
-padnormIN: 93.96 ± 4.30
+normdata: 88.44 ± 5.09
+normIN: 89.74 ± 8.20
 padnormdata: 88.54 ± 5.10
-targetRR_ood: 80.62 ± 16.74
+padnormIN: 93.96 ± 4.30
 ----recall, fiber_sharp----
-normIN: 94.83 ± 3.59
-normdata: 97.45 ± 1.48
+targetRR_ood: 95.02 ± 2.08
 pad: 98.53 ± 0.60
-padnormIN: 94.72 ± 5.13
+normdata: 97.45 ± 1.48
+normIN: 94.83 ± 3.59
 padnormdata: 97.36 ± 1.90
-targetRR_ood: 95.02 ± 2.08
+padnormIN: 94.72 ± 5.13
 ----recall, long_pellet----
-normIN: 79.80 ± 11.55
-normdata: 85.75 ± 7.97
+targetRR_ood: 86.66 ± 8.28
 pad: 88.97 ± 3.11
-padnormIN: 86.36 ± 11.85
+normdata: 85.75 ± 7.97
+normIN: 79.80 ± 11.55
 padnormdata: 86.92 ± 6.98
-targetRR_ood: 86.66 ± 8.28
+padnormIN: 86.36 ± 11.85
 ----recall, mini_pellet----
-normIN: 91.73 ± 6.76
-normdata: 91.26 ± 4.89
+targetRR_ood: 95.29 ± 4.06
 pad: 84.82 ± 7.51
-padnormIN: 86.50 ± 5.68
+normdata: 91.26 ± 4.89
+normIN: 91.73 ± 6.76
 padnormdata: 88.56 ± 5.18
-targetRR_ood: 95.29 ± 4.06
+padnormIN: 86.50 ± 5.68
 ----recall, noise----
-normIN: 99.68 ± 0.18
-normdata: 99.64 ± 0.17
+targetRR_ood: 99.56 ± 0.30
 pad: 99.63 ± 0.29
-padnormIN: 99.70 ± 0.21
+normdata: 99.64 ± 0.17
+normIN: 99.68 ± 0.18
 padnormdata: 99.68 ± 0.22
-targetRR_ood: 99.56 ± 0.30
+padnormIN: 99.70 ± 0.21
 ----recall, phyto_dino----
-normIN: 0.00 ± 0.00
+targetRR_ood: 0.00 ± 0.00
+pad: 0.00 ± 0.00
 normdata: 0.00 ± 0.00
-pad: 0.00 ± 0.00
-padnormIN: 0.00 ± 0.00
+normIN: 0.00 ± 0.00
 padnormdata: 0.00 ± 0.00
-targetRR_ood: 0.00 ± 0.00
+padnormIN: 0.00 ± 0.00
 ----recall, phyto_long----
-normIN: 15.51 ± 16.55
-normdata: 6.81 ± 9.97
+targetRR_ood: 9.28 ± 9.31
 pad: 20.00 ± 13.88
-padnormIN: 24.06 ± 17.80
+normdata: 6.81 ± 9.97
+normIN: 15.51 ± 16.55
 padnormdata: 11.01 ± 13.07
-targetRR_ood: 9.28 ± 9.31
+padnormIN: 24.06 ± 17.80
 ----recall, phyto_round----
-normIN: 80.61 ± 14.16
-normdata: 83.64 ± 8.35
+targetRR_ood: 90.91 ± 8.57
 pad: 75.76 ± 21.53
-padnormIN: 83.03 ± 8.99
+normdata: 83.64 ± 8.35
+normIN: 80.61 ± 14.16
 padnormdata: 83.03 ± 9.24
-targetRR_ood: 90.91 ± 8.57
+padnormIN: 83.03 ± 8.99
 ----recall, rhizaria----
-normIN: 20.50 ± 13.52
-normdata: 18.36 ± 16.28
+targetRR_ood: 29.82 ± 15.95
 pad: 15.80 ± 12.10
-padnormIN: 19.50 ± 17.11
+normdata: 18.36 ± 16.28
+normIN: 20.50 ± 13.52
 padnormdata: 22.14 ± 21.94
-targetRR_ood: 29.82 ± 15.95
+padnormIN: 19.50 ± 17.11
 ----recall, salp_pellet----
-normIN: 0.88 ± 1.99
-normdata: 1.18 ± 2.84
+targetRR_ood: 2.35 ± 3.83
 pad: 0.00 ± 0.00
-padnormIN: 0.00 ± 0.00
+normdata: 1.18 ± 2.84
+normIN: 0.88 ± 1.99
 padnormdata: 0.00 ± 0.00
-targetRR_ood: 2.35 ± 3.83
+padnormIN: 0.00 ± 0.00
 ----recall, short_pellet----
-normIN: 61.90 ± 16.36
-normdata: 68.24 ± 9.66
+targetRR_ood: 51.11 ± 15.88
 pad: 70.65 ± 11.23
-padnormIN: 74.07 ± 12.16
+normdata: 68.24 ± 9.66
+normIN: 61.90 ± 16.36
 padnormdata: 73.33 ± 7.65
-targetRR_ood: 51.11 ± 15.88
+padnormIN: 74.07 ± 12.16
 ----recall, swimmer----
-normIN: 69.81 ± 7.36
-normdata: 64.24 ± 15.11
+targetRR_ood: 61.98 ± 8.51
 pad: 69.75 ± 10.92
-padnormIN: 74.05 ± 3.12
+normdata: 64.24 ± 15.11
+normIN: 69.81 ± 7.36
 padnormdata: 66.99 ± 18.42
-targetRR_ood: 61.98 ± 8.51
+padnormIN: 74.05 ± 3.12
 ----recall, macro avg----
-normIN: 62.59 ± 2.47
-normdata: 63.01 ± 1.95
+targetRR_ood: 63.16 ± 1.87
 pad: 63.13 ± 2.52
-padnormIN: 64.04 ± 1.66
+normdata: 63.01 ± 1.95
+normIN: 62.59 ± 2.47
 padnormdata: 63.85 ± 2.32
-targetRR_ood: 63.16 ± 1.87
+padnormIN: 64.04 ± 1.66
 ----recall, weighted avg----
-normIN: 83.43 ± 3.47
-normdata: 83.32 ± 2.66
+targetRR_ood: 82.67 ± 2.44
 pad: 84.75 ± 1.78
-padnormIN: 85.27 ± 3.21
+normdata: 83.32 ± 2.66
+normIN: 83.43 ± 3.47
 padnormdata: 84.76 ± 2.99
-targetRR_ood: 82.67 ± 2.44
+padnormIN: 85.27 ± 3.21
 ----precision, aggregate----
-highLR: 62.01 ± 11.25
+targetRR_ood: 86.87 ± 1.91
 lowLR: 92.63 ± 1.10
-targetRR_ood: 86.87 ± 1.91
+highLR: 62.01 ± 11.25
 ----precision, bubble----
-highLR: 96.13 ± 2.53
+targetRR_ood: 99.36 ± 0.58
 lowLR: 100.00 ± 0.00
-targetRR_ood: 99.36 ± 0.58
+highLR: 96.13 ± 2.53
 ----precision, fiber_blur----
-highLR: 16.25 ± 14.84
+targetRR_ood: 57.62 ± 22.84
 lowLR: 66.83 ± 11.58
-targetRR_ood: 57.62 ± 22.84
+highLR: 16.25 ± 14.84
 ----precision, fiber_sharp----
-highLR: 49.09 ± 5.81
+targetRR_ood: 69.18 ± 9.79
 lowLR: 72.21 ± 10.34
-targetRR_ood: 69.18 ± 9.79
+highLR: 49.09 ± 5.81
 ----precision, long_pellet----
-highLR: 75.35 ± 8.08
+targetRR_ood: 83.71 ± 2.70
 lowLR: 88.70 ± 4.47
-targetRR_ood: 83.71 ± 2.70
+highLR: 75.35 ± 8.08
 ----precision, mini_pellet----
-highLR: 73.73 ± 19.19
+targetRR_ood: 75.90 ± 11.13
 lowLR: 76.38 ± 6.12
-targetRR_ood: 75.90 ± 11.13
+highLR: 73.73 ± 19.19
 ----precision, noise----
-highLR: 89.39 ± 4.74
+targetRR_ood: 89.05 ± 8.67
 lowLR: 92.63 ± 2.73
-targetRR_ood: 89.05 ± 8.67
+highLR: 89.39 ± 4.74
 ----precision, phyto_dino----
-highLR: 0.00 ± 0.00
-lowLR: 0.00 ± 0.00
 targetRR_ood: 0.00 ± 0.00
-----precision, phyto_long----
+lowLR: 0.00 ± 0.00
 highLR: 0.00 ± 0.00
+----precision, phyto_long----
+targetRR_ood: 72.19 ± 41.52
 lowLR: 55.04 ± 38.63
-targetRR_ood: 72.19 ± 41.52
+highLR: 0.00 ± 0.00
 ----precision, phyto_round----
-highLR: 28.63 ± 29.18
+targetRR_ood: 48.60 ± 22.39
 lowLR: 64.76 ± 6.58
-targetRR_ood: 48.60 ± 22.39
+highLR: 28.63 ± 29.18
 ----precision, rhizaria----
-highLR: 0.00 ± 0.00
+targetRR_ood: 87.17 ± 11.16
 lowLR: 95.45 ± 5.87
-targetRR_ood: 87.17 ± 11.16
-----precision, salp_pellet----
 highLR: 0.00 ± 0.00
+----precision, salp_pellet----
+targetRR_ood: 40.00 ± 54.77
 lowLR: 80.00 ± 44.72
-targetRR_ood: 40.00 ± 54.77
+highLR: 0.00 ± 0.00
 ----precision, short_pellet----
-highLR: 36.57 ± 15.48
+targetRR_ood: 78.93 ± 3.15
 lowLR: 76.90 ± 4.48
-targetRR_ood: 78.93 ± 3.15
+highLR: 36.57 ± 15.48
 ----precision, swimmer----
-highLR: 62.91 ± 7.80
+targetRR_ood: 90.06 ± 3.28
 lowLR: 89.96 ± 2.58
-targetRR_ood: 90.06 ± 3.28
+highLR: 62.91 ± 7.80
 ----precision, macro avg----
-highLR: 42.15 ± 6.76
+targetRR_ood: 69.90 ± 3.98
 lowLR: 75.11 ± 3.21
-targetRR_ood: 69.90 ± 3.98
+highLR: 42.15 ± 6.76
 ----precision, weighted avg----
-highLR: 63.39 ± 7.21
+targetRR_ood: 84.74 ± 1.40
 lowLR: 88.36 ± 0.44
-targetRR_ood: 84.74 ± 1.40
+highLR: 63.39 ± 7.21
 ----recall, aggregate----
-highLR: 92.77 ± 4.53
+targetRR_ood: 93.89 ± 4.06
 lowLR: 94.87 ± 1.50
-targetRR_ood: 93.89 ± 4.06
+highLR: 92.77 ± 4.53
 ----recall, bubble----
-highLR: 35.16 ± 31.03
+targetRR_ood: 87.69 ± 4.65
 lowLR: 84.40 ± 2.74
-targetRR_ood: 87.69 ± 4.65
+highLR: 35.16 ± 31.03
 ----recall, fiber_blur----
-highLR: 38.85 ± 36.31
+targetRR_ood: 80.62 ± 16.74
 lowLR: 86.35 ± 5.48
-targetRR_ood: 80.62 ± 16.74
+highLR: 38.85 ± 36.31
 ----recall, fiber_sharp----
-highLR: 91.62 ± 4.95
+targetRR_ood: 95.02 ± 2.08
 lowLR: 96.79 ± 2.29
-targetRR_ood: 95.02 ± 2.08
+highLR: 91.62 ± 4.95
 ----recall, long_pellet----
-highLR: 54.67 ± 22.79
+targetRR_ood: 86.66 ± 8.28
 lowLR: 92.54 ± 2.98
-targetRR_ood: 86.66 ± 8.28
+highLR: 54.67 ± 22.79
 ----recall, mini_pellet----
-highLR: 31.52 ± 29.92
+targetRR_ood: 95.29 ± 4.06
 lowLR: 94.79 ± 2.00
-targetRR_ood: 95.29 ± 4.06
+highLR: 31.52 ± 29.92
 ----recall, noise----
-highLR: 92.25 ± 13.37
+targetRR_ood: 99.56 ± 0.30
 lowLR: 99.58 ± 0.10
-targetRR_ood: 99.56 ± 0.30
+highLR: 92.25 ± 13.37
 ----recall, phyto_dino----
-highLR: 0.00 ± 0.00
+targetRR_ood: 0.00 ± 0.00
 lowLR: 0.00 ± 0.00
-targetRR_ood: 0.00 ± 0.00
-----recall, phyto_long----
 highLR: 0.00 ± 0.00
+----recall, phyto_long----
+targetRR_ood: 9.28 ± 9.31
 lowLR: 7.54 ± 8.03
-targetRR_ood: 9.28 ± 9.31
+highLR: 0.00 ± 0.00
 ----recall, phyto_round----
-highLR: 32.12 ± 30.04
+targetRR_ood: 90.91 ± 8.57
 lowLR: 90.30 ± 5.83
-targetRR_ood: 90.91 ± 8.57
+highLR: 32.12 ± 30.04
 ----recall, rhizaria----
-highLR: 0.00 ± 0.00
+targetRR_ood: 29.82 ± 15.95
 lowLR: 33.74 ± 12.04
-targetRR_ood: 29.82 ± 15.95
-----recall, salp_pellet----
 highLR: 0.00 ± 0.00
-lowLR: 3.53 ± 2.46
-targetRR_ood: 2.35 ± 3.83
-----recall, short_pellet----
-highLR: 56.48 ± 14.60
-lowLR: 56.11 ± 6.10
-targetRR_ood: 51.11 ± 15.88
-----recall, swimmer----
-highLR: 25.59 ± 12.85
-lowLR: 77.98 ± 5.09
-targetRR_ood: 61.98 ± 8.51
-----recall, macro avg----
-highLR: 39.36 ± 10.93
-lowLR: 65.61 ± 1.06
-targetRR_ood: 63.16 ± 1.87
-----recall, weighted avg----
-highLR: 62.25 ± 8.38
-lowLR: 87.38 ± 0.54
-targetRR_ood: 82.67 ± 2.44
-----precision, aggregate----
-highWD: 89.51 ± 2.84
-lowWD: 88.48 ± 4.64
-targetRR_ood: 86.87 ± 1.91
-----precision, bubble----
-highWD: 96.57 ± 3.53
-lowWD: 99.20 ± 0.83
-targetRR_ood: 99.36 ± 0.58
-----precision, fiber_blur----
-highWD: 39.58 ± 19.38
-lowWD: 50.79 ± 23.34
-targetRR_ood: 57.62 ± 22.84
-----precision, fiber_sharp----
-highWD: 71.36 ± 6.95
-lowWD: 69.74 ± 8.83
-targetRR_ood: 69.18 ± 9.79
-----precision, long_pellet----
-highWD: 82.05 ± 6.11
-lowWD: 83.52 ± 3.87
-targetRR_ood: 83.71 ± 2.70
-----precision, mini_pellet----
-highWD: 81.66 ± 11.50
-lowWD: 79.77 ± 10.08
-targetRR_ood: 75.90 ± 11.13
-----precision, noise----
-highWD: 90.18 ± 9.25
-lowWD: 88.80 ± 10.51
-targetRR_ood: 89.05 ± 8.67
-----precision, phyto_dino----
-highWD: 0.00 ± 0.00
-lowWD: 0.00 ± 0.00
-targetRR_ood: 0.00 ± 0.00
-----precision, phyto_long----
-highWD: 83.83 ± 22.23
-lowWD: 81.53 ± 18.88
-targetRR_ood: 72.19 ± 41.52
-----precision, phyto_round----
-highWD: 65.62 ± 23.44
-lowWD: 57.17 ± 26.27
-targetRR_ood: 48.60 ± 22.39
-----precision, rhizaria----
-highWD: 83.99 ± 12.95
-lowWD: 82.41 ± 18.53
-targetRR_ood: 87.17 ± 11.16
-----precision, salp_pellet----
-highWD: 30.59 ± 45.07
-lowWD: 60.00 ± 54.77
-targetRR_ood: 40.00 ± 54.77
-----precision, short_pellet----
-highWD: 77.25 ± 8.54
-lowWD: 76.98 ± 12.95
-targetRR_ood: 78.93 ± 3.15
-----precision, swimmer----
-highWD: 86.29 ± 3.74
-lowWD: 85.76 ± 6.84
-targetRR_ood: 90.06 ± 3.28
-----precision, macro avg----
-highWD: 69.89 ± 6.04
-lowWD: 71.73 ± 2.73
-targetRR_ood: 69.90 ± 3.98
-----precision, weighted avg----
-highWD: 84.66 ± 2.82
-lowWD: 84.44 ± 1.81
-targetRR_ood: 84.74 ± 1.40
-----recall, aggregate----
-highWD: 94.84 ± 4.82
-lowWD: 92.80 ± 6.48
-targetRR_ood: 93.89 ± 4.06
-----recall, bubble----
-highWD: 86.81 ± 12.89
-lowWD: 83.96 ± 9.31
-targetRR_ood: 87.69 ± 4.65
-----recall, fiber_blur----
-highWD: 89.27 ± 8.56
-lowWD: 85.52 ± 7.33
-targetRR_ood: 80.62 ± 16.74
-----recall, fiber_sharp----
-highWD: 93.89 ± 1.29
-lowWD: 94.68 ± 3.00
-targetRR_ood: 95.02 ± 2.08
-----recall, long_pellet----
-highWD: 81.07 ± 18.39
-lowWD: 84.95 ± 8.90
-targetRR_ood: 86.66 ± 8.28
-----recall, mini_pellet----
-highWD: 91.67 ± 5.99
-lowWD: 91.21 ± 11.79
-targetRR_ood: 95.29 ± 4.06
-----recall, noise----
-highWD: 99.77 ± 0.16
-lowWD: 99.63 ± 0.25
-targetRR_ood: 99.56 ± 0.30
-----recall, phyto_dino----
-highWD: 0.00 ± 0.00
-lowWD: 0.00 ± 0.00
-targetRR_ood: 0.00 ± 0.00
-----recall, phyto_long----
-highWD: 13.62 ± 14.19
-lowWD: 13.62 ± 6.37
-targetRR_ood: 9.28 ± 9.31
-----recall, phyto_round----
-highWD: 59.39 ± 30.27
-lowWD: 81.21 ± 20.49
-targetRR_ood: 90.91 ± 8.57
-----recall, rhizaria----
-highWD: 23.49 ± 10.93
-lowWD: 26.19 ± 20.69
-targetRR_ood: 29.82 ± 15.95
 ----recall, salp_pellet----
-highWD: 6.47 ± 11.47
-lowWD: 3.53 ± 3.83
 targetRR_ood: 2.35 ± 3.83
+lowLR: 3.53 ± 2.46
+highLR: 0.00 ± 0.00
 ----recall, short_pellet----
-highWD: 52.22 ± 14.86
-lowWD: 53.89 ± 15.27
 targetRR_ood: 51.11 ± 15.88
+lowLR: 56.11 ± 6.10
+highLR: 56.48 ± 14.60
 ----recall, swimmer----
-highWD: 60.83 ± 10.18
-lowWD: 63.25 ± 6.55
 targetRR_ood: 61.98 ± 8.51
+lowLR: 77.98 ± 5.09
+highLR: 25.59 ± 12.85
 ----recall, macro avg----
-highWD: 60.95 ± 3.71
-lowWD: 62.46 ± 1.03
 targetRR_ood: 63.16 ± 1.87
+lowLR: 65.61 ± 1.06
+highLR: 39.36 ± 10.93
 ----recall, weighted avg----
-highWD: 81.59 ± 4.63
-lowWD: 82.02 ± 2.67
 targetRR_ood: 82.67 ± 2.44
+lowLR: 87.38 ± 0.54
+highLR: 62.25 ± 8.38
+----precision, aggregate----
+targetRR_ood: 86.87 ± 1.91
+lowWD: 88.48 ± 4.64
+highWD: 89.51 ± 2.84
+----precision, bubble----
+targetRR_ood: 99.36 ± 0.58
+lowWD: 99.20 ± 0.83
+highWD: 96.57 ± 3.53
+----precision, fiber_blur----
+targetRR_ood: 57.62 ± 22.84
+lowWD: 50.79 ± 23.34
+highWD: 39.58 ± 19.38
+----precision, fiber_sharp----
+targetRR_ood: 69.18 ± 9.79
+lowWD: 69.74 ± 8.83
+highWD: 71.36 ± 6.95
+----precision, long_pellet----
+targetRR_ood: 83.71 ± 2.70
+lowWD: 83.52 ± 3.87
+highWD: 82.05 ± 6.11
+----precision, mini_pellet----
+targetRR_ood: 75.90 ± 11.13
+lowWD: 79.77 ± 10.08
+highWD: 81.66 ± 11.50
+----precision, noise----
+targetRR_ood: 89.05 ± 8.67
+lowWD: 88.80 ± 10.51
+highWD: 90.18 ± 9.25
+----precision, phyto_dino----
+targetRR_ood: 0.00 ± 0.00
+lowWD: 0.00 ± 0.00
+highWD: 0.00 ± 0.00
+----precision, phyto_long----
+targetRR_ood: 72.19 ± 41.52
+lowWD: 81.53 ± 18.88
+highWD: 83.83 ± 22.23
+----precision, phyto_round----
+targetRR_ood: 48.60 ± 22.39
+lowWD: 57.17 ± 26.27
+highWD: 65.62 ± 23.44
+----precision, rhizaria----
+targetRR_ood: 87.17 ± 11.16
+lowWD: 82.41 ± 18.53
+highWD: 83.99 ± 12.95
+----precision, salp_pellet----
+targetRR_ood: 40.00 ± 54.77
+lowWD: 60.00 ± 54.77
+highWD: 30.59 ± 45.07
+----precision, short_pellet----
+targetRR_ood: 78.93 ± 3.15
+lowWD: 76.98 ± 12.95
+highWD: 77.25 ± 8.54
+----precision, swimmer----
+targetRR_ood: 90.06 ± 3.28
+lowWD: 85.76 ± 6.84
+highWD: 86.29 ± 3.74
+----precision, macro avg----
+targetRR_ood: 69.90 ± 3.98
+lowWD: 71.73 ± 2.73
+highWD: 69.89 ± 6.04
+----precision, weighted avg----
+targetRR_ood: 84.74 ± 1.40
+lowWD: 84.44 ± 1.81
+highWD: 84.66 ± 2.82
+----recall, aggregate----
+targetRR_ood: 93.89 ± 4.06
+lowWD: 92.80 ± 6.48
+highWD: 94.84 ± 4.82
+----recall, bubble----
+targetRR_ood: 87.69 ± 4.65
+lowWD: 83.96 ± 9.31
+highWD: 86.81 ± 12.89
+----recall, fiber_blur----
+targetRR_ood: 80.62 ± 16.74
+lowWD: 85.52 ± 7.33
+highWD: 89.27 ± 8.56
+----recall, fiber_sharp----
+targetRR_ood: 95.02 ± 2.08
+lowWD: 94.68 ± 3.00
+highWD: 93.89 ± 1.29
+----recall, long_pellet----
+targetRR_ood: 86.66 ± 8.28
+lowWD: 84.95 ± 8.90
+highWD: 81.07 ± 18.39
+----recall, mini_pellet----
+targetRR_ood: 95.29 ± 4.06
+lowWD: 91.21 ± 11.79
+highWD: 91.67 ± 5.99
+----recall, noise----
+targetRR_ood: 99.56 ± 0.30
+lowWD: 99.63 ± 0.25
+highWD: 99.77 ± 0.16
+----recall, phyto_dino----
+targetRR_ood: 0.00 ± 0.00
+lowWD: 0.00 ± 0.00
+highWD: 0.00 ± 0.00
+----recall, phyto_long----
+targetRR_ood: 9.28 ± 9.31
+lowWD: 13.62 ± 6.37
+highWD: 13.62 ± 14.19
+----recall, phyto_round----
+targetRR_ood: 90.91 ± 8.57
+lowWD: 81.21 ± 20.49
+highWD: 59.39 ± 30.27
+----recall, rhizaria----
+targetRR_ood: 29.82 ± 15.95
+lowWD: 26.19 ± 20.69
+highWD: 23.49 ± 10.93
+----recall, salp_pellet----
+targetRR_ood: 2.35 ± 3.83
+lowWD: 3.53 ± 3.83
+highWD: 6.47 ± 11.47
+----recall, short_pellet----
+targetRR_ood: 51.11 ± 15.88
+lowWD: 53.89 ± 15.27
+highWD: 52.22 ± 14.86
+----recall, swimmer----
+targetRR_ood: 61.98 ± 8.51
+lowWD: 63.25 ± 6.55
+highWD: 60.83 ± 10.18
+----recall, macro avg----
+targetRR_ood: 63.16 ± 1.87
+lowWD: 62.46 ± 1.03
+highWD: 60.95 ± 3.71
+----recall, weighted avg----
+targetRR_ood: 82.67 ± 2.44
+lowWD: 82.02 ± 2.67
+highWD: 81.59 ± 4.63
