@@ -448,7 +448,7 @@ def flux_comparison_by_class():
     plt.close(mae_fig)
 
 
-def compare_accuracies(domain):
+def relabeling_results():
     
     def compare_cols(df, col1, col2):
         
@@ -457,21 +457,12 @@ def compare_accuracies(domain):
         
         return accuracy
             
-    df = pd.read_csv('../results/fluxes/{domain}.csv', index_col=False)
-    df = df.loc[df['olabel'].notnull()]
-    
-    pred_col = 'prediction0_group'
-    
-    unambig = df.loc[df['label'] != 'none']
-    r = compare_cols(unambig, 'label_group', pred_col)
-    print(f'perfect labels vs. predictions: {r:.2f}')
-    
-    r = compare_cols(df, 'olabel_group', pred_col)
-    print(f'perfect + shady labels vs. predictions: {r:.2f}')
-    
-    relabeled = df.loc[df['relabel_group'].notnull()]
-    r = compare_cols(relabeled, 'olabel_group', 'relabel_group')
-    print(f'Intra-annotator agreement (perfect + shady labels): {r:.2f}')
+    df = tools.load_metadata()
+
+    for domain in ('RR', 'JC'):
+        relabeled = df.loc[(df['domain'] == domain) & (df['relabel_group'].notnull())]
+        r = compare_cols(relabeled, 'olabel_group', 'relabel_group')
+        print(f'Intra-annotator agreement, {domain}: {r:.2f}')
     
 
 def print_image_counts():
@@ -634,14 +625,11 @@ def metrics_hitloop():
 
         flux_df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col='filename', low_memory=False)
         human_df = tools.load_metadata()
-        if domain == 'RR':
-            relabel_df = human_df.loc[human_df['relabel_group'].notnull()]
-            relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True)
+        relabel_df = human_df.loc[(human_df['domain'] == domain) & (human_df['relabel_group'].notnull())]
+        relabel_report = classification_report(relabel_df['olabel_group'], relabel_df['relabel_group'], output_dict=True, zero_division=0)
         human_df = human_df.loc[human_df['domain'] == domain][['filename', 'olabel']]
         human_df = human_df.rename(columns={'olabel': f'label'})
         human_df.set_index('filename', inplace=True)
-        
-
         models = (f'target{domain}_ood', f'target{domain}_top1k', f'target{domain}_verify', f'target{domain}_minboost')
         prediction_files = [f'{m}-{i}' for (m, i) in product(models, range(replicates))]
 
@@ -681,7 +669,7 @@ def metrics_hitloop():
                         y_std = np.std([reports[domain][k][x][y] for k in keys], ddof=1)
                         d_axs[i].errorbar(j + offset[z], y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
                         print(f'{m}: {y_avg*100:.2f} ± {y_std*100:.2f}')
-                    if domain == 'RR':
+                    if x in relabel_df['olabel_group'].unique():  # JC didn't have any originally labeled salp pellets or rhizaria
                         d_axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
                         print(f'relabel: {relabel_report[x][y]:.2f}')
 
@@ -780,11 +768,12 @@ if __name__ == '__main__':
     
     # training_plots()
     # metrics_hptune()
+    # relabeling_results()
     
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
 
     # flux_comparison_human_measured()
-    flux_comparison_by_class()
-    # metrics_hitloop()
+    # flux_comparison_by_class()
+    metrics_hitloop()
 
