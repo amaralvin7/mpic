@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
+import scipy
 import seaborn as sns
 import torch
 import yaml
@@ -303,6 +304,19 @@ def flux_comparison_by_class():
         axs[i].set_xlim(-0.225, 0.225)
         if ii == 1:
             axs[i].set_xlabel(mae_x_vars[i], rotation=45)
+    
+
+    def anova_tukey(maes):
+
+        sig_level = 0.05
+        _, anova_pval = scipy.stats.f_oneway(*maes)
+        print(f'ANOVA p-val: {anova_pval:.6f}')
+        if anova_pval < sig_level:
+            tukey_results = scipy.stats.tukey_hsd(*maes)
+            for ((i, j), p) in np.ndenumerate(tukey_results.pvalue):
+                if j > i and p < sig_level:  # upper triangle only
+                    print(f'Tukey p-val ({models[i].split("_")[1]}/{models[j].split("_")[1]}): {p:.6f}')
+
 
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
     mae_x_vars = ['measured', 'total'] + classes
@@ -392,26 +406,35 @@ def flux_comparison_by_class():
         with open(f'../results/figs/flux_mae_{d}.txt', 'w') as sys.stdout:
             print(f'******FLUX MAEs ({d})******')
             print(f'---measured---')
+            measured_maes = []
             for k, m in enumerate(models):
                 measured_fluxes = [flux_dict[d][m][s]['measured'] for s in samples]
                 model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
                 maes = [mean_absolute_error(measured_fluxes, model_total_fluxes[j]) for j in range(replicates)]
                 plot_mae(i, k, domain_axs, maes)
+                measured_maes.append(maes)
+            anova_tukey(measured_maes)
             i += 1
             print(f'---total---')
+            total_maes = []
             for k, m in enumerate(models):
                 human_total_fluxes = [flux_dict[d][m][s]['human_total'] for s in samples]
                 model_total_fluxes = [[flux_dict[d][m][s]['model_total'][j] for s in samples] for j in range(replicates)]
                 maes = [mean_absolute_error(human_total_fluxes, model_total_fluxes[j]) for j in range(replicates)]
                 plot_mae(i, k, domain_axs, maes)
+                total_maes.append(maes)
+            anova_tukey(total_maes)
             i += 1
             for c in classes:
                 print(f'---{c}---')
+                class_maes = []
                 for k, m in enumerate(models):
                     human_class_fluxes = [flux_dict[d][m][s][c]['human'] for s in samples]
                     model_class_fluxes = [[flux_dict[d][m][s][c]['model'][j] for s in samples] for j in range(replicates)]
                     maes = [mean_absolute_error(human_class_fluxes, model_class_fluxes[j]) for j in range(replicates)]
                     plot_mae(i, k, domain_axs, maes)
+                    class_maes.append(maes)
+                anova_tukey(class_maes)
                 i += 1
 
         domain_axs[0].axhline(human_measured_mae[d], color=black, alpha=0.3)
@@ -756,12 +779,12 @@ if __name__ == '__main__':
     # draw_map()
     
     # training_plots()
-    metrics_hptune()
+    # metrics_hptune()
     
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
 
     # flux_comparison_human_measured()
-    # flux_comparison_by_class()
+    flux_comparison_by_class()
     # metrics_hitloop()
 

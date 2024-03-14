@@ -4,43 +4,69 @@ targetRR_ood: 3.40 ± 1.08
 targetRR_top1k: 2.60 ± 1.00
 targetRR_verify: 1.34 ± 0.66
 targetRR_minboost: 1.04 ± 0.40
+ANOVA p-val: 0.001125
+Tukey p-val (ood/verify): 0.006073
+Tukey p-val (ood/minboost): 0.001878
+Tukey p-val (top1k/minboost): 0.040522
 ---total---
 targetRR_ood: 3.07 ± 1.06
 targetRR_top1k: 2.26 ± 0.96
 targetRR_verify: 0.97 ± 0.62
 targetRR_minboost: 0.66 ± 0.37
+ANOVA p-val: 0.000607
+Tukey p-val (ood/verify): 0.003636
+Tukey p-val (ood/minboost): 0.001055
+Tukey p-val (top1k/minboost): 0.027591
 ---aggregate---
 targetRR_ood: 0.44 ± 0.21
 targetRR_top1k: 0.15 ± 0.06
 targetRR_verify: 0.15 ± 0.13
 targetRR_minboost: 0.10 ± 0.05
+ANOVA p-val: 0.003033
+Tukey p-val (ood/top1k): 0.013591
+Tukey p-val (ood/verify): 0.013169
+Tukey p-val (ood/minboost): 0.004045
 ---long_pellet---
 targetRR_ood: 2.36 ± 0.57
 targetRR_top1k: 1.87 ± 0.86
 targetRR_verify: 0.33 ± 0.19
 targetRR_minboost: 0.29 ± 0.26
+ANOVA p-val: 0.000015
+Tukey p-val (ood/verify): 0.000117
+Tukey p-val (ood/minboost): 0.000092
+Tukey p-val (top1k/verify): 0.001973
+Tukey p-val (top1k/minboost): 0.001523
 ---mini_pellet---
 targetRR_ood: 0.32 ± 0.29
 targetRR_top1k: 0.25 ± 0.12
 targetRR_verify: 0.32 ± 0.25
 targetRR_minboost: 0.16 ± 0.06
+ANOVA p-val: 0.541235
 ---phytoplankton---
 targetRR_ood: 0.02 ± 0.02
 targetRR_top1k: 0.02 ± 0.01
 targetRR_verify: 0.01 ± 0.01
 targetRR_minboost: 0.01 ± 0.01
+ANOVA p-val: 0.331516
 ---rhizaria---
 targetRR_ood: 0.05 ± 0.03
 targetRR_top1k: 0.03 ± 0.02
 targetRR_verify: 0.02 ± 0.01
 targetRR_minboost: 0.01 ± 0.01
+ANOVA p-val: 0.048590
 ---salp_pellet---
 targetRR_ood: 0.37 ± 0.03
 targetRR_top1k: 0.37 ± 0.01
 targetRR_verify: 0.24 ± 0.04
 targetRR_minboost: 0.17 ± 0.06
+ANOVA p-val: 0.000000
+Tukey p-val (ood/verify): 0.000282
+Tukey p-val (ood/minboost): 0.000003
+Tukey p-val (top1k/verify): 0.000251
+Tukey p-val (top1k/minboost): 0.000002
 ---short_pellet---
 targetRR_ood: 0.31 ± 0.42
 targetRR_top1k: 0.34 ± 0.49
 targetRR_verify: 0.41 ± 0.59
 targetRR_minboost: 0.23 ± 0.32
+ANOVA p-val: 0.947289
