@@ -650,7 +650,7 @@ def metrics_hitloop():
                 values_format='.0f',
                 ax=ax,
                 labels=labels)
-            cm.savefig(f'../results/figs/cmatrix_{f}.png')
+            cm.savefig(f'../results/figs/cmatrix_{f}.{image_format}')
             plt.close(cm)
             reports[domain][f] = classification_report(
                 df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
@@ -747,6 +747,111 @@ def flux_comparison_human_measured():
     return maes
 
 
+def flux_profiles():
+
+    def mod_depths(real_depth):
+
+        idx = (np.abs(acceptable_depths - real_depth)).argmin()
+        
+        return acceptable_depths[idx]
+    
+    
+    def class_average(depth_df, col_prefix, averages, particle_class):
+
+        df = depth_df.loc[depth_df[f'{col_prefix}_group'] == particle_class]
+        samples = df['sample'].unique()
+        if len(samples) > 0:
+            sample_fluxes = []
+            for s in samples:
+                sample_fluxes.append(df.loc[df['sample'] == s][f'{col_prefix}_flux'].sum())
+            averages.append(np.mean(sample_fluxes))
+        else:
+            averages.append(0)
+
+
+    def measured_average(depth_df, averages, errors):
+
+        samples = depth_df['sample'].unique()
+        sample_fluxes = []
+        sample_flux_errors = []
+        for s in samples:
+            sample_fluxes.append(depth_df.loc[depth_df['sample'] == s][f'measured_flux'].unique()[0])
+            sample_flux_errors.append(
+                depth_df.loc[depth_df['sample'] == s][f'measured_flux_e'].unique()[0])
+        averages.append(np.mean(sample_fluxes))
+        errors.append(np.sqrt(np.sum([err**2 for err in sample_flux_errors]))/len(sample_fluxes))
+
+
+    ax_to_date = {0: [20180815], 1: [20180824], 2: [20180831],
+                  3: [20210506, 20210508], 4: [20210514]}
+    epoch_labels = ['RR, Epoch 1', 'RR, Epoch 2', 'RR, Epoch 3', 'JC, Epoch 1', 'JC, Epoch 2']
+    jc_stts = ('JC5', 'JC6', 'JC7', 'JC8', 'JC21', 'JC22', 'JC23', 'JC24', 'JC25')
+    xlims = [6, 6, 6, 15, 15]
+    classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
+    colors = [blue, orange, vermillion, green, radish, sky, grey, black]
+    acceptable_depths = np.array([75, 100, 125, 150, 175, 200, 330, 500])
+    fig, axs_groups = plt.subplots(2, 5, layout='constrained')
+    fig.supylabel('Depth (m)')
+    fig.supxlabel('Flux (mmol m$^{-2}$ d$^{-1}$)')
+
+    for i, axs in enumerate(axs_groups):
+
+        for j, cl in enumerate(epoch_labels):
+            axs[j].set_ylim(65, 510)
+            axs[j].set_xlim(0, xlims[j])
+            axs[j].invert_yaxis()
+            domain = cl[:2]
+            domain_df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
+            if domain == 'JC':  # only use STTs for JC
+                domain_df = domain_df.loc[domain_df['sample'].isin(jc_stts)]
+            if i == 0:
+                axs[j].tick_params(labelbottom=False)
+                if j == 0:
+                    axs[j].set_ylabel('Model')
+            else:
+                axs[j].set_xlabel(cl)
+                if j == 0:
+                    axs[j].set_ylabel('Human')
+            if j:
+                axs[j].tick_params(labelleft=False)
+            epoch_df = domain_df.loc[domain_df['date'].isin(ax_to_date[j])].copy()
+            epoch_df['mod_depth'] = epoch_df.apply(lambda x: mod_depths(x['depth']), axis=1)
+            depths = sorted(epoch_df['mod_depth'].unique())
+
+            fill_from = np.zeros(len(depths))
+            for k, c in enumerate(classes):
+                class_flux_prof = []
+                meas_flux_prof = []
+                meas_flux_prof_e = []
+                for d in depths:
+                    depth_df = epoch_df.loc[epoch_df['mod_depth'] == d]
+                    if i > 0:  # from human labels
+                        col_prefix = 'olabel'
+                        class_average(depth_df, col_prefix, class_flux_prof, c)
+                        if k == 0:  # only need to calculate the measured fluxes once, c arg is irrelevant
+                            measured_average(depth_df, meas_flux_prof, meas_flux_prof_e)
+                    else:  # from model predictions
+                        replicate_fluxes = []
+                        for r in range(5):
+                            col_prefix = f'predictiontarget{domain}_minboost-{r}'
+                            class_average(depth_df, col_prefix, replicate_fluxes, c)
+                        class_flux_prof.append(np.mean(replicate_fluxes))
+                        if k == 0:
+                            measured_average(depth_df, meas_flux_prof, meas_flux_prof_e)                                         
+                fill_to = fill_from + class_flux_prof
+                axs[j].fill_betweenx(depths, fill_from, fill_to, color=colors[k])
+                fill_from = fill_to
+                if k == 0:
+                    axs[j].errorbar(meas_flux_prof, depths, xerr=meas_flux_prof_e, c=black, zorder=10)
+    
+    lines = [Line2D([0], [0], color=c, lw=6) for c in colors]
+    # leg_text = ('aggregate', 'long_pellet', 'salp_pellet', 'other')
+    leg_text = classes + ['measured']
+    fig.legend(lines, leg_text, ncol=4, loc='outside upper center', frameon=False, handlelength=1)
+    
+    fig.savefig(f'../results/figs/flux_profiles.{image_format}', bbox_inches='tight')
+
+
 if __name__ == '__main__':
 
     black = '#000000'
@@ -757,6 +862,7 @@ if __name__ == '__main__':
     vermillion = '#D55E00'
     radish = '#CC79A7'
     white = '#FFFFFF'
+    grey = '#A9A9A9'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--image_format', '-i', default='png')
@@ -775,5 +881,6 @@ if __name__ == '__main__':
 
     # flux_comparison_human_measured()
     # flux_comparison_by_class()
-    metrics_hitloop()
+    # metrics_hitloop()
+    flux_profiles()
 
