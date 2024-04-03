@@ -291,6 +291,18 @@ def calculate_flux_df(domain=None):
     df.to_csv(f'../results/fluxes/{domain}.csv', index=False)
 
 
+def anova_tukey(values, models):
+
+    sig_level = 0.05
+    _, anova_pval = scipy.stats.f_oneway(*values)
+    print(f'ANOVA p-val: {anova_pval:.6f}')
+    if anova_pval < sig_level:
+        tukey_results = scipy.stats.tukey_hsd(*values)
+        for ((i, j), p) in np.ndenumerate(tukey_results.pvalue):
+            if j > i and p < sig_level:  # upper triangle only
+                print(f'Tukey p-val ({models[i].split("_")[1]}/{models[j].split("_")[1]}): {p:.6f}')
+
+
 def flux_comparison_by_class():
     
     def plot_mae(i, k, axs, maes):
@@ -304,20 +316,8 @@ def flux_comparison_by_class():
         axs[i].set_xlim(-0.225, 0.225)
         if ii == 1:
             axs[i].set_xlabel(mae_x_vars[i], rotation=45)
-    
 
-    def anova_tukey(maes):
-
-        sig_level = 0.05
-        _, anova_pval = scipy.stats.f_oneway(*maes)
-        print(f'ANOVA p-val: {anova_pval:.6f}')
-        if anova_pval < sig_level:
-            tukey_results = scipy.stats.tukey_hsd(*maes)
-            for ((i, j), p) in np.ndenumerate(tukey_results.pvalue):
-                if j > i and p < sig_level:  # upper triangle only
-                    print(f'Tukey p-val ({models[i].split("_")[1]}/{models[j].split("_")[1]}): {p:.6f}')
-
-
+    open(f'../results/textfiles/flux_maes.txt', 'w')  # delete flux_maes file if it exists
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
     mae_x_vars = ['measured', 'total'] + classes
     domains = ('RR', 'JC')
@@ -403,7 +403,7 @@ def flux_comparison_by_class():
         markers = ['o', '^', '+', 's', 'd', 'x', '*']
 
         i = 0
-        with open(f'../results/figs/flux_mae_{d}.txt', 'w') as sys.stdout:
+        with open(f'../results/textfiles/flux_maes.txt', 'a') as sys.stdout:
             print(f'******FLUX MAEs ({d})******')
             print(f'---measured---')
             measured_maes = []
@@ -413,7 +413,7 @@ def flux_comparison_by_class():
                 maes = [mean_absolute_error(measured_fluxes, model_total_fluxes[j]) for j in range(replicates)]
                 plot_mae(i, k, domain_axs, maes)
                 measured_maes.append(maes)
-            anova_tukey(measured_maes)
+            anova_tukey(measured_maes, models)
             i += 1
             print(f'---total---')
             total_maes = []
@@ -423,7 +423,7 @@ def flux_comparison_by_class():
                 maes = [mean_absolute_error(human_total_fluxes, model_total_fluxes[j]) for j in range(replicates)]
                 plot_mae(i, k, domain_axs, maes)
                 total_maes.append(maes)
-            anova_tukey(total_maes)
+            anova_tukey(total_maes, models)
             i += 1
             for c in classes:
                 print(f'---{c}---')
@@ -434,7 +434,7 @@ def flux_comparison_by_class():
                     maes = [mean_absolute_error(human_class_fluxes, model_class_fluxes[j]) for j in range(replicates)]
                     plot_mae(i, k, domain_axs, maes)
                     class_maes.append(maes)
-                anova_tukey(class_maes)
+                anova_tukey(class_maes, models)
                 i += 1
 
         domain_axs[0].axhline(human_measured_mae[d], color=black, alpha=0.3)
@@ -534,7 +534,7 @@ def esd_by_class(cfg):
 
 def metrics_hptune():
 
-    open(f'../results/figs/metrics_hptune.txt', 'w')  # delete metrics file if it exists
+    open(f'../results/textfiles/metrics_hptune.txt', 'w')  # delete metrics file if it exists
 
     exp_dict = {'preprocessing': ['targetRR_ood', 'pad', 'normdata', 'normIN', 'padnormdata', 'padnormIN'],
                 'learningrate': ['targetRR_ood', 'lowLR', 'highLR'],
@@ -584,7 +584,7 @@ def metrics_hptune():
                 axs[i].set_xticklabels([])
                 axs[i].set_xticks(range(len(x_vars)))
             for j, x in enumerate(x_vars):
-                with open(f'../results/figs/metrics_hptune.txt', 'a') as sys.stdout:
+                with open(f'../results/textfiles/metrics_hptune.txt', 'a') as sys.stdout:
                     print(f'----{y}, {x}----')
                     for m, c in enumerate(cfg_names):
                         keys = [k for k in reports.keys() if f'{c}-' in k]
@@ -604,7 +604,7 @@ def metrics_hptune():
 
 def metrics_hitloop():
 
-    open(f'../results/figs/metrics_hitloop.txt', 'w')  # delete metrics file if it exists
+    open(f'../results/textfiles/metrics_hitloop.txt', 'w')  # delete metrics file if it exists
 
     offset = (-0.15, -0.05, 0.05, 0.15)
     replicates = 5
@@ -661,17 +661,21 @@ def metrics_hitloop():
                 d_axs[i].set_xticklabels([])
                 d_axs[i].set_xticks(range(len(labels)))
             for j, x in enumerate(labels):
-                with open(f'../results/figs/metrics_hitloop.txt', 'a') as sys.stdout:
+                with open(f'../results/textfiles/metrics_hitloop.txt', 'a') as sys.stdout:
                     print(f'----{domain}, {y}, {x}----')
+                    replicate_values_all_models = []
                     for z, m in enumerate(models):
                         keys = [k for k in reports[domain].keys() if f'{m}-' in k]
-                        y_avg = np.mean([reports[domain][k][x][y] for k in keys])
-                        y_std = np.std([reports[domain][k][x][y] for k in keys], ddof=1)
+                        replicate_values = [reports[domain][k][x][y] for k in keys]
+                        replicate_values_all_models.append(replicate_values)
+                        y_avg = np.mean(replicate_values)
+                        y_std = np.std(replicate_values, ddof=1)
                         d_axs[i].errorbar(j + offset[z], y_avg, y_std, color=colors[z], ecolor=colors[z], marker=markers[z], capsize=2)
                         print(f'{m}: {y_avg*100:.2f} ± {y_std*100:.2f}')
                     if x in relabel_df['olabel_group'].unique():  # JC didn't have any originally labeled salp pellets or rhizaria
                         d_axs[i].hlines(relabel_report[x][y], j + min(offset), j + max(offset), color=black, alpha=0.3)
                         print(f'relabel: {relabel_report[x][y]:.2f}')
+                    anova_tukey(replicate_values_all_models, models)
 
 
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
@@ -881,6 +885,6 @@ if __name__ == '__main__':
 
     # flux_comparison_human_measured()
     # flux_comparison_by_class()
-    # metrics_hitloop()
-    flux_profiles()
+    metrics_hitloop()
+    # flux_profiles()
 
