@@ -1,6 +1,6 @@
 # mpic
 
-Marine particle image classification. Images were collected during five different sampling campaigns (i.e., domains), which are referred to as *FC*, *FO*, *JC*, *RR*, and *SR*. Our goal is to show how images collected from a set of domains can be used to predict labels for images from another domain (i.e., out-of-domain or OOD inference). Note that the usage instructions below remain to be elaborated in the future. Training data not yet included.
+Marine particle image classification. Images were collected during five different sampling campaigns (i.e., domains), which are referred to as *FC*, *FO*, *JC*, *RR*, and *SR*. Our goal is to show how images collected from a set of domains can be used to predict labels for images from another domain (i.e., out-of-domain or OOD inference).
 
 ## Installation (command line)
 Conda must be installed ([Miniconda](https://docs.conda.io/projects/conda/en/latest/glossary.html#miniconda-glossary) recommended). After cloning the repository, create a new virtual environment and download all required dependencies:
@@ -31,7 +31,7 @@ python train_ensembles.py -i 0; python predict_ensembles.py -i 0
 ```
 
 ### Domain adaptation experiments
-Consider a single target domain. Train an out-of-domain model ensemble using images from all other domains. Use this ensemble to predict images from the target domain. Integrate a subset of in-domain predictions into the training set using several different approaches (to be elaborated). Retrain the model ensemble with both in- and out-of-domain images, and predict on any in-domain images not integrated into the testing set.
+Consider a single target domain. Train an out-of-domain model ensemble using images from all other domains. Use this ensemble to predict images from the target domain. Integrate a subset of in-domain predictions into the training set using several different approaches. Retrain the model ensemble with both in- and out-of-domain images, and predict on any in-domain images not integrated into the testing set.
 
 #### Train OOD model ensemble and use it to predict on the test/target set
 ```
