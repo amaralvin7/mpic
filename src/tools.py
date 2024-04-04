@@ -43,7 +43,7 @@ def load_json(filename):
 
 def load_metadata():
 
-    df = pd.read_csv('../../mpic_data/metadata.csv')
+    df = pd.read_csv('../data/metadata.csv')
     
     return df
 
