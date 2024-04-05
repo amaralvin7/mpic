@@ -579,7 +579,7 @@ def metrics_hptune():
                 df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
         
         for i, y in enumerate(y_vars):
-            axs[i].set_ylabel(y)
+            axs[i].set_ylabel(y.capitalize())
             if i != len(axs) - 1:
                 axs[i].set_xticklabels([])
                 axs[i].set_xticks(range(len(x_vars)))
@@ -656,7 +656,7 @@ def metrics_hitloop():
                 df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
         
         for i, y in enumerate(y_vars):
-            d_axs[i].set_ylabel(f'{y} ({domain})')
+            d_axs[i].set_ylabel(f'{y.capitalize()} ({domain})')
             if i != len(axs) - 1:
                 d_axs[i].set_xticklabels([])
                 d_axs[i].set_xticks(range(len(labels)))
@@ -877,7 +877,7 @@ if __name__ == '__main__':
     # draw_map()
     
     # training_plots()
-    # metrics_hptune()
+    metrics_hptune()
     # relabeling_results()
     
     # calculate_flux_df('RR')
