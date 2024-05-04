@@ -873,11 +873,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
-    # distribution_barplot()
+    distribution_barplot()
     # draw_map()
     
     # training_plots()
-    metrics_hptune()
+    # metrics_hptune()
     # relabeling_results()
     
     # calculate_flux_df('RR')
@@ -885,6 +885,6 @@ if __name__ == '__main__':
 
     # flux_comparison_human_measured()
     # flux_comparison_by_class()
-    metrics_hitloop()
+    # metrics_hitloop()
     # flux_profiles()
 
