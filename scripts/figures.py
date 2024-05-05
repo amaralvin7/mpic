@@ -106,7 +106,7 @@ def distribution_barplot():
         axs[i].bar(ind, df['JC'], width, color=vermillion)
         axs[i].bar(ind+width*1, df['RR'], width, color=blue)
         axs[i].bar(ind+width*2, df['SR'], width, color=green)
-        axs[i].set_xticks(ind, df.index.values, rotation=45, ha='right')
+        axs[i].set_xticks(ind, [c.replace('_', ' ') for c in df.index.values], rotation=45, ha='right')
         axs[i].axvline(8.42, c=black, ls=':')
         
         if i == 0:
@@ -319,7 +319,7 @@ def flux_comparison_by_class():
 
     open(f'../results/textfiles/flux_maes.txt', 'w')  # delete flux_maes file if it exists
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
-    mae_x_vars = ['measured', 'total'] + classes
+    mae_x_vars = ['measured', 'total'] + [c.replace('_', ' ') for c in classes]
     domains = ('RR', 'JC')
     human_measured_mae = flux_comparison_human_measured()
     flux_dict = {}
@@ -444,6 +444,9 @@ def flux_comparison_by_class():
     mae_fig.legend(lines, legend_text, ncol=len(legend_text), loc='outside upper center', frameon=False, handlelength=1)
     mae_fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)')   
 
+    for a in mae_axs.flatten():
+        if a.get_ylim()[0] > 0:
+            a.set_ylim(bottom=0)
     mae_fig.savefig(f'../results/figs/flux_comparison_mae.{image_format}', bbox_inches='tight')
     plt.close(mae_fig)
 
@@ -456,7 +459,7 @@ def relabeling_results():
         accuracy = n_matches / len(df) * 100
         
         return accuracy
-            
+    
     df = tools.load_metadata()
 
     for domain in ('RR', 'JC'):
@@ -555,7 +558,7 @@ def metrics_hptune():
         cfg_names = exp_dict[exp]
 
         fig, axs = plt.subplots(len(y_vars), 1, tight_layout=True, figsize=(10,5))
-        axs[-1].set_xticks(range(len(x_vars)), labels=x_vars, rotation=45)
+        axs[-1].set_xticks(range(len(x_vars)), labels=[c.replace('_', ' ') for c in x_vars], rotation=45)
         prediction_files = [f for f in os.listdir(f'../results/predictions') if f.split('-')[0] in cfg_names]
         reports = {}
 
@@ -680,7 +683,7 @@ def metrics_hitloop():
 
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(models)]
-    axs[-1].set_xticks(range(len(labels)), labels=labels, rotation=45)
+    axs[-1].set_xticks(range(len(labels)), labels=[c.replace('_', ' ') for c in labels], rotation=45)
     axs[0].legend(lines, legend_text, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
             frameon=False, handlelength=1)     
 
@@ -710,14 +713,17 @@ def softmax_histograms(cfg):
 
 def flux_comparison_human_measured():
     
-    fig, axs = plt.subplots(1, 2, tight_layout=True)
+    fig, ax = plt.subplots(1, 1, tight_layout=True)
     
-    fig.supxlabel('Measured flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
-    fig.supylabel('Human flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    fig.supxlabel('Flux, measured (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    fig.supylabel('Flux, human (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
 
     maes = {}
 
-    for i, domain in enumerate(('RR', 'JC')):
+    leg_lines = []
+    leg_text = []
+    
+    for domain in ('RR', 'JC'):
 
         df = pd.read_csv(f'../results/fluxes/{domain}.csv', index_col=False, low_memory=False)
 
@@ -738,14 +744,17 @@ def flux_comparison_human_measured():
             annot_flux_allsamples.append(annot_flux)
             
             color = get_domain_color(sdf['domain'].unique()[0])
-            axs[i].errorbar(meas_flux, annot_flux, xerr=meas_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+            ax.errorbar(meas_flux, annot_flux, xerr=meas_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
             
-        add_identity(axs[i], color=black, ls='--')
+        
         mae = mean_absolute_error(meas_flux_allsamples, annot_flux_allsamples)
         maes[domain] = mae
-        axs[i].text(0.98, 0.02, f'MAE: {mae:.2f}', ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
-        axs[i].text(0.02, 0.98, domain, ha='left', va='top', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
 
+        leg_lines.append(Line2D([0], [0], color=color, lw=6))
+        leg_text.append(f'{domain} (MAE = {mae:.2f})')
+
+    add_identity(ax, color=black, ls='--')
+    fig.legend(leg_lines, leg_text, ncol=1, loc=(0.73, 0.19), frameon=False, handlelength=1)
     fig.savefig(f'../results/figs/flux_comparison_human.{image_format}', bbox_inches='tight')
 
     return maes
@@ -788,7 +797,7 @@ def flux_profiles():
 
     ax_to_date = {0: [20180815], 1: [20180824], 2: [20180831],
                   3: [20210506, 20210508], 4: [20210514]}
-    epoch_labels = ['RR, Epoch 1', 'RR, Epoch 2', 'RR, Epoch 3', 'JC, Epoch 1', 'JC, Epoch 2']
+    epoch_labels = ['RR, dep. 1', 'RR, dep. 2', 'RR, dep. 3', 'JC, dep. 1', 'JC, dep. 2']
     jc_stts = ('JC5', 'JC6', 'JC7', 'JC8', 'JC21', 'JC22', 'JC23', 'JC24', 'JC25')
     xlims = [6, 6, 6, 15, 15]
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
@@ -850,7 +859,7 @@ def flux_profiles():
     
     lines = [Line2D([0], [0], color=c, lw=6) for c in colors]
     # leg_text = ('aggregate', 'long_pellet', 'salp_pellet', 'other')
-    leg_text = classes + ['measured']
+    leg_text = [c.replace('_', ' ') for c in classes] + ['measured']
     fig.legend(lines, leg_text, ncol=4, loc='outside upper center', frameon=False, handlelength=1)
     
     fig.savefig(f'../results/figs/flux_profiles.{image_format}', bbox_inches='tight')
@@ -875,14 +884,12 @@ if __name__ == '__main__':
 
     distribution_barplot()
     # draw_map()
-    
     # training_plots()
     # metrics_hptune()
+
     # relabeling_results()
-    
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
-
     # flux_comparison_human_measured()
     # flux_comparison_by_class()
     # metrics_hitloop()
