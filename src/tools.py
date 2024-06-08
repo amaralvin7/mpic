@@ -55,7 +55,8 @@ def get_model_names(list_id):
                1: ('targetRR_ood',),
                2: ('targetRR_top1k', 'targetRR_verify', 'targetRR_minboost'),
                3: ('targetJC_ood',),
-               4: ('targetJC_top1k', 'targetJC_verify', 'targetJC_minboost')}
+               4: ('targetJC_top1k', 'targetJC_verify', 'targetJC_minboost'),
+               5: ('targetUN_ood',)}
 
     return id_dict[list_id]
 

@@ -22,8 +22,9 @@ for d in cfg['train_domains']:
     filepaths = dataset.stratified_split(d_df, train_size)
     splits['train'].extend(filepaths[0])
     splits['val'].extend(filepaths[1])
-test_df = df.loc[df['domain'] == cfg['target_domain']]
-test_fps = test_df['label'] + '/' + test_df['filename']
-splits['test']= list(test_fps.values)
+if cfg['target_domain'] is not None:
+    test_df = df.loc[df['domain'] == cfg['target_domain']]
+    test_fps = test_df['label'] + '/' + test_df['filename']
+    splits['test']= list(test_fps.values)
 
 tools.write_json(splits, f'../data/{model_name}.json')
