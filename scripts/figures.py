@@ -716,7 +716,7 @@ def flux_comparison_human_measured():
     fig, ax = plt.subplots(1, 1, tight_layout=True)
     
     fig.supxlabel('Flux, measured (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
-    fig.supylabel('Flux, human (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    fig.supylabel('Flux, expert annotations (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
 
     maes = {}
 
@@ -882,7 +882,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     image_format = args.image_format
 
-    distribution_barplot()
+    # distribution_barplot()
     # draw_map()
     # training_plots()
     # metrics_hptune()
@@ -890,7 +890,7 @@ if __name__ == '__main__':
     # relabeling_results()
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
-    # flux_comparison_human_measured()
+    flux_comparison_human_measured()
     # flux_comparison_by_class()
     # metrics_hitloop()
     # flux_profiles()
