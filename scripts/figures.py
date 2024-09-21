@@ -94,7 +94,7 @@ def distribution_barplot():
     ind = np.arange(len(classes)) 
     width = 0.15
     
-    fig, axs = plt.subplots(2, 1, figsize=(9, 6), tight_layout=True)
+    fig, axs = plt.subplots(2, 1, figsize=(6, 5), tight_layout=True)
     fig.subplots_adjust(bottom=0.2)
     
     for i, normalize in enumerate((False, True)):
@@ -107,14 +107,15 @@ def distribution_barplot():
         axs[i].bar(ind+width*1, df['RR'], width, color=blue)
         axs[i].bar(ind+width*2, df['SR'], width, color=green)
         axs[i].set_xticks(ind, [c.replace('_', ' ') for c in df.index.values], rotation=45, ha='right')
+        axs[i].tick_params(axis='both', which='major', labelsize=12)
         axs[i].axvline(8.42, c=black, ls=':')
         
         if i == 0:
-            axs[i].set_ylabel('Number of observations', fontsize=12)
+            axs[i].set_ylabel('Number\nof observations', fontsize=12)
             axs[i].set_yscale('log')
             axs[i].tick_params(labelbottom=False) 
         else:
-            axs[i].set_ylabel('Fraction of observations', fontsize=12)
+            axs[i].set_ylabel('Fraction\nof observations', fontsize=12)
 
     lines = [Line2D([0], [0], color=orange, lw=6),
              Line2D([0], [0], color=sky, lw=6),
@@ -123,9 +124,9 @@ def distribution_barplot():
              Line2D([0], [0], color=green, lw=6)]
     labels = ['FC', 'FO', 'JC', 'RR', 'SR']
     axs[0].legend(lines, labels, ncol=6, bbox_to_anchor=(0.5, 1.02), loc='lower center',
-              frameon=False, handlelength=1)
+                  frameon=False, handlelength=1, fontsize=12)
         
-    plt.savefig(os.path.join('..', 'results', 'figs', f'distribution_barplot.{image_format}'), bbox_inches='tight')
+    plt.savefig(os.path.join('..', 'results', 'figs', f'distribution_barplot.{image_format}'), bbox_inches='tight', dpi=300)
     plt.close()
 
 
@@ -315,7 +316,7 @@ def flux_comparison_by_class():
         axs[i].set_xticks([])
         axs[i].set_xlim(-0.225, 0.225)
         if ii == 1:
-            axs[i].set_xlabel(mae_x_vars[i], rotation=45)
+            axs[i].set_xlabel(mae_x_vars[i], rotation=60, fontsize=12)
 
     open(f'../results/textfiles/flux_maes.txt', 'w')  # delete flux_maes file if it exists
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
@@ -323,11 +324,11 @@ def flux_comparison_by_class():
     domains = ('RR', 'JC')
     human_measured_mae = flux_comparison_human_measured()
     flux_dict = {}
-    mae_fig, mae_axs = plt.subplots(2, len(mae_x_vars), figsize=(12,5), layout='constrained')
+    mae_fig, mae_axs = plt.subplots(2, len(mae_x_vars), figsize=(8,4), layout='constrained')
 
     for ii, d in enumerate(domains):
 
-        mae_axs[ii][0].set_ylabel(d)
+        mae_axs[ii][0].set_ylabel(d, fontsize=12)
         df = pd.read_csv(f'../results/fluxes/{d}.csv', index_col=False, low_memory=False)
         samples = df['sample'].unique()
         if d == 'JC':
@@ -378,7 +379,7 @@ def flux_comparison_by_class():
 
                 total_flux_mean = np.mean([flux_dict[d][m][s]['model_total'][j] for j in range(replicates)])
                 total_flux_e = np.std([flux_dict[d][m][s]['model_total'][j] for j in range(replicates)], ddof=1)
-                axs[7].errorbar(flux_dict[d][m][s]['human_total'], total_flux_mean, yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
+                axs[7].errorbar(flux_dict[d][m][s]['human_total'], total_flux_mean, yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=2, capsize=2)
                 axs[8].errorbar(flux_dict[d][m][s]['measured'], total_flux_mean, xerr=flux_dict[d][m][s]['measured_e'], yerr=total_flux_e, c=color, fmt='o', elinewidth=1, ms=4, capsize=2)
 
 
@@ -390,7 +391,7 @@ def flux_comparison_by_class():
                     text_str = 'total'
                 else:
                     text_str = 'measured'
-                a.text(0.98, 0.02, text_str, ha='right', va='bottom', size=10, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
+                a.text(0.98, 0.02, text_str, ha='right', va='bottom', fontsize=12, transform=transforms.blended_transform_factory(axs[i].transAxes, axs[i].transAxes))
 
 
             fig.supxlabel('Human flux (mmol m$^{-2}$ d$^{-1}$)')
@@ -441,13 +442,13 @@ def flux_comparison_by_class():
     
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(legend_text)]
-    mae_fig.legend(lines, legend_text, ncol=len(legend_text), loc='outside upper center', frameon=False, handlelength=1)
-    mae_fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)')   
+    mae_fig.legend(lines, legend_text, ncol=len(legend_text), loc='outside upper center', frameon=False, handlelength=1, fontsize=12)
+    mae_fig.supylabel('MAE (mmol m$^{-2}$ d$^{-1}$)', fontsize=12)   
 
     for a in mae_axs.flatten():
         if a.get_ylim()[0] > 0:
             a.set_ylim(bottom=0)
-    mae_fig.savefig(f'../results/figs/flux_comparison_mae.{image_format}', bbox_inches='tight')
+    mae_fig.savefig(f'../results/figs/flux_comparison_mae.{image_format}', bbox_inches='tight', dpi=300)
     plt.close(mae_fig)
 
 
@@ -488,18 +489,18 @@ def draw_map():
     domains = ['FO', 'FO', 'FC', 'RR', 'JC', 'SR']
     cols = [get_domain_color(d) for d in domains]
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(6,5))
     ax = fig.add_subplot(1, 1, 1, projection=cartopy.crs.PlateCarree())
     ax.add_feature(cartopy.feature.LAND.with_scale('110m'), color='k', zorder=2)
     ax.set_extent([-160, 0, 10, 70], crs=cartopy.crs.PlateCarree())
-    gl = ax.gridlines(draw_labels=['left', 'bottom'], zorder=1)
+    ax.gridlines(draw_labels=['left', 'bottom'], zorder=1)
     # gl.xlines = False
 
     ax.scatter(lons, lats, color=cols, s=30, zorder=3)
     for i, d in enumerate(domains[1:]):
         ax.text(text_lons[i], text_lats[i], d, va='center', ha='center')
         
-    plt.savefig('../results/figs/map.pdf', bbox_inches='tight')
+    plt.savefig('../results/figs/map.pdf', bbox_inches='tight', dpi=300)
     plt.close()
 
 
@@ -617,7 +618,7 @@ def metrics_hitloop():
 
     domains = ('RR', 'JC')
     labels = ('aggregate', 'fiber', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet', 'swimmer', 'unidentifiable')
-    fig, axs = plt.subplots(len(y_vars) * len(domains), 1, layout='constrained', figsize=(10,10))
+    fig, axs = plt.subplots(len(y_vars) * len(domains), 1, layout='constrained', figsize=(6.5,6.5))
     axs_dict = {'RR': axs[:2], 'JC': axs[2:]}
     reports = {}
 
@@ -659,7 +660,7 @@ def metrics_hitloop():
                 df['label'], df['prediction'], output_dict=True, zero_division=0, labels=labels)
         
         for i, y in enumerate(y_vars):
-            d_axs[i].set_ylabel(f'{y.capitalize()} ({domain})')
+            d_axs[i].set_ylabel(f'{y.capitalize()} ({domain})', fontsize=12)
             if i != len(axs) - 1:
                 d_axs[i].set_xticklabels([])
                 d_axs[i].set_xticks(range(len(labels)))
@@ -683,11 +684,11 @@ def metrics_hitloop():
 
     legend_text = ('OOD', '+top1k', '+verify', '+minboost')
     lines = [Line2D([0], [0], color=colors[z], lw=6) for z, _ in enumerate(models)]
-    axs[-1].set_xticks(range(len(labels)), labels=[c.replace('_', ' ') for c in labels], rotation=45)
+    axs[-1].set_xticks(range(len(labels)), labels=[c.replace('_', ' ') for c in labels], rotation=45, fontsize=12)
     axs[0].legend(lines, legend_text, ncol=len(models), bbox_to_anchor=(0.5, 1.02), loc='lower center',
-            frameon=False, handlelength=1)     
+                  frameon=False, handlelength=1, fontsize=12)     
 
-    fig.savefig(f'../results/figs/metrics_hitloop.{image_format}')
+    fig.savefig(f'../results/figs/metrics_hitloop.{image_format}', dpi=300)
     plt.close(fig)
 
     
@@ -713,10 +714,10 @@ def softmax_histograms(cfg):
 
 def flux_comparison_human_measured():
     
-    fig, ax = plt.subplots(1, 1, tight_layout=True)
+    fig, ax = plt.subplots(1, 1, tight_layout=True, figsize=(5, 4))
     
-    fig.supxlabel('Flux, measured (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
-    fig.supylabel('Flux, expert annotations (mmol m$^{-2}$ d$^{-1}$)', fontsize=14)
+    ax.set_xlabel('Flux, measured (mmol m$^{-2}$ d$^{-1}$)', fontsize=12)
+    ax.set_ylabel('Flux, expert annotations (mmol m$^{-2}$ d$^{-1}$)', fontsize=12)
 
     maes = {}
 
@@ -754,8 +755,8 @@ def flux_comparison_human_measured():
         leg_text.append(f'{domain} (MAE = {mae:.2f})')
 
     add_identity(ax, color=black, ls='--')
-    fig.legend(leg_lines, leg_text, ncol=1, loc=(0.73, 0.19), frameon=False, handlelength=1)
-    fig.savefig(f'../results/figs/flux_comparison_human.{image_format}', bbox_inches='tight')
+    fig.legend(leg_lines, leg_text, ncol=1, loc=(0.6, 0.17), frameon=False, handlelength=1, fontsize=12)
+    fig.savefig(f'../results/figs/flux_comparison_human.{image_format}', bbox_inches='tight', dpi=300)
 
     return maes
 
@@ -803,9 +804,9 @@ def flux_profiles():
     classes = ['aggregate', 'long_pellet', 'mini_pellet', 'phytoplankton', 'rhizaria', 'salp_pellet', 'short_pellet']
     colors = [blue, orange, vermillion, green, radish, sky, grey, black]
     acceptable_depths = np.array([75, 100, 125, 150, 175, 200, 330, 500])
-    fig, axs_groups = plt.subplots(2, 5, layout='constrained')
-    fig.supylabel('Depth (m)')
-    fig.supxlabel('Flux (mmol m$^{-2}$ d$^{-1}$)')
+    fig, axs_groups = plt.subplots(2, 5, layout='constrained', figsize=(6,5))
+    fig.supylabel('Depth (m)', fontsize=12)
+    fig.supxlabel('Flux (mmol m$^{-2}$ d$^{-1}$)', fontsize=12)
 
     for i, axs in enumerate(axs_groups):
 
@@ -820,11 +821,11 @@ def flux_profiles():
             if i == 0:
                 axs[j].tick_params(labelbottom=False)
                 if j == 0:
-                    axs[j].set_ylabel('Model')
+                    axs[j].set_ylabel('Model', fontsize=12)
             else:
-                axs[j].set_xlabel(cl)
+                axs[j].set_xlabel(cl, fontsize=12)
                 if j == 0:
-                    axs[j].set_ylabel('Human')
+                    axs[j].set_ylabel('Human', fontsize=12)
             if j:
                 axs[j].tick_params(labelleft=False)
             epoch_df = domain_df.loc[domain_df['date'].isin(ax_to_date[j])].copy()
@@ -860,7 +861,7 @@ def flux_profiles():
     lines = [Line2D([0], [0], color=c, lw=6) for c in colors]
     # leg_text = ('aggregate', 'long_pellet', 'salp_pellet', 'other')
     leg_text = [c.replace('_', ' ') for c in classes] + ['measured']
-    fig.legend(lines, leg_text, ncol=4, loc='outside upper center', frameon=False, handlelength=1)
+    fig.legend(lines, leg_text, ncol=4, loc='outside upper center', frameon=False, handlelength=1, fontsize=12, columnspacing=1.2)
     
     fig.savefig(f'../results/figs/flux_profiles.{image_format}', bbox_inches='tight')
 
@@ -890,8 +891,8 @@ if __name__ == '__main__':
     # relabeling_results()
     # calculate_flux_df('RR')
     # calculate_flux_df('JC')
-    flux_comparison_human_measured()
+    # flux_comparison_human_measured()
     # flux_comparison_by_class()
     # metrics_hitloop()
-    # flux_profiles()
+    flux_profiles()
 
