@@ -4,7 +4,7 @@ Marine particle image classification. Images were collected during five differen
 See Amaral and Durkin (*L&O: Methods*, 2024)
 
 ## Citation
-Amaral, VJ, Durkin CA. 2024. A computer vision-based approach for estimating carbon fluxes from sinking particles in the ocean. *Limnology and Oceanography: Methods*. DOI: 10.1002/lom3.10665
+Amaral, VJ, Durkin, CA. 2024. A computer vision-based approach for estimating carbon fluxes from sinking particles in the ocean. *Limnology and Oceanography: Methods*. DOI: 10.1002/lom3.10665
 
 ## Installation (command line)
 Conda must be installed ([Miniconda](https://docs.conda.io/projects/conda/en/latest/glossary.html#miniconda-glossary) recommended). After cloning the repository, create a new virtual environment and download all required dependencies:
